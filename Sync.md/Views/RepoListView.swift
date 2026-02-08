@@ -1,0 +1,314 @@
+import SwiftUI
+
+struct RepoListView: View {
+    @Environment(AppState.self) private var state
+    @State private var showAddRepo = false
+    @State private var showSignOutConfirm = false
+    @State private var repoToDelete: UUID? = nil
+    @State private var showDeleteConfirm = false
+
+    var body: some View {
+        @Bindable var state = state
+
+        NavigationStack {
+            ZStack {
+                FloatingOrbs()
+
+                if state.repos.isEmpty {
+                    emptyState
+                } else {
+                    repoList
+                }
+            }
+            .navigationTitle("Sync.md")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showAddRepo = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(SyncTheme.primaryGradient)
+                            .frame(width: 36, height: 36)
+                    }
+                }
+
+                ToolbarItem(placement: .cancellationAction) {
+                    Menu {
+                        Section {
+                            Label("@\(state.gitHubUsername)", systemImage: "person.circle.fill")
+                        }
+
+                        Button(role: .destructive) {
+                            showSignOutConfirm = true
+                        } label: {
+                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                    } label: {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 36, height: 36)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                }
+            }
+            .sheet(isPresented: $showAddRepo) {
+                AddRepoView()
+            }
+            .navigationDestination(for: UUID.self) { repoID in
+                VaultView(repoID: repoID)
+            }
+            .confirmationDialog("Sign Out?", isPresented: $showSignOutConfirm, titleVisibility: .visible) {
+                Button("Sign Out", role: .destructive) {
+                    state.signOut()
+                }
+            } message: {
+                Text("This will remove all local repositories and sign you out.")
+            }
+            .confirmationDialog("Remove Repository?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+                Button("Remove", role: .destructive) {
+                    if let id = repoToDelete {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            state.removeRepo(id: id)
+                        }
+                    }
+                }
+            } message: {
+                Text("This will delete all local files for this repository. This cannot be undone.")
+            }
+            .alert("Error", isPresented: $state.showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(state.lastError ?? "Unknown error")
+            }
+        }
+    }
+
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color(hex: 0x3478F6, alpha: 0.2), .clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 80
+                        )
+                    )
+                    .frame(width: 160, height: 160)
+
+                ZStack {
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 72, height: 72)
+                        .shadow(color: Color(hex: 0x3478F6, alpha: 0.15), radius: 16, x: 0, y: 6)
+
+                    Image(systemName: "plus.rectangle.on.folder.fill")
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundStyle(SyncTheme.primaryGradient)
+                }
+            }
+            .staggeredAppear(index: 0)
+
+            VStack(spacing: 8) {
+                Text("No Repositories")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+
+                Text("Add a GitHub repository to start\nsyncing your markdown files.")
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .staggeredAppear(index: 1)
+
+            Button {
+                showAddRepo = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 18))
+                    Text("Add Repository")
+                }
+            }
+            .buttonStyle(LiquidButtonStyle(gradient: SyncTheme.primaryGradient))
+            .padding(.horizontal, 50)
+            .staggeredAppear(index: 2)
+
+            Spacer()
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: - Repo List
+
+    private var repoList: some View {
+        ScrollView {
+            LazyVStack(spacing: 14) {
+                ForEach(Array(state.repos.enumerated()), id: \.element.id) { index, repo in
+                    NavigationLink(value: repo.id) {
+                        repoCard(repo)
+                    }
+                    .tint(.primary)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            repoToDelete = repo.id
+                            showDeleteConfirm = true
+                        } label: {
+                            Label("Remove Repository", systemImage: "trash")
+                        }
+                    }
+                    .staggeredAppear(index: index)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 40)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    // MARK: - Repo Card
+
+    private func repoCard(_ repo: RepoConfig) -> some View {
+        let changeCount = state.changeCounts[repo.id] ?? 0
+        let isThisRepoSyncing = state.isSyncing && state.syncingRepoID == repo.id
+
+        return VStack(spacing: 14) {
+            // Header row
+            HStack(spacing: 14) {
+                // Icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: 0x3478F6, alpha: 0.15), Color(hex: 0x5856D6, alpha: 0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: "book.closed.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(SyncTheme.primaryGradient)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(repo.displayName)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .lineLimit(1)
+
+                    if let owner = repo.ownerName {
+                        Text(owner)
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Spacer()
+
+                if isThisRepoSyncing {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(SyncTheme.accent)
+                } else if changeCount > 0 {
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(Color(hex: 0xFF9500))
+                            .frame(width: 8, height: 8)
+                            .pulseEffect()
+                        Text("\(changeCount)")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color(hex: 0xFF9500))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(hex: 0xFF9500, alpha: 0.12), in: Capsule())
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+            }
+
+            // Status row
+            if isThisRepoSyncing {
+                HStack(spacing: 8) {
+                    Text(state.syncProgress)
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(SyncTheme.accent)
+                    Spacer()
+                }
+            } else if repo.isCloned {
+                Divider().opacity(0.4)
+
+                HStack(spacing: 0) {
+                    metadataItem(
+                        icon: "arrow.triangle.branch",
+                        value: repo.gitState.branch,
+                        color: SyncTheme.accent
+                    )
+
+                    Spacer()
+
+                    metadataItem(
+                        icon: "number",
+                        value: String(repo.gitState.commitSHA.prefix(7)),
+                        color: .secondary,
+                        monospaced: true
+                    )
+
+                    Spacer()
+
+                    metadataItem(
+                        icon: "clock.fill",
+                        value: relativeDate(repo.gitState.lastSyncDate),
+                        color: .secondary
+                    )
+                }
+            } else {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(hex: 0xFF9500))
+                    Text("Not yet cloned")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+            }
+        }
+        .glassCard(cornerRadius: 22, padding: 18)
+    }
+
+    // MARK: - Helpers
+
+    private func metadataItem(icon: String, value: String, color: Color, monospaced: Bool = false) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(color.opacity(0.7))
+            Text(value)
+                .font(monospaced
+                    ? .system(size: 13, weight: .medium, design: .monospaced)
+                    : .system(size: 13, weight: .medium, design: .rounded)
+                )
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func relativeDate(_ date: Date) -> String {
+        if date == .distantPast { return "Never" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}

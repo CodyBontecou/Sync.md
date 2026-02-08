@@ -1,0 +1,443 @@
+import SwiftUI
+
+struct VaultView: View {
+    @Environment(AppState.self) private var state
+    let repoID: UUID
+
+    @State private var showSettings = false
+    @State private var showCommitSheet = false
+
+    private var repo: RepoConfig? { state.repo(id: repoID) }
+    private var changeCount: Int { state.changeCounts[repoID] ?? 0 }
+    private var isThisRepoSyncing: Bool { state.isSyncing && state.syncingRepoID == repoID }
+
+    var body: some View {
+        @Bindable var state = state
+
+        ZStack {
+            FloatingOrbs()
+
+            if let repo = repo {
+                if repo.isCloned {
+                    clonedContent(repo)
+                } else if isThisRepoSyncing {
+                    cloningContent
+                } else {
+                    notClonedContent
+                }
+            } else {
+                ContentUnavailableView(
+                    "Repository Not Found",
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+            }
+        }
+        .navigationTitle(repo?.displayName ?? "Repository")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            if repo?.isCloned == true {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 36, height: 36)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showCommitSheet) {
+            GitControlSheet(repoID: repoID)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView(repoID: repoID)
+        }
+        .alert("Error", isPresented: $state.showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(state.lastError ?? "Unknown error")
+        }
+        .onAppear {
+            state.detectChanges(repoID: repoID)
+        }
+        .refreshable {
+            await state.pull(repoID: repoID)
+        }
+    }
+
+    // MARK: - Cloned Content
+
+    private func clonedContent(_ repo: RepoConfig) -> some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                statusHeroCard(repo)
+                    .staggeredAppear(index: 0)
+
+                syncActionsSection
+                    .staggeredAppear(index: 1)
+
+                if isThisRepoSyncing {
+                    syncProgressCard
+                        .transition(.asymmetric(
+                            insertion: .scale(scale: 0.95).combined(with: .opacity),
+                            removal: .scale(scale: 0.95).combined(with: .opacity)
+                        ))
+                }
+
+                filesLocationCard
+                    .staggeredAppear(index: 2)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 40)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    // MARK: - Status Hero Card
+
+    private func statusHeroCard(_ repo: RepoConfig) -> some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: 0x3478F6, alpha: 0.15), Color(hex: 0x5856D6, alpha: 0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: "book.closed.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(SyncTheme.primaryGradient)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(repo.displayName)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                    if let owner = repo.ownerName {
+                        Text(owner)
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+
+                if changeCount > 0 {
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(Color(hex: 0xFF9500))
+                            .frame(width: 8, height: 8)
+                            .pulseEffect()
+                        Text("\(changeCount)")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color(hex: 0xFF9500))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(hex: 0xFF9500, alpha: 0.12), in: Capsule())
+                }
+            }
+
+            Divider().opacity(0.5)
+
+            HStack(spacing: 0) {
+                metadataItem(
+                    icon: "arrow.triangle.branch",
+                    value: repo.gitState.branch,
+                    color: SyncTheme.accent
+                )
+
+                Spacer()
+
+                metadataItem(
+                    icon: "number",
+                    value: String(repo.gitState.commitSHA.prefix(7)),
+                    color: .secondary,
+                    monospaced: true
+                )
+
+                Spacer()
+
+                metadataItem(
+                    icon: "clock.fill",
+                    value: lastSyncText,
+                    color: .secondary
+                )
+            }
+        }
+        .glassCard(cornerRadius: 22, padding: 18)
+    }
+
+    private var lastSyncText: String {
+        guard let repo = repo else { return "Never" }
+        if repo.gitState.lastSyncDate == .distantPast {
+            return "Never"
+        }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: repo.gitState.lastSyncDate, relativeTo: Date())
+    }
+
+    private func metadataItem(icon: String, value: String, color: Color, monospaced: Bool = false) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(color.opacity(0.7))
+            Text(value)
+                .font(monospaced
+                    ? .system(size: 13, weight: .medium, design: .monospaced)
+                    : .system(size: 13, weight: .medium, design: .rounded)
+                )
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Sync Actions
+
+    private var syncActionsSection: some View {
+        VStack(spacing: 12) {
+            // Pull
+            Button {
+                Task { await state.pull(repoID: repoID) }
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(hex: 0x007AFF, alpha: 0.15), Color(hex: 0x5AC8FA, alpha: 0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "arrow.down.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(SyncTheme.pullGradient)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Pull")
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.primary)
+                        Text("Fetch remote changes")
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .glassCard(cornerRadius: 18, padding: 14)
+            }
+            .tint(.primary)
+            .disabled(state.isSyncing)
+            .opacity(state.isSyncing ? 0.6 : 1)
+
+            // Commit & Push
+            Button {
+                showCommitSheet = true
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(hex: 0x34C759, alpha: 0.15), Color(hex: 0x30D158, alpha: 0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(SyncTheme.pushGradient)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Commit & Push")
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.primary)
+                        Text("Push local changes to remote")
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if changeCount > 0 {
+                        Text("\(changeCount)")
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .frame(width: 26, height: 26)
+                            .background(SyncTheme.pushGradient, in: Circle())
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .glassCard(cornerRadius: 18, padding: 14)
+            }
+            .tint(.primary)
+            .disabled(state.isSyncing || changeCount == 0)
+            .opacity(state.isSyncing || changeCount == 0 ? 0.5 : 1)
+        }
+    }
+
+    // MARK: - Sync Progress
+
+    private var syncProgressCard: some View {
+        HStack(spacing: 14) {
+            ProgressView()
+                .controlSize(.regular)
+                .tint(SyncTheme.accent)
+
+            Text(state.syncProgress)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+
+            Spacer()
+        }
+        .glassCard(cornerRadius: 16, padding: 16)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: state.isSyncing)
+    }
+
+    // MARK: - Files Location
+
+    private var filesLocationCard: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(hex: 0x007AFF, alpha: 0.12))
+                    .frame(width: 44, height: 44)
+                Image(systemName: "folder.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(SyncTheme.accent)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Files Location")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                Text(state.vaultDisplayPath(for: repoID))
+                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+
+            Spacer()
+
+            Image(systemName: "arrow.up.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .glassCard(cornerRadius: 18, padding: 14)
+    }
+
+    // MARK: - Cloning In Progress
+
+    private var cloningContent: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color(hex: 0x3478F6, alpha: 0.25), .clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 70
+                        )
+                    )
+                    .frame(width: 140, height: 140)
+
+                ProgressView()
+                    .controlSize(.large)
+                    .tint(SyncTheme.accent)
+            }
+
+            VStack(spacing: 8) {
+                Text("Cloning Repository")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+
+                Text(state.syncProgress)
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            Spacer()
+            Spacer()
+        }
+    }
+
+    // MARK: - Not Cloned
+
+    private var notClonedContent: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color(hex: 0xFF9500, alpha: 0.2), .clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 70
+                        )
+                    )
+                    .frame(width: 140, height: 140)
+
+                ZStack {
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 72, height: 72)
+                        .shadow(color: Color(hex: 0xFF9500, alpha: 0.15), radius: 16, x: 0, y: 6)
+
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.system(size: 34, weight: .medium))
+                        .foregroundStyle(SyncTheme.pullGradient)
+                }
+            }
+
+            VStack(spacing: 8) {
+                Text("Not Cloned")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+
+                Text("This repository hasn't been cloned yet.\nTap below to download it.")
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button {
+                Task { await state.clone(repoID: repoID) }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "square.and.arrow.down.fill")
+                    Text("Clone Repository")
+                }
+            }
+            .buttonStyle(LiquidButtonStyle(gradient: SyncTheme.primaryGradient))
+            .disabled(state.isSyncing)
+            .opacity(state.isSyncing ? 0.6 : 1)
+            .padding(.horizontal, 50)
+
+            Spacer()
+            Spacer()
+        }
+    }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "syncmd-oauth-server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.2",
+    "@vercel/node": "^5.5.33",
+    "typescript": "^5.9.3"
+  }
+}
