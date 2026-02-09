@@ -9,6 +9,17 @@ struct Sync_mdApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .task {
+                    #if DEBUG
+                    // Allow injecting a GitHub PAT via environment variable for simulator testing.
+                    // Launch with: SIMCTL_CHILD_INJECT_PAT=ghp_xxx xcrun simctl launch booted <bundle-id>
+                    if let injectedPAT = ProcessInfo.processInfo.environment["INJECT_PAT"],
+                       !injectedPAT.isEmpty,
+                       appState.pat.isEmpty {
+                        await appState.signInWithPAT(token: injectedPAT)
+                    }
+                    #endif
+                }
                 .onOpenURL { url in
                     // x-callback-url from external apps (e.g. Obsidian plugin)
                     // Format: syncmd://x-callback-url/<action>?repo=<name>&x-success=<url>

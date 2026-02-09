@@ -45,6 +45,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    scrollbar-gutter: stable both-edges;
   }
 
   body {
@@ -277,6 +278,7 @@
   .phone-frame {
     position: relative;
     width: 280px;
+    margin: 0 auto;
     background: linear-gradient(180deg, #2a2a2e, #1a1a1e 50%, #2a2a2e);
     border-radius: 40px;
     padding: 8px;
@@ -301,15 +303,7 @@
   }
 
   .phone-notch {
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 28px;
-    background: #000;
-    border-radius: 0 0 16px 16px;
-    z-index: 2;
+    display: none;
   }
 
   /* ─── TICKER / SPECS BAR ─── */

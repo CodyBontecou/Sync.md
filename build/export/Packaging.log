@@ -1,0 +1,146 @@
+2026-02-09 17:46:41 +0000 [MT] Initial pipeline context: <IDEDistributionProcessingPipelineContext: 0x75f87b900; archive(resolved)="<IDEArchive: 0x75f578070>", distributionTask(resolved)="2", distributionDestination(resolved)="1", distributionMethod(resolved)="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team(resolved)="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	Chain (15, self inclusive):
+	<IDEDistributionProcessingPipelineContext: 0x75f87b900; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionProcessingPipelineContext: 0x75f87b300; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbfaf80; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbfaa80; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbfa800; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbfa580; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbfa300; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbfa080; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbf9e00; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbf8f00; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbf8c80; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbf8a00; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="<IDEProvisioningBasicTeam: 0x75df83160; teamID='67KC823C9A', teamName='(null)'>">
+	<IDEDistributionContext: 0x75fbf8780; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="(null)">
+	<IDEDistributionContext: 0x75fbf8000; archive = "<IDEArchive: 0x75f578070>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x75f8dbdd0>", team="(null)">
+	<IDEDistributionContext: 0x1010f18d0; archive = "<IDEArchive: 0x75f578070>", distributionMethod="(null)", team="(null)">
+</IDEDistributionProcessingPipelineContext: 0x75f87b900>
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionCreateDestRootStep
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionCopyItemStep
+2026-02-09 17:46:41 +0000 [MT] Running /usr/bin/ditto '-V' '/Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app' '/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root/Payload/Sync.md.app'
+2026-02-09 17:46:41 +0000  >>> Copying /Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app 
+2026-02-09 17:46:41 +0000  copying file ./_CodeSignature/CodeResources ... 
+2026-02-09 17:46:41 +0000  2775 bytes for ./_CodeSignature/CodeResources
+2026-02-09 17:46:41 +0000  copying file ./AppIcon60x60@2x.png ... 
+2026-02-09 17:46:41 +0000  3842 bytes for ./AppIcon60x60@2x.png
+2026-02-09 17:46:41 +0000  copying file ./Assets.car ... 
+2026-02-09 17:46:41 +0000  86936 bytes for ./Assets.car
+2026-02-09 17:46:41 +0000  copying file ./AppIcon76x76@2x~ipad.png ... 
+2026-02-09 17:46:41 +0000  4749 bytes for ./AppIcon76x76@2x~ipad.png
+2026-02-09 17:46:41 +0000  copying file ./Sync.md ... 
+2026-02-09 17:46:41 +0000  2283584 bytes for ./Sync.md
+2026-02-09 17:46:41 +0000  copying file ./embedded.mobileprovision ... 
+2026-02-09 17:46:41 +0000  12641 bytes for ./embedded.mobileprovision
+2026-02-09 17:46:41 +0000  copying file ./Info.plist ... 
+2026-02-09 17:46:41 +0000  1671 bytes for ./Info.plist
+2026-02-09 17:46:41 +0000  copying file ./PkgInfo ... 
+2026-02-09 17:46:41 +0000  8 bytes for ./PkgInfo
+2026-02-09 17:46:41 +0000 [MT] /usr/bin/ditto exited with 0
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionEmbedProfileStep
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionInfoPlistStep
+2026-02-09 17:46:41 +0000 [MT] Skipping setting DTXcodeBuildDistribution because toolsBuildVersionName was nil.
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionItemRemovalStep
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionAppThinningPlistStep
+2026-02-09 17:46:41 +0000 [MT] Skipping step: IDEDistributionAppThinningPlistStep because it said so
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionSymbolsStep
+2026-02-09 17:46:41 +0000 [MT] Writing /var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Symbols/ABF8EDBD-36FE-32AD-AD4F-52A266278375.symbols
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionCopyAppleProvidedContentStep
+2026-02-09 17:46:41 +0000 [MT] Running /usr/bin/ditto '-V' '/Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Signatures' '/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root/Signatures'
+2026-02-09 17:46:41 +0000  >>> Copying /Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Signatures 
+2026-02-09 17:46:41 +0000  copying file ./libgit2.xcframework-ios.signature ... 
+2026-02-09 17:46:41 +0000  390 bytes for ./libgit2.xcframework-ios.signature
+2026-02-09 17:46:41 +0000 [MT] /usr/bin/ditto exited with 0
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionAppThinningStep
+2026-02-09 17:46:41 +0000 [MT] Skipping step: IDEDistributionAppThinningStep because it said so
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionArchThinningStep
+2026-02-09 17:46:41 +0000 [MT] Archs to thin for item /Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app are []
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionODRStep
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionStripXattrsStep
+2026-02-09 17:46:41 +0000 [MT] Skipping stripping extended attributes because the codesign step will strip them.
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionCodesignStep
+2026-02-09 17:46:41 +0000 [MT] Entitlements for <IDEDistributionItem: 0x75dffd0e0; bundleID='bontecou.Sync-md', path='<DVTFilePath:0x75e8d9c80:'/Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x75dffd140; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x75ea027c0; name='Apple Development: Cody Russell Bontecou (GL679HC696)', hash='4CD247BB4C68F2163B96861B5933B26308191798', serialNumber='35C49BCFED1B10473D557F6A19E2B60A', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2026-01-16 14:25:27 +0000''>', entitlements='{
+    "application-identifier" = "67KC823C9A.bontecou.Sync-md";
+    "com.apple.developer.team-identifier" = 67KC823C9A;
+    "get-task-allow" = 1;
+}', teamID='67KC823C9A', identifier='bontecou.Sync-md', executablePath='<DVTFilePath:0x75dffca80:'/Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app/Sync.md'>', hardenedRuntime='0'>'>: {
+    "application-identifier" = "67KC823C9A.bontecou.Sync-md";
+    "beta-reports-active" = 1;
+    "com.apple.developer.team-identifier" = 67KC823C9A;
+    "get-task-allow" = 0;
+}
+2026-02-09 17:46:41 +0000 [MT] Associated App Clip Identifiers Filter: Skipping because "com.apple.developer.associated-appclip-app-identifiers" is not present
+2026-02-09 17:46:41 +0000 [MT] Entitlements for <IDEDistributionItem: 0x75dffd0e0; bundleID='bontecou.Sync-md', path='<DVTFilePath:0x75e8d9c80:'/Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x75dffd140; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x75ea00900; name='Apple Development: Cody Russell Bontecou (GL679HC696)', hash='4CD247BB4C68F2163B96861B5933B26308191798', serialNumber='35C49BCFED1B10473D557F6A19E2B60A', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2026-01-16 14:25:27 +0000''>', entitlements='{
+    "application-identifier" = "67KC823C9A.bontecou.Sync-md";
+    "com.apple.developer.team-identifier" = 67KC823C9A;
+    "get-task-allow" = 1;
+}', teamID='67KC823C9A', identifier='bontecou.Sync-md', executablePath='<DVTFilePath:0x75dffca80:'/Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app/Sync.md'>', hardenedRuntime='0'>'> are: {
+    "application-identifier" = "67KC823C9A.bontecou.Sync-md";
+    "beta-reports-active" = 1;
+    "com.apple.developer.team-identifier" = 67KC823C9A;
+    "get-task-allow" = 0;
+}
+2026-02-09 17:46:41 +0000 [MT] Writing entitlements for <IDEDistributionItem: 0x75dffd0e0; bundleID='bontecou.Sync-md', path='<DVTFilePath:0x75e8d9c80:'/Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x75dffd140; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x75ea00900; name='Apple Development: Cody Russell Bontecou (GL679HC696)', hash='4CD247BB4C68F2163B96861B5933B26308191798', serialNumber='35C49BCFED1B10473D557F6A19E2B60A', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2026-01-16 14:25:27 +0000''>', entitlements='{
+    "application-identifier" = "67KC823C9A.bontecou.Sync-md";
+    "com.apple.developer.team-identifier" = 67KC823C9A;
+    "get-task-allow" = 1;
+}', teamID='67KC823C9A', identifier='bontecou.Sync-md', executablePath='<DVTFilePath:0x75dffca80:'/Users/codybontecou/dev/Sync.md/build/Sync.md.xcarchive/Products/Applications/Sync.md.app/Sync.md'>', hardenedRuntime='0'>'> to: /var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/entitlements~~~3k6Ita
+2026-02-09 17:46:41 +0000 [MT] invoking codesign: <NSConcreteTask: 0x76017b700; launchPath='/usr/bin/codesign', arguments='(
+    "-f",
+    "-s",
+    95BB165FE2CE23D67A00C582BF092D0C51704C7B,
+    "--entitlements",
+    "/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/entitlements~~~3k6Ita",
+    "--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints",
+    "--generate-entitlement-der",
+    "--strip-disallowed-xattrs",
+    "-vvv",
+    "/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root/Payload/Sync.md.app"
+)'>
+2026-02-09 17:46:41 +0000 [MT] codesign output: /var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root/Payload/Sync.md.app: replacing existing signature
+/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root/Payload/Sync.md.app: signed app bundle with Mach-O thin (arm64) [bontecou.Sync-md]
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionZipODRItemStep
+2026-02-09 17:46:41 +0000 [MT] Skipping step: IDEDistributionZipODRItemStep because it said so
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionCreateIPAStep
+2026-02-09 17:46:41 +0000 [MT] Running /usr/bin/rsync '-8aPhhE' '/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Symbols' '--link-dest' '/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf' '/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root'
+2026-02-09 17:46:41 +0000  Symbols/
+Symbols/ABF8EDBD-36FE-32AD-AD4F-52A266278375.symbols
+2026-02-09 17:46:41 +0000 [MT] /usr/bin/rsync exited with 0
+2026-02-09 17:46:41 +0000 [MT] Running /usr/bin/ditto '-V' '-c' '-k' '--norsrc' '/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root' '/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Packages/Sync.md.ipa'
+2026-02-09 17:46:41 +0000  >>> Copying /var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root 
+2026-02-09 17:46:41 +0000  copying file ./Signatures/libgit2.xcframework-ios.signature ... 
+2026-02-09 17:46:41 +0000  390 bytes for ./Signatures/libgit2.xcframework-ios.signature
+2026-02-09 17:46:41 +0000  copying file ./Payload/Sync.md.app/_CodeSignature/CodeResources ... 
+2026-02-09 17:46:41 +0000  2775 bytes for ./Payload/Sync.md.app/_CodeSignature/CodeResources
+2026-02-09 17:46:41 +0000  copying file ./Payload/Sync.md.app/AppIcon60x60@2x.png ... 
+2026-02-09 17:46:41 +0000  3842 bytes for ./Payload/Sync.md.app/AppIcon60x60@2x.png
+2026-02-09 17:46:41 +0000  copying file ./Payload/Sync.md.app/Assets.car ... 
+2026-02-09 17:46:41 +0000  86936 bytes for ./Payload/Sync.md.app/Assets.car
+2026-02-09 17:46:41 +0000  copying file ./Payload/Sync.md.app/AppIcon76x76@2x~ipad.png ... 
+2026-02-09 17:46:41 +0000  4749 bytes for ./Payload/Sync.md.app/AppIcon76x76@2x~ipad.png
+2026-02-09 17:46:41 +0000  copying file ./Payload/Sync.md.app/Sync.md ... 
+2026-02-09 17:46:41 +0000  2283648 bytes for ./Payload/Sync.md.app/Sync.md
+2026-02-09 17:46:41 +0000  copying file ./Payload/Sync.md.app/embedded.mobileprovision ... 
+2026-02-09 17:46:41 +0000  16382 bytes for ./Payload/Sync.md.app/embedded.mobileprovision
+2026-02-09 17:46:41 +0000  copying file ./Payload/Sync.md.app/Info.plist ... 
+2026-02-09 17:46:41 +0000  1671 bytes for ./Payload/Sync.md.app/Info.plist
+2026-02-09 17:46:41 +0000  copying file ./Payload/Sync.md.app/PkgInfo ... 
+2026-02-09 17:46:41 +0000  8 bytes for ./Payload/Sync.md.app/PkgInfo
+2026-02-09 17:46:41 +0000  copying file ./Symbols/ABF8EDBD-36FE-32AD-AD4F-52A266278375.symbols ... 
+2026-02-09 17:46:41 +0000  6613668 bytes for ./Symbols/ABF8EDBD-36FE-32AD-AD4F-52A266278375.symbols
+2026-02-09 17:46:41 +0000 [MT] /usr/bin/ditto exited with 0
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionAppStoreInformationStep
+2026-02-09 17:46:41 +0000 [MT] Skipping step: IDEDistributionAppStoreInformationStep because it said so
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionGenerateProcessedDistributionItems
+2026-02-09 17:46:41 +0000 [MT] IDEDistributionItem init <DVTFilePath:0x75dffef40:'/var/folders/dj/3srkns7n7qxb2kp1vxb_4xjm0000gn/T/XcodeDistPipeline.~~~T8R0Xf/Root/Payload/Sync.md.app'>
+2026-02-09 17:46:41 +0000 [MT] Processing step: IDEDistributionCreateManifestStep
+2026-02-09 17:46:41 +0000 [MT] Skipping step: IDEDistributionCreateManifestStep because it said so
