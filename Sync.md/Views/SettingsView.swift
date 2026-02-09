@@ -10,18 +10,8 @@ struct SettingsView: View {
     @State private var authorName: String = ""
     @State private var authorEmail: String = ""
     @State private var vaultName: String = ""
-    @State private var autoSyncEnabled: Bool = false
-    @State private var autoSyncInterval: TimeInterval = 300
     @State private var showRemoveConfirm = false
     @State private var showFolderPicker = false
-
-    private static let intervalOptions: [(String, TimeInterval)] = [
-        ("1 minute", 60),
-        ("5 minutes", 300),
-        ("15 minutes", 900),
-        ("30 minutes", 1800),
-        ("1 hour", 3600),
-    ]
 
     private var repo: RepoConfig? { state.repo(id: repoID) }
 
@@ -118,73 +108,9 @@ struct SettingsView: View {
                         }
                         .staggeredAppear(index: 2)
 
-                        // Auto-Sync Section
-                        if let repo = repo, repo.isCloned {
-                            settingsSection(title: "Auto-Sync", icon: "arrow.triangle.2.circlepath", iconColor: SyncTheme.accent) {
-                                VStack(spacing: 14) {
-                                    HStack {
-                                        Text("Enabled")
-                                            .font(.system(size: 15, weight: .medium, design: .rounded))
-                                            .foregroundStyle(.secondary)
-                                        Spacer()
-                                        Toggle("", isOn: $autoSyncEnabled)
-                                            .labelsHidden()
-                                            .tint(SyncTheme.accent)
-                                    }
-
-                                    if autoSyncEnabled {
-                                        Divider().opacity(0.3)
-
-                                        HStack {
-                                            Text("Interval")
-                                                .font(.system(size: 15, weight: .medium, design: .rounded))
-                                                .foregroundStyle(.secondary)
-                                            Spacer()
-                                            Menu {
-                                                ForEach(Self.intervalOptions, id: \.1) { label, value in
-                                                    Button {
-                                                        autoSyncInterval = value
-                                                    } label: {
-                                                        HStack {
-                                                            Text(label)
-                                                            if autoSyncInterval == value {
-                                                                Image(systemName: "checkmark")
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            } label: {
-                                                HStack(spacing: 4) {
-                                                    Text(intervalLabel(for: autoSyncInterval))
-                                                        .font(.system(size: 15, design: .rounded))
-                                                        .foregroundStyle(.primary)
-                                                    Image(systemName: "chevron.up.chevron.down")
-                                                        .font(.system(size: 10, weight: .semibold))
-                                                        .foregroundStyle(.tertiary)
-                                                }
-                                            }
-                                        }
-
-                                        Divider().opacity(0.3)
-
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "info.circle")
-                                                .font(.system(size: 12))
-                                                .foregroundStyle(.tertiary)
-                                            Text("Automatically pulls remote changes and pushes local edits on a timer.")
-                                                .font(.system(size: 12, weight: .regular, design: .rounded))
-                                                .foregroundStyle(.tertiary)
-                                        }
-                                    }
-                                }
-                            }
-                            .staggeredAppear(index: 3)
-                        }
-
                         // Vault Info Section
                         if let repo = repo, repo.isCloned {
                             settingsSection(title: "Sync Info", icon: "info.circle.fill", iconColor: .secondary) {
-
                                 VStack(spacing: 14) {
                                     settingsRow(label: "Last Sync") {
                                         if repo.gitState.lastSyncDate == .distantPast {
@@ -215,7 +141,7 @@ struct SettingsView: View {
                                     }
                                 }
                             }
-                            .staggeredAppear(index: 4)
+                            .staggeredAppear(index: 3)
                         }
 
                         // Actions
@@ -236,7 +162,7 @@ struct SettingsView: View {
                             }
                         }
                         .padding(.horizontal, 20)
-                        .staggeredAppear(index: 5)
+                        .staggeredAppear(index: 4)
                     }
                     .padding(.top, 12)
                     .padding(.bottom, 40)
@@ -270,8 +196,6 @@ struct SettingsView: View {
                     authorName = repo.authorName
                     authorEmail = repo.authorEmail
                     vaultName = repo.vaultFolderName
-                    autoSyncEnabled = repo.autoSyncEnabled
-                    autoSyncInterval = repo.autoSyncInterval
                 }
             }
             .alert("Remove Repository?", isPresented: $showRemoveConfirm) {
@@ -333,12 +257,6 @@ struct SettingsView: View {
         return formatter.localizedString(for: date, relativeTo: Date())
     }
 
-    // MARK: - Helpers (Auto-Sync)
-
-    private func intervalLabel(for interval: TimeInterval) -> String {
-        Self.intervalOptions.first { $0.1 == interval }?.0 ?? "\(Int(interval / 60)) min"
-    }
-
     // MARK: - Save
 
     private func saveChanges() {
@@ -346,8 +264,6 @@ struct SettingsView: View {
             repo.branch = branch
             repo.authorName = authorName
             repo.authorEmail = authorEmail
-            repo.autoSyncEnabled = autoSyncEnabled
-            repo.autoSyncInterval = autoSyncInterval
         }
     }
 }

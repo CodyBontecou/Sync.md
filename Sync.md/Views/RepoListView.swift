@@ -238,18 +238,6 @@ struct RepoListView: View {
                     Spacer()
                 }
             } else if repo.isCloned {
-                if repo.autoSyncEnabled {
-                    HStack(spacing: 5) {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(SyncTheme.accent.opacity(0.7))
-                        Text("Auto-sync")
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
-                            .foregroundStyle(SyncTheme.accent.opacity(0.7))
-                        Spacer()
-                    }
-                }
-
                 Divider().opacity(0.4)
 
                 HStack(spacing: 0) {

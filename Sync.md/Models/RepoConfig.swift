@@ -10,8 +10,6 @@ struct RepoConfig: Codable, Identifiable, Equatable {
     var vaultFolderName: String
     var customVaultBookmarkData: Data?
     var gitState: GitState
-    var autoSyncEnabled: Bool
-    var autoSyncInterval: TimeInterval  // seconds between sync cycles
 
     init(
         id: UUID = UUID(),
@@ -21,9 +19,7 @@ struct RepoConfig: Codable, Identifiable, Equatable {
         authorEmail: String,
         vaultFolderName: String,
         customVaultBookmarkData: Data? = nil,
-        gitState: GitState = .empty,
-        autoSyncEnabled: Bool = false,
-        autoSyncInterval: TimeInterval = 300  // default 5 minutes
+        gitState: GitState = .empty
     ) {
         self.id = id
         self.repoURL = repoURL
@@ -33,8 +29,6 @@ struct RepoConfig: Codable, Identifiable, Equatable {
         self.vaultFolderName = vaultFolderName
         self.customVaultBookmarkData = customVaultBookmarkData
         self.gitState = gitState
-        self.autoSyncEnabled = autoSyncEnabled
-        self.autoSyncInterval = autoSyncInterval
     }
 
     // MARK: - Computed
