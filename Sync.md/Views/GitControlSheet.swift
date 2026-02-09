@@ -28,9 +28,9 @@ struct GitControlSheet: View {
                         pullCard
                             .staggeredAppear(index: 1)
 
-                        // Push Action (hidden for now)
-                        // pushCard
-                        //     .staggeredAppear(index: 2)
+                        // Push Action
+                        pushCard
+                            .staggeredAppear(index: 2)
 
                         // Progress
                         if isThisRepoSyncing {

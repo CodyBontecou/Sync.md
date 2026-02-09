@@ -8,6 +8,7 @@ struct VaultView: View {
     @State private var showCommitSheet = false
 
     private var repo: RepoConfig? { state.repo(id: repoID) }
+    private var changeCount: Int { state.changeCounts[repoID] ?? 0 }
     private var isThisRepoSyncing: Bool { state.isSyncing && state.syncingRepoID == repoID }
 
     var body: some View {
@@ -228,10 +229,54 @@ struct VaultView: View {
             .disabled(state.isSyncing)
             .opacity(state.isSyncing ? 0.6 : 1)
 
-            // Commit & Push (hidden for now)
-            // Button {
-            //     showCommitSheet = true
-            // } label: { ... }
+            // Commit & Push
+            Button {
+                showCommitSheet = true
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [SyncTheme.accent.opacity(0.15), SyncTheme.accent.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(SyncTheme.pushGradient)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Commit & Push")
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.primary)
+                        Text("Push local changes to remote")
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if changeCount > 0 {
+                        Text("\(changeCount)")
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .frame(width: 26, height: 26)
+                            .background(SyncTheme.pushGradient, in: Circle())
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .glassCard(cornerRadius: 18, padding: 14)
+            }
+            .tint(.primary)
+            .disabled(state.isSyncing || changeCount == 0)
+            .opacity(state.isSyncing || changeCount == 0 ? 0.5 : 1)
 
         }
     }
