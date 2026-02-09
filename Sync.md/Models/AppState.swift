@@ -1,6 +1,6 @@
 import Foundation
 import SwiftUI
-import CryptoKit
+import CommonCrypto
 
 // MARK: - App State
 
@@ -22,6 +22,8 @@ final class AppState {
 
     var isSignedIn: Bool = false
     var gitHubUsername: String = ""
+    var gitHubDisplayName: String = ""
+    var gitHubAvatarURL: String = ""
     var defaultAuthorName: String = ""
     var defaultAuthorEmail: String = ""
     var gitHubRepos: [GitHubRepo] = []
@@ -62,6 +64,8 @@ final class AppState {
     private func loadState() {
         let defaults = UserDefaults.standard
         gitHubUsername = defaults.string(forKey: "gitHubUsername") ?? ""
+        gitHubDisplayName = defaults.string(forKey: "gitHubDisplayName") ?? ""
+        gitHubAvatarURL = defaults.string(forKey: "gitHubAvatarURL") ?? ""
         defaultAuthorName = defaults.string(forKey: "authorName") ?? ""
         defaultAuthorEmail = defaults.string(forKey: "authorEmail") ?? ""
         isSignedIn = !pat.isEmpty
@@ -132,6 +136,8 @@ final class AppState {
     func saveGlobalSettings() {
         let defaults = UserDefaults.standard
         defaults.set(gitHubUsername, forKey: "gitHubUsername")
+        defaults.set(gitHubDisplayName, forKey: "gitHubDisplayName")
+        defaults.set(gitHubAvatarURL, forKey: "gitHubAvatarURL")
         defaults.set(defaultAuthorName, forKey: "authorName")
         defaults.set(defaultAuthorEmail, forKey: "authorEmail")
     }
@@ -247,7 +253,7 @@ final class AppState {
         for path in currentFiles {
             let url = vaultDir.appendingPathComponent(path)
             guard let data = try? Data(contentsOf: url) else { continue }
-            let hash = sha256(data)
+            let hash = gitBlobSHA1(data)
             if let storedSHA = repo.gitState.blobSHAs[path] {
                 if hash != storedSHA { count += 1 }
             } else {
@@ -290,7 +296,7 @@ final class AppState {
         for path in currentFiles {
             let url = vaultDir.appendingPathComponent(path)
             guard let data = try? Data(contentsOf: url) else { continue }
-            let hash = sha256(data)
+            let hash = gitBlobSHA1(data)
             if let storedSHA = repo.gitState.blobSHAs[path] {
                 if hash != storedSHA {
                     changes.append(FileChange(path: path, type: .modified, content: data))
@@ -309,9 +315,21 @@ final class AppState {
         return changes
     }
 
-    private func sha256(_ data: Data) -> String {
-        let digest = SHA256.hash(data: data)
-        return digest.map { String(format: "%02x", $0) }.joined()
+    /// Compute the Git blob SHA-1 hash for file content.
+    /// Git hashes blobs as: SHA1("blob <size>\0" + <content>)
+    private func gitBlobSHA1(_ data: Data) -> String {
+        let header = "blob \(data.count)\0"
+        var hash = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+        var ctx = CC_SHA1_CTX()
+        CC_SHA1_Init(&ctx)
+        header.utf8.withContiguousStorageIfAvailable { buf in
+            CC_SHA1_Update(&ctx, buf.baseAddress, CC_LONG(buf.count))
+        }
+        data.withUnsafeBytes { buf in
+            CC_SHA1_Update(&ctx, buf.baseAddress, CC_LONG(buf.count))
+        }
+        CC_SHA1_Final(&hash, &ctx)
+        return hash.map { String(format: "%02x", $0) }.joined()
     }
 
     // MARK: - GitHub Service
@@ -543,6 +561,8 @@ final class AppState {
             syncProgress = "Fetching profile..."
             let user = try await GitHubService.fetchUser(token: token)
             gitHubUsername = user.login
+            gitHubDisplayName = user.name ?? user.login
+            gitHubAvatarURL = user.avatar_url ?? ""
             defaultAuthorName = user.name ?? user.login
 
             if let email = user.email, !email.isEmpty {
@@ -569,6 +589,8 @@ final class AppState {
             pat = token
             isSignedIn = true
             gitHubUsername = user.login
+            gitHubDisplayName = user.name ?? user.login
+            gitHubAvatarURL = user.avatar_url ?? ""
             defaultAuthorName = user.name ?? user.login
 
             if let email = user.email, !email.isEmpty {
@@ -600,18 +622,14 @@ final class AppState {
     }
 
     func signOut() {
-        for repo in repos {
-            clearCustomLocation(for: repo.id)
-        }
-        repos = []
-        changeCounts = [:]
         pat = ""
         isSignedIn = false
         gitHubUsername = ""
+        gitHubDisplayName = ""
+        gitHubAvatarURL = ""
         defaultAuthorName = ""
         defaultAuthorEmail = ""
         gitHubRepos = []
-        saveRepos()
         saveGlobalSettings()
     }
 

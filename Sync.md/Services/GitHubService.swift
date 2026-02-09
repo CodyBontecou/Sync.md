@@ -60,6 +60,16 @@ struct GitTreeCreate: Codable {
         enum CodingKeys: String, CodingKey {
             case path, mode, type, sha
         }
+
+        /// Always encode `sha`, even when nil.
+        /// GitHub requires explicit `"sha": null` to delete a file from the tree.
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(path, forKey: .path)
+            try container.encode(mode, forKey: .mode)
+            try container.encode(type, forKey: .type)
+            try container.encode(sha, forKey: .sha)   // encodes null when sha is nil
+        }
     }
     let base_tree: String?
     let tree: [Entry]
