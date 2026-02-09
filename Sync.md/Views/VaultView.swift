@@ -8,7 +8,6 @@ struct VaultView: View {
     @State private var showCommitSheet = false
 
     private var repo: RepoConfig? { state.repo(id: repoID) }
-    private var changeCount: Int { state.changeCounts[repoID] ?? 0 }
     private var isThisRepoSyncing: Bool { state.isSyncing && state.syncingRepoID == repoID }
 
     var body: some View {
@@ -128,21 +127,6 @@ struct VaultView: View {
                     }
                 }
                 Spacer()
-
-                if changeCount > 0 {
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(SyncTheme.accent)
-                            .frame(width: 8, height: 8)
-                            .pulseEffect()
-                        Text("\(changeCount)")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(SyncTheme.accent)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(SyncTheme.accent.opacity(0.12), in: Capsule())
-                }
             }
 
             Divider().opacity(0.5)

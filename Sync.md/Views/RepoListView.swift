@@ -188,7 +188,6 @@ struct RepoListView: View {
     // MARK: - Repo Card
 
     private func repoCard(_ repo: RepoConfig) -> some View {
-        let changeCount = state.changeCounts[repo.id] ?? 0
         let isThisRepoSyncing = state.isSyncing && state.syncingRepoID == repo.id
 
         return VStack(spacing: 14) {
@@ -229,19 +228,6 @@ struct RepoListView: View {
                     ProgressView()
                         .controlSize(.small)
                         .tint(SyncTheme.accent)
-                } else if changeCount > 0 {
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(SyncTheme.accent)
-                            .frame(width: 8, height: 8)
-                            .pulseEffect()
-                        Text("\(changeCount)")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(SyncTheme.accent)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(SyncTheme.accent.opacity(0.12), in: Capsule())
                 }
 
                 Image(systemName: "chevron.right")
