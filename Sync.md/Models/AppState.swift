@@ -86,6 +86,9 @@ final class AppState {
             resolveVaultBookmark(for: repo.id)
         }
 
+        // Validate that cloned repos still exist on disk
+        validateClonedRepos()
+
         // Detect changes for all cloned repos
         for repo in repos where repo.isCloned {
             detectChanges(repoID: repo.id)
@@ -240,6 +243,27 @@ final class AppState {
         }
     }
 
+    // MARK: - Filesystem Validation
+
+    /// Check all repos marked as cloned and reset any whose `.git` directory
+    /// has been deleted from the filesystem (e.g. via Files app).
+    func validateClonedRepos() {
+        var didChange = false
+        for (index, repo) in repos.enumerated() where repo.isCloned {
+            let vaultDir = vaultURL(for: repo.id)
+            let gitService = LocalGitService(localURL: vaultDir)
+
+            if !gitService.hasGitDirectory {
+                repos[index].gitState = .empty
+                changeCounts[repo.id] = 0
+                didChange = true
+            }
+        }
+        if didChange {
+            saveRepos()
+        }
+    }
+
     // MARK: - Change Detection
 
     func detectChanges(repoID: UUID) {
@@ -248,6 +272,11 @@ final class AppState {
         let gitService = LocalGitService(localURL: vaultDir)
 
         guard gitService.hasGitDirectory else {
+            // .git directory was removed — reset cloned state
+            if let idx = repoIndex(id: repoID) {
+                repos[idx].gitState = .empty
+                saveRepos()
+            }
             changeCounts[repoID] = 0
             return
         }
