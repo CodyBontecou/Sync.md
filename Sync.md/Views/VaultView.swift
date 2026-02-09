@@ -106,7 +106,7 @@ struct VaultView: View {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color(hex: 0x3478F6, alpha: 0.15), Color(hex: 0x5856D6, alpha: 0.1)],
+                                colors: [SyncTheme.blue.opacity(0.15), SyncTheme.blue.opacity(0.1)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -132,16 +132,16 @@ struct VaultView: View {
                 if changeCount > 0 {
                     HStack(spacing: 5) {
                         Circle()
-                            .fill(Color(hex: 0xFF9500))
+                            .fill(SyncTheme.accent)
                             .frame(width: 8, height: 8)
                             .pulseEffect()
                         Text("\(changeCount)")
                             .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color(hex: 0xFF9500))
+                            .foregroundStyle(SyncTheme.accent)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color(hex: 0xFF9500, alpha: 0.12), in: Capsule())
+                    .background(SyncTheme.accent.opacity(0.12), in: Capsule())
                 }
             }
 
@@ -212,7 +212,7 @@ struct VaultView: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color(hex: 0x007AFF, alpha: 0.15), Color(hex: 0x5AC8FA, alpha: 0.1)],
+                                    colors: [SyncTheme.blue.opacity(0.15), SyncTheme.blue.opacity(0.1)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -244,54 +244,11 @@ struct VaultView: View {
             .disabled(state.isSyncing)
             .opacity(state.isSyncing ? 0.6 : 1)
 
-            // Commit & Push
-            Button {
-                showCommitSheet = true
-            } label: {
-                HStack(spacing: 14) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(hex: 0x34C759, alpha: 0.15), Color(hex: 0x30D158, alpha: 0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 44, height: 44)
-                        Image(systemName: "arrow.up.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(SyncTheme.pushGradient)
-                    }
+            // Commit & Push (hidden for now)
+            // Button {
+            //     showCommitSheet = true
+            // } label: { ... }
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Commit & Push")
-                            .font(.system(size: 17, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.primary)
-                        Text("Push local changes to remote")
-                            .font(.system(size: 13, weight: .regular, design: .rounded))
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer()
-
-                    if changeCount > 0 {
-                        Text("\(changeCount)")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .frame(width: 26, height: 26)
-                            .background(SyncTheme.pushGradient, in: Circle())
-                    } else {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                .glassCard(cornerRadius: 18, padding: 14)
-            }
-            .tint(.primary)
-            .disabled(state.isSyncing || changeCount == 0)
-            .opacity(state.isSyncing || changeCount == 0 ? 0.5 : 1)
         }
     }
 
@@ -316,33 +273,46 @@ struct VaultView: View {
     // MARK: - Files Location
 
     private var filesLocationCard: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(hex: 0x007AFF, alpha: 0.12))
-                    .frame(width: 44, height: 44)
-                Image(systemName: "folder.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(SyncTheme.accent)
+        Button {
+            openInFilesApp()
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(SyncTheme.blue.opacity(0.12))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "folder.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(SyncTheme.accent)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Files Location")
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    Text(state.vaultDisplayPath(for: repoID))
+                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+
+                Spacer()
+
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.tertiary)
             }
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Files Location")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                Text(state.vaultDisplayPath(for: repoID))
-                    .font(.system(size: 12, weight: .regular, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
-
-            Spacer()
-
-            Image(systemName: "arrow.up.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.tertiary)
+            .glassCard(cornerRadius: 18, padding: 14)
         }
-        .glassCard(cornerRadius: 18, padding: 14)
+        .tint(.primary)
+    }
+
+    private func openInFilesApp() {
+        let vaultDir = state.vaultURL(for: repoID)
+        let filesURL = URL(string: "shareddocuments://\(vaultDir.path)")
+        if let filesURL, UIApplication.shared.canOpenURL(filesURL) {
+            UIApplication.shared.open(filesURL)
+        }
     }
 
     // MARK: - Cloning In Progress
@@ -355,7 +325,7 @@ struct VaultView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color(hex: 0x3478F6, alpha: 0.25), .clear],
+                            colors: [SyncTheme.blue.opacity(0.25), .clear],
                             center: .center,
                             startRadius: 0,
                             endRadius: 70
@@ -393,7 +363,7 @@ struct VaultView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color(hex: 0xFF9500, alpha: 0.2), .clear],
+                            colors: [SyncTheme.accent.opacity(0.2), .clear],
                             center: .center,
                             startRadius: 0,
                             endRadius: 70
@@ -405,7 +375,7 @@ struct VaultView: View {
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
                         .fill(.ultraThinMaterial)
                         .frame(width: 72, height: 72)
-                        .shadow(color: Color(hex: 0xFF9500, alpha: 0.15), radius: 16, x: 0, y: 6)
+                        .shadow(color: SyncTheme.accent.opacity(0.15), radius: 16, x: 0, y: 6)
 
                     Image(systemName: "arrow.down.circle.fill")
                         .font(.system(size: 34, weight: .medium))

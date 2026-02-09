@@ -117,7 +117,7 @@ struct GitCompareResponse: Codable {
 enum GitHubError: LocalizedError {
     case invalidURL
     case unauthorized
-    case notFound
+    case notFound(String)       // carries the raw GitHub response for debugging
     case rateLimited
     case conflict(String)
     case apiError(Int, String)
@@ -127,8 +127,8 @@ enum GitHubError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL: return "Invalid repository URL"
-        case .unauthorized: return "Invalid Personal Access Token. Check your PAT in settings."
-        case .notFound: return "Repository not found. Check the URL."
+        case .unauthorized: return "Invalid or expired token. Sign out and sign in again."
+        case .notFound(let detail): return "Not found: \(detail)"
         case .rateLimited: return "GitHub API rate limit exceeded. Try again later."
         case .conflict(let msg): return "Conflict: \(msg)"
         case .apiError(let code, let msg): return "GitHub API error (\(code)): \(msg)"
@@ -252,10 +252,14 @@ final class GitHubService: Sendable {
         case 401, 403:
             throw GitHubError.unauthorized
         case 404:
-            throw GitHubError.notFound
+            let detail = String(data: data, encoding: .utf8) ?? "No details"
+            throw GitHubError.notFound(detail)
         case 409:
             let msg = String(data: data, encoding: .utf8) ?? "Unknown conflict"
             throw GitHubError.conflict(msg)
+        case 422:
+            let msg = String(data: data, encoding: .utf8) ?? "Validation failed"
+            throw GitHubError.apiError(422, msg)
         case 429:
             throw GitHubError.rateLimited
         default:
@@ -475,6 +479,25 @@ final class GitHubService: Sendable {
     ) async throws -> (commitSHA: String, treeSHA: String, newBlobSHAs: [String: String]) {
         guard !changes.isEmpty else { throw GitHubError.noChanges }
 
+        // Validate stored state before making API calls
+        guard !currentCommitSHA.isEmpty, !currentTreeSHA.isEmpty else {
+            throw GitHubError.apiError(0, "Repository not synced. Please pull or re-clone first.")
+        }
+
+        // Check that the remote hasn't diverged (fast-forward check)
+        let latestRemoteSHA: String
+        do {
+            latestRemoteSHA = try await getRef(branch: branch)
+        } catch {
+            throw GitHubError.apiError(0, "Failed to read remote branch '\(branch)': \(error.localizedDescription)")
+        }
+
+        if latestRemoteSHA != currentCommitSHA {
+            throw GitHubError.conflict(
+                "Remote branch '\(branch)' has new commits. Pull first, then push."
+            )
+        }
+
         var newBlobSHAs: [String: String] = [:]
 
         // 1. Create blobs for added/modified files
@@ -497,9 +520,6 @@ final class GitHubService: Sendable {
             }
             for try await (path, blobSHA, changeType) in group {
                 if changeType == .deleted {
-                    // To delete a file, set sha to nil in tree entry
-                    // Actually, we need to create tree without the deleted files
-                    // Using base_tree and omitting doesn't work. We need sha: null
                     treeEntries.append(GitTreeCreate.Entry(
                         path: path,
                         mode: "100644",
@@ -544,7 +564,7 @@ final class GitHubService: Sendable {
         do {
             try await updateRef(branch: branch, sha: newCommitSHA)
         } catch {
-            throw GitHubError.apiError(0, "Failed to update ref: \(error.localizedDescription)")
+            throw GitHubError.apiError(0, "Failed to update ref — remote may have advanced. Pull and retry. (\(error.localizedDescription))")
         }
 
         return (newCommitSHA, newTreeSHA, newBlobSHAs)

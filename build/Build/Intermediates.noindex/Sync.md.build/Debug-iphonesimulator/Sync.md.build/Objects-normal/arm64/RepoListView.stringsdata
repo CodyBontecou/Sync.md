@@ -1,0 +1,152 @@
+{
+  "source": "/Users/codybontecou/dev/Sync.md/Sync.md/Views/RepoListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Sign Out?",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove Repository?",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "@%@",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign Out",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign In",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign Out",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "This will sign you out of GitHub. Your local repositories will be kept.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "This will delete all local files for this repository. This cannot be undone.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Repositories",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add a GitHub repository to start\nsyncing your markdown files.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Repository",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove Repository",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 175
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 238
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not yet cloned",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Repository",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 319
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -48,7 +48,7 @@ struct SettingsView: View {
                         .staggeredAppear(index: 0)
 
                         // Git Author Section
-                        settingsSection(title: "Git Author", icon: "person.fill", iconColor: Color(hex: 0x5856D6)) {
+                        settingsSection(title: "Git Author", icon: "person.fill", iconColor: SyncTheme.accent) {
                             VStack(spacing: 14) {
                                 settingsRow(label: "Name") {
                                     TextField("Your Name", text: $authorName)
@@ -70,7 +70,7 @@ struct SettingsView: View {
                         .staggeredAppear(index: 1)
 
                         // Storage Section
-                        settingsSection(title: "Storage", icon: "externaldrive.fill", iconColor: Color(hex: 0x30D158)) {
+                        settingsSection(title: "Storage", icon: "externaldrive.fill", iconColor: SyncTheme.accent) {
                             VStack(spacing: 14) {
                                 if state.isUsingCustomLocation(for: repoID) {
                                     settingsRow(label: "Location") {

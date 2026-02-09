@@ -6,7 +6,7 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if state.isSignedIn {
+            if state.isSignedIn || !state.repos.isEmpty {
                 RepoListView()
             } else {
                 SetupView()

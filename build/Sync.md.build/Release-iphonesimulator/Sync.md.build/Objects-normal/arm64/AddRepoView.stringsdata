@@ -1,0 +1,136 @@
+{
+  "source": "/Users/codybontecou/dev/Sync.md/Sync.md/Views/AddRepoView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Add Repository",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "Repository",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pick from GitHub",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select from your repositories",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@/%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap to change",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "or",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 163
+        }
+      },
+      {
+        "comment": "",
+        "key": "Invalid GitHub URL",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter URL manually",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 207
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clone To",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 251
+        }
+      },
+      {
+        "comment": "",
+        "key": "Folder name",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "Files › On My iPhone › Sync.md › %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change Location…",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose Different Location…",
+        "location": {
+          "startingColumn": 73,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add & Clone Repository",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 336
+        }
+      }
+    ]
+  },
+  "version": 1
+}

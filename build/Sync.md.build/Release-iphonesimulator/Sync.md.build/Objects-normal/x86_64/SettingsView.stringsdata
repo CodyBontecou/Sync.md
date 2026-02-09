@@ -1,0 +1,112 @@
+{
+  "source": "/Users/codybontecou/dev/Sync.md/Sync.md/Views/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove Repository?",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 201
+        }
+      },
+      {
+        "comment": "",
+        "key": "main",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your Name",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "you@example.com",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "On My iPhone › Sync.md › %@",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "Never",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 138
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove Repository",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 179
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "This will delete all local files for this repository. This cannot be undone.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 207
+        }
+      }
+    ]
+  },
+  "version": 1
+}

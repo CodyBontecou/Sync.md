@@ -17,40 +17,50 @@ struct RepoListView: View {
                 if state.repos.isEmpty {
                     emptyState
                 } else {
-                    repoList
-                }
-            }
-            .navigationTitle("Sync.md")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showAddRepo = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(SyncTheme.primaryGradient)
-                            .frame(width: 36, height: 36)
+                    VStack(spacing: 0) {
+                        repoList
+                        addRepoCard
+                            .padding(.horizontal, 20)
+                            .padding(.top, 10)
+                            .padding(.bottom, 16)
                     }
                 }
 
-                ToolbarItem(placement: .cancellationAction) {
-                    Menu {
-                        Section {
-                            Label("@\(state.gitHubUsername)", systemImage: "person.circle.fill")
-                        }
+            }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    if state.isSignedIn {
+                        Menu {
+                            Section {
+                                if !state.gitHubDisplayName.isEmpty {
+                                    Label(state.gitHubDisplayName, systemImage: "person.fill")
+                                }
+                                Label("@\(state.gitHubUsername)", systemImage: "at")
+                                if !state.defaultAuthorEmail.isEmpty {
+                                    Label(state.defaultAuthorEmail, systemImage: "envelope.fill")
+                                }
+                            }
 
-                        Button(role: .destructive) {
-                            showSignOutConfirm = true
+                            Button(role: .destructive) {
+                                showSignOutConfirm = true
+                            } label: {
+                                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                            }
                         } label: {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                            GitHubAvatarView(
+                                avatarURL: state.gitHubAvatarURL,
+                                size: 32
+                            )
                         }
-                    } label: {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 36, height: 36)
-                            .background(.ultraThinMaterial, in: Circle())
+                        .menuStyle(.borderlessButton)
+                    } else {
+                        Button {
+                            Task { await state.signInWithGitHub() }
+                        } label: {
+                            Label("Sign In", systemImage: "person.crop.circle.badge.plus")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(SyncTheme.primaryGradient)
+                        }
                     }
                 }
             }
@@ -65,7 +75,7 @@ struct RepoListView: View {
                     state.signOut()
                 }
             } message: {
-                Text("This will remove all local repositories and sign you out.")
+                Text("This will sign you out of GitHub. Your local repositories will be kept.")
             }
             .confirmationDialog("Remove Repository?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
                 Button("Remove", role: .destructive) {
@@ -96,7 +106,7 @@ struct RepoListView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color(hex: 0x3478F6, alpha: 0.2), .clear],
+                            colors: [SyncTheme.blue.opacity(0.2), .clear],
                             center: .center,
                             startRadius: 0,
                             endRadius: 80
@@ -108,7 +118,7 @@ struct RepoListView: View {
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
                         .fill(.ultraThinMaterial)
                         .frame(width: 72, height: 72)
-                        .shadow(color: Color(hex: 0x3478F6, alpha: 0.15), radius: 16, x: 0, y: 6)
+                        .shadow(color: SyncTheme.blue.opacity(0.15), radius: 16, x: 0, y: 6)
 
                     Image(systemName: "plus.rectangle.on.folder.fill")
                         .font(.system(size: 32, weight: .medium))
@@ -170,7 +180,7 @@ struct RepoListView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
-            .padding(.bottom, 40)
+            .padding(.bottom, 12)
         }
         .scrollIndicators(.hidden)
     }
@@ -189,7 +199,7 @@ struct RepoListView: View {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color(hex: 0x3478F6, alpha: 0.15), Color(hex: 0x5856D6, alpha: 0.1)],
+                                colors: [SyncTheme.blue.opacity(0.15), SyncTheme.blue.opacity(0.1)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -222,16 +232,16 @@ struct RepoListView: View {
                 } else if changeCount > 0 {
                     HStack(spacing: 5) {
                         Circle()
-                            .fill(Color(hex: 0xFF9500))
+                            .fill(SyncTheme.accent)
                             .frame(width: 8, height: 8)
                             .pulseEffect()
                         Text("\(changeCount)")
                             .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color(hex: 0xFF9500))
+                            .foregroundStyle(SyncTheme.accent)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color(hex: 0xFF9500, alpha: 0.12), in: Capsule())
+                    .background(SyncTheme.accent.opacity(0.12), in: Capsule())
                 }
 
                 Image(systemName: "chevron.right")
@@ -278,7 +288,7 @@ struct RepoListView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 12))
-                        .foregroundStyle(Color(hex: 0xFF9500))
+                        .foregroundStyle(SyncTheme.accent)
                     Text("Not yet cloned")
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
@@ -287,6 +297,37 @@ struct RepoListView: View {
             }
         }
         .glassCard(cornerRadius: 22, padding: 18)
+    }
+
+    // MARK: - Add Repo Card
+
+    private var addRepoCard: some View {
+        Button {
+            showAddRepo = true
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(SyncTheme.blue.opacity(0.08))
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: "plus")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(SyncTheme.accent)
+                }
+
+                Text("Add Repository")
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundStyle(SyncTheme.accent)
+
+                Spacer()
+            }
+            .padding(18)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(SyncTheme.accent.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [8, 6]))
+            )
+        }
     }
 
     // MARK: - Helpers

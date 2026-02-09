@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/codybontecou/dev/Sync.md/build/Release-iphonesimulator/Sync.md.app/Sync.md'
+relocations:     []
+...

@@ -1,0 +1,104 @@
+{
+  "source": "/Users/codybontecou/dev/Sync.md/Sync.md/Views/GitControlSheet.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Git",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Repository Status",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "None",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "Local Changes",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pull",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fetch and apply remote changes",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 171
+        }
+      },
+      {
+        "comment": "",
+        "key": "Commit & Push",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "Commit local changes and push to remote",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 212
+        }
+      },
+      {
+        "comment": "",
+        "key": "Commit message…",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "Push %lld change%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 240
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -72,14 +72,14 @@ struct RepoPickerView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(repo.isPrivate
-                        ? Color(hex: 0xFF9500, alpha: 0.12)
-                        : Color(hex: 0x8E8E93, alpha: 0.1)
+                        ? SyncTheme.accent.opacity(0.12)
+                        : Color(.systemGray).opacity(0.1)
                     )
                     .frame(width: 38, height: 38)
 
                 Image(systemName: repo.isPrivate ? "lock.fill" : "globe")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(repo.isPrivate ? Color(hex: 0xFF9500) : .secondary)
+                    .foregroundStyle(repo.isPrivate ? SyncTheme.accent : .secondary)
             }
             .padding(.top, 2)
 

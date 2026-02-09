@@ -61,7 +61,7 @@ struct SetupView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color(hex: 0x3478F6, alpha: 0.3), .clear],
+                            colors: [SyncTheme.blue.opacity(0.3), .clear],
                             center: .center,
                             startRadius: 20,
                             endRadius: 60
@@ -74,7 +74,7 @@ struct SetupView: View {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                         .fill(.ultraThinMaterial)
                         .frame(width: 80, height: 80)
-                        .shadow(color: Color(hex: 0x3478F6, alpha: 0.2), radius: 20, x: 0, y: 8)
+                        .shadow(color: SyncTheme.blue.opacity(0.2), radius: 20, x: 0, y: 8)
 
                     Image(systemName: "arrow.triangle.2.circlepath.doc.on.clipboard")
                         .font(.system(size: 34, weight: .medium))

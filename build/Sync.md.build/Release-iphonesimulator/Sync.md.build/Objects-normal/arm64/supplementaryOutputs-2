@@ -1,0 +1,12 @@
+{
+  "/Users/codybontecou/dev/Sync.md/Sync.md/Models/AppState.swift" : {
+    "abi-baseline-json" : "/Users/codybontecou/dev/Sync.md/build/Sync.md.build/Release-iphonesimulator/Sync.md.build/Objects-normal/arm64/Sync_md.abi.json",
+    "const-values" : "/Users/codybontecou/dev/Sync.md/build/Sync.md.build/Release-iphonesimulator/Sync.md.build/Objects-normal/arm64/Sync.md-primary.swiftconstvalues",
+    "dependencies" : "/Users/codybontecou/dev/Sync.md/build/Sync.md.build/Release-iphonesimulator/Sync.md.build/Objects-normal/arm64/Sync.md-primary.d",
+    "diagnostics" : "/Users/codybontecou/dev/Sync.md/build/Sync.md.build/Release-iphonesimulator/Sync.md.build/Objects-normal/arm64/Sync.md-primary.dia",
+    "objc-header" : "/Users/codybontecou/dev/Sync.md/build/Sync.md.build/Release-iphonesimulator/Sync.md.build/Objects-normal/arm64/Sync_md-Swift.h",
+    "swiftdoc" : "/Users/codybontecou/dev/Sync.md/build/Sync.md.build/Release-iphonesimulator/Sync.md.build/Objects-normal/arm64/Sync_md.swiftdoc",
+    "swiftmodule" : "/Users/codybontecou/dev/Sync.md/build/Sync.md.build/Release-iphonesimulator/Sync.md.build/Objects-normal/arm64/Sync_md.swiftmodule",
+    "swiftsourceinfo" : "/Users/codybontecou/dev/Sync.md/build/Sync.md.build/Release-iphonesimulator/Sync.md.build/Objects-normal/arm64/Sync_md.swiftsourceinfo"
+  }
+}

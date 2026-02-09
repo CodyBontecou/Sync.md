@@ -28,9 +28,9 @@ struct GitControlSheet: View {
                         pullCard
                             .staggeredAppear(index: 1)
 
-                        // Push Action
-                        pushCard
-                            .staggeredAppear(index: 2)
+                        // Push Action (hidden for now)
+                        // pushCard
+                        //     .staggeredAppear(index: 2)
 
                         // Progress
                         if isThisRepoSyncing {
@@ -94,10 +94,10 @@ struct GitControlSheet: View {
                     if changeCount > 0 {
                         Text("\(changeCount)")
                             .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color(hex: 0xFF9500))
+                            .foregroundStyle(SyncTheme.accent)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 3)
-                            .background(Color(hex: 0xFF9500, alpha: 0.12), in: Capsule())
+                            .background(SyncTheme.accent.opacity(0.12), in: Capsule())
                     } else {
                         Text("None")
                             .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -153,7 +153,7 @@ struct GitControlSheet: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color(hex: 0x007AFF, alpha: 0.15), Color(hex: 0x5AC8FA, alpha: 0.1)],
+                                colors: [SyncTheme.blue.opacity(0.15), SyncTheme.blue.opacity(0.1)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -195,7 +195,7 @@ struct GitControlSheet: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color(hex: 0x34C759, alpha: 0.15), Color(hex: 0x30D158, alpha: 0.1)],
+                                colors: [SyncTheme.accent.opacity(0.15), SyncTheme.accent.opacity(0.1)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )

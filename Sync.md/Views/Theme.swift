@@ -1,56 +1,45 @@
 import SwiftUI
 
-// MARK: - Sync.md Design System — Apple Liquid
+// MARK: - Sync.md Design System — Monochrome Blue
 
 enum SyncTheme {
 
-    // MARK: Gradients
+    // MARK: Single accent
+
+    static let accent = Color(hex: 0x007AFF)
+
+    // Keep named aliases so call-sites compile; they all resolve to the same blue.
+    static let blue   = accent
+    static let green  = accent
+    static let orange = accent
+
+    // MARK: Gradients — all blue
 
     static let primaryGradient = LinearGradient(
-        colors: [Color(hex: 0x2E5CE5), Color(hex: 0x6B8CF7)],
+        colors: [accent, Color(hex: 0x4DA3FF)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
+
+    static let pullGradient    = primaryGradient
+    static let pushGradient    = primaryGradient
+    static let successGradient = primaryGradient
+    static let warningGradient = primaryGradient
 
     static let meshColors: [Color] = [
         Color(hex: 0x1A1A2E),
-        Color(hex: 0x16213E),
-        Color(hex: 0x0F3460),
+        Color(hex: 0x1E1E34),
+        Color(hex: 0x14223A),
         Color(hex: 0x1A1A2E),
-        Color(hex: 0x162447),
-        Color(hex: 0x1F4068),
+        Color(hex: 0x1C1C32),
+        Color(hex: 0x14223A),
         Color(hex: 0x1A1A2E),
-        Color(hex: 0x16213E),
-        Color(hex: 0x0F3460),
+        Color(hex: 0x1E1E34),
+        Color(hex: 0x14223A),
     ]
 
-    static let successGradient = LinearGradient(
-        colors: [Color(hex: 0x34C759), Color(hex: 0x30D158)],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
+    // MARK: Surfaces (system-adaptive)
 
-    static let pullGradient = LinearGradient(
-        colors: [Color(hex: 0x007AFF), Color(hex: 0x5AC8FA)],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-
-    static let pushGradient = LinearGradient(
-        colors: [Color(hex: 0x34C759), Color(hex: 0x30D158)],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-
-    static let warningGradient = LinearGradient(
-        colors: [Color(hex: 0xFF9500), Color(hex: 0xFFCC02)],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-
-    // MARK: Colors
-
-    static let accent = Color(hex: 0x3478F6)
     static let surface = Color(.systemBackground)
     static let surfaceSecondary = Color(.secondarySystemBackground)
     static let cardBackground = Color(.secondarySystemGroupedBackground)
@@ -134,12 +123,10 @@ struct AnimatedMeshBackground: View {
         TimelineView(.animation(minimumInterval: 1/30)) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             Canvas { context, size in
-                // Create organic gradient blobs
                 let colors: [(Color, CGPoint, CGFloat)] = [
-                    (Color(hex: 0x3478F6, alpha: 0.3), blobPosition(time: time, offset: 0, size: size), size.width * 0.6),
-                    (Color(hex: 0x5856D6, alpha: 0.25), blobPosition(time: time, offset: 2, size: size), size.width * 0.5),
-                    (Color(hex: 0x30D158, alpha: 0.15), blobPosition(time: time, offset: 4, size: size), size.width * 0.45),
-                    (Color(hex: 0x007AFF, alpha: 0.2), blobPosition(time: time, offset: 6, size: size), size.width * 0.55),
+                    (SyncTheme.accent.opacity(0.15), blobPosition(time: time, offset: 0, size: size), size.width * 0.6),
+                    (SyncTheme.accent.opacity(0.10), blobPosition(time: time, offset: 2, size: size), size.width * 0.5),
+                    (SyncTheme.accent.opacity(0.08), blobPosition(time: time, offset: 4, size: size), size.width * 0.45),
                 ]
 
                 for (color, center, radius) in colors {
@@ -176,30 +163,29 @@ struct FloatingOrbs: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Base
                 Color(.systemGroupedBackground)
 
-                // Orb 1
+                // Single subtle blue orb
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color(hex: 0x3478F6, alpha: 0.25), .clear],
+                            colors: [SyncTheme.accent.opacity(0.12), .clear],
                             center: .center,
                             startRadius: 0,
-                            endRadius: 160
+                            endRadius: 180
                         )
                     )
-                    .frame(width: 320, height: 320)
+                    .frame(width: 360, height: 360)
                     .offset(
-                        x: sin(phase * 0.7) * 40 - 60,
-                        y: cos(phase * 0.5) * 30 - 120
+                        x: sin(phase * 0.7) * 40 - 40,
+                        y: cos(phase * 0.5) * 30 - 80
                     )
 
-                // Orb 2
+                // Second, fainter blue orb
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color(hex: 0x5856D6, alpha: 0.2), .clear],
+                            colors: [SyncTheme.accent.opacity(0.06), .clear],
                             center: .center,
                             startRadius: 0,
                             endRadius: 140
@@ -208,23 +194,7 @@ struct FloatingOrbs: View {
                     .frame(width: 280, height: 280)
                     .offset(
                         x: cos(phase * 0.6) * 50 + 80,
-                        y: sin(phase * 0.4) * 40 + 100
-                    )
-
-                // Orb 3
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color(hex: 0x30D158, alpha: 0.12), .clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 120
-                        )
-                    )
-                    .frame(width: 240, height: 240)
-                    .offset(
-                        x: sin(phase * 0.8) * 30 + 40,
-                        y: cos(phase * 0.6) * 50 - 40
+                        y: sin(phase * 0.4) * 40 + 120
                     )
             }
             .frame(width: geo.size.width, height: geo.size.height)

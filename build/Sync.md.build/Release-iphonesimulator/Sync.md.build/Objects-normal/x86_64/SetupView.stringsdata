@@ -1,0 +1,120 @@
+{
+  "source": "/Users/codybontecou/dev/Sync.md/Sync.md/Views/SetupView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync.md",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "Markdown notes synced with Git",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign in with GitHub",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "or",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use a Personal Access Token",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "Back",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "Personal Access Token",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 185
+        }
+      },
+      {
+        "comment": "",
+        "key": "ghp_...",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "ghp_...",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create a PAT on GitHub",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Signing in…",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign In",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 240
+        }
+      }
+    ]
+  },
+  "version": 1
+}

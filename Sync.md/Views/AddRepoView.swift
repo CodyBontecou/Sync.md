@@ -111,7 +111,7 @@ struct AddRepoView: View {
                     HStack(spacing: 12) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(Color(hex: 0x3478F6, alpha: 0.12))
+                                .fill(SyncTheme.blue.opacity(0.12))
                                 .frame(width: 40, height: 40)
                             Image(systemName: "list.bullet")
                                 .font(.system(size: 18))
@@ -145,7 +145,7 @@ struct AddRepoView: View {
                         } else if !selectedRepoURL.isEmpty && !showManualEntry {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 20))
-                                .foregroundStyle(Color(hex: 0x34C759))
+                                .foregroundStyle(SyncTheme.accent)
                         } else {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 13, weight: .semibold))
@@ -257,7 +257,7 @@ struct AddRepoView: View {
                 HStack(spacing: 12) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color(hex: 0x007AFF, alpha: 0.12))
+                            .fill(SyncTheme.blue.opacity(0.12))
                             .frame(width: 40, height: 40)
                         Image(systemName: "folder.fill")
                             .font(.system(size: 18))
