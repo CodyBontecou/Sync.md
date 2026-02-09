@@ -11,6 +11,12 @@ struct AddRepoView: View {
     @State private var showRepoPicker = false
     @State private var showManualEntry = false
 
+    // Local repo selection
+    @State private var showLocalRepoPicker = false
+    @State private var localRepoURL: URL? = nil
+    @State private var localRepoBookmarkData: Data? = nil
+    @State private var localRepoError: String? = nil
+
     // Author
     @State private var authorName: String = ""
     @State private var authorEmail: String = ""
@@ -33,7 +39,15 @@ struct AddRepoView: View {
                         repoSelectionSection
                             .staggeredAppear(index: 0)
 
-                        if !selectedRepoURL.isEmpty {
+                        if localRepoURL != nil {
+                            // Local repo: only need author info
+                            localRepoConfigSection
+                                .staggeredAppear(index: 1)
+
+                            // Add button for local repo
+                            addLocalRepoButton
+                                .staggeredAppear(index: 2)
+                        } else if !selectedRepoURL.isEmpty {
                             // Branch & Author
                             configSection
                                 .staggeredAppear(index: 1)
@@ -69,6 +83,10 @@ struct AddRepoView: View {
                     selectedRepoURL = repo.htmlURL
                     selectedBranch = repo.defaultBranch
                     vaultName = repo.name
+                    // Clear local repo selection
+                    localRepoURL = nil
+                    localRepoBookmarkData = nil
+                    localRepoError = nil
                 }
             }
             .fileImporter(
@@ -78,6 +96,15 @@ struct AddRepoView: View {
             ) { result in
                 if case .success(let urls) = result, let url = urls.first {
                     handleFolderSelection(url)
+                }
+            }
+            .fileImporter(
+                isPresented: $showLocalRepoPicker,
+                allowedContentTypes: [.folder],
+                allowsMultipleSelection: false
+            ) { result in
+                if case .success(let urls) = result, let url = urls.first {
+                    handleLocalRepoSelection(url)
                 }
             }
             .onAppear {
@@ -118,7 +145,7 @@ struct AddRepoView: View {
                                 .foregroundStyle(SyncTheme.accent)
                         }
 
-                        if selectedRepoURL.isEmpty || showManualEntry {
+                        if selectedRepoURL.isEmpty || showManualEntry || localRepoURL != nil {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Pick from GitHub")
                                     .font(.system(size: 16, weight: .medium, design: .rounded))
@@ -142,7 +169,7 @@ struct AddRepoView: View {
 
                         if state.isLoadingRepos {
                             ProgressView().controlSize(.small)
-                        } else if !selectedRepoURL.isEmpty && !showManualEntry {
+                        } else if !selectedRepoURL.isEmpty && !showManualEntry && localRepoURL == nil {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 20))
                                 .foregroundStyle(SyncTheme.accent)
@@ -156,6 +183,78 @@ struct AddRepoView: View {
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
                 .tint(.primary)
+
+                // Divider
+                HStack(spacing: 12) {
+                    Capsule().fill(.quaternary).frame(height: 1)
+                    Text("or")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.tertiary)
+                    Capsule().fill(.quaternary).frame(height: 1)
+                }
+
+                // Select local repository
+                Button {
+                    showLocalRepoPicker = true
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(SyncTheme.blue.opacity(0.12))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "folder.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(SyncTheme.accent)
+                        }
+
+                        if let localURL = localRepoURL {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(localURL.lastPathComponent)
+                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(.primary)
+                                Text("Tap to change")
+                                    .font(.system(size: 13, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Open Existing Repository")
+                                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.primary)
+                                Text("Select a git repo on this device")
+                                    .font(.system(size: 13, design: .rounded))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        Spacer()
+
+                        if localRepoURL != nil {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(SyncTheme.accent)
+                        } else {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .padding(14)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+                .tint(.primary)
+
+                if let error = localRepoError {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12))
+                        Text(error)
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                    }
+                    .foregroundStyle(.red)
+                    .padding(.horizontal, 4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
 
                 // Divider
                 HStack(spacing: 12) {
@@ -325,7 +424,70 @@ struct AddRepoView: View {
         .padding(.horizontal, 20)
     }
 
+    // MARK: - Local Repo Config Section
+
+    private var localRepoConfigSection: some View {
+        VStack(spacing: 14) {
+            if let localURL = localRepoURL {
+                // Show the selected folder info
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(SyncTheme.blue.opacity(0.12))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: "folder.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(SyncTheme.accent)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(localURL.lastPathComponent)
+                            .font(.system(size: 15, weight: .medium, design: .rounded))
+                        Text(localURL.path)
+                            .font(.system(size: 12, design: .rounded))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                    Spacer()
+                }
+                .padding(12)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .padding(.horizontal, 20)
+            }
+
+            LiquidTextField(
+                icon: "person.fill",
+                label: "Author Name",
+                placeholder: "Your Name",
+                text: $authorName
+            )
+
+            LiquidTextField(
+                icon: "envelope.fill",
+                label: "Author Email",
+                placeholder: "you@example.com",
+                text: $authorEmail,
+                disableAutocorrect: true
+            )
+        }
+    }
+
     // MARK: - Add Button
+
+    private var addLocalRepoButton: some View {
+        Button {
+            addLocalRepo()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "folder.badge.plus")
+                Text("Add Repository")
+            }
+        }
+        .buttonStyle(LiquidButtonStyle(gradient: SyncTheme.primaryGradient))
+        .disabled(!isLocalRepoValid || state.isSyncing)
+        .opacity(!isLocalRepoValid || state.isSyncing ? 0.6 : 1)
+        .padding(.horizontal, 24)
+    }
 
     private var addButton: some View {
         Button {
@@ -344,6 +506,13 @@ struct AddRepoView: View {
 
     // MARK: - Validation
 
+    private var isLocalRepoValid: Bool {
+        localRepoURL != nil
+            && localRepoBookmarkData != nil
+            && !authorName.trimmingCharacters(in: .whitespaces).isEmpty
+            && !authorEmail.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
     private var isValid: Bool {
         GitHubService.parseRepoURL(selectedRepoURL) != nil
             && !authorName.trimmingCharacters(in: .whitespaces).isEmpty
@@ -351,6 +520,21 @@ struct AddRepoView: View {
     }
 
     // MARK: - Actions
+
+    private func addLocalRepo() {
+        guard let url = localRepoURL,
+              let bookmarkData = localRepoBookmarkData else { return }
+
+        Task {
+            await state.addLocalRepo(
+                url: url,
+                bookmarkData: bookmarkData,
+                authorName: authorName,
+                authorEmail: authorEmail
+            )
+        }
+        dismiss()
+    }
 
     private func addAndClone() {
         let config = RepoConfig(
@@ -364,6 +548,47 @@ struct AddRepoView: View {
         state.addRepo(config)
         Task { await state.clone(repoID: config.id) }
         dismiss()
+    }
+
+    private func handleLocalRepoSelection(_ url: URL) {
+        guard url.startAccessingSecurityScopedResource() else {
+            localRepoError = "Could not access the selected folder."
+            return
+        }
+
+        // Check that it contains a .git directory
+        let gitDir = url.appendingPathComponent(".git")
+        let exists = FileManager.default.fileExists(atPath: gitDir.path)
+
+        if !exists {
+            url.stopAccessingSecurityScopedResource()
+            localRepoError = "No .git directory found in the selected folder."
+            localRepoURL = nil
+            localRepoBookmarkData = nil
+            return
+        }
+
+        guard let bookmark = try? url.bookmarkData(
+            options: [],
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        ) else {
+            url.stopAccessingSecurityScopedResource()
+            localRepoError = "Could not create a bookmark for the selected folder."
+            return
+        }
+
+        url.stopAccessingSecurityScopedResource()
+
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            localRepoURL = url
+            localRepoBookmarkData = bookmark
+            localRepoError = nil
+            // Clear remote repo selection since we're using local
+            selectedRepoURL = ""
+            showManualEntry = false
+            vaultName = url.lastPathComponent
+        }
     }
 
     private func handleFolderSelection(_ url: URL) {

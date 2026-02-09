@@ -9,6 +9,14 @@ struct Sync_mdApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .onOpenURL { url in
+                    // x-callback-url from external apps (e.g. Obsidian plugin)
+                    // Format: syncmd://x-callback-url/<action>?repo=<name>&x-success=<url>
+                    let handler = CallbackURLHandler(appState: appState)
+                    if handler.canHandle(url) {
+                        handler.handle(url)
+                    }
+                }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {

@@ -28,6 +28,14 @@ final class AppState {
     var gitHubRepos: [GitHubRepo] = []
     var isLoadingRepos: Bool = false
 
+    // MARK: - Callback State (x-callback-url from Obsidian plugin)
+
+    /// When set, the UI programmatically navigates to this repo's VaultView.
+    var callbackNavigateToRepoID: UUID? = nil
+
+    /// Result from a completed callback operation — shown briefly before redirecting.
+    var callbackResult: CallbackResultState? = nil
+
     // MARK: - Errors
 
     var lastError: String? = nil
@@ -451,6 +459,103 @@ final class AppState {
         resolveVaultBookmark(for: config.id)
     }
 
+    /// Add a repository that already exists on the local filesystem.
+    /// Reads git metadata from the `.git` directory and creates a RepoConfig
+    /// that's immediately in "cloned" state — no network clone needed.
+    func addLocalRepo(
+        url: URL,
+        bookmarkData: Data,
+        authorName: String,
+        authorEmail: String
+    ) async {
+        // Resolve the bookmark and start security-scoped access
+        var isStale = false
+        guard let resolvedURL = try? URL(
+            resolvingBookmarkData: bookmarkData,
+            options: [],
+            relativeTo: nil,
+            bookmarkDataIsStale: &isStale
+        ) else {
+            showError(message: "Could not resolve folder bookmark.")
+            return
+        }
+
+        guard resolvedURL.startAccessingSecurityScopedResource() else {
+            showError(message: "Could not access the selected folder.")
+            return
+        }
+
+        let gitService = LocalGitService(localURL: resolvedURL)
+
+        guard gitService.hasGitDirectory else {
+            resolvedURL.stopAccessingSecurityScopedResource()
+            showError(message: "No .git directory found. Please select a folder that contains a git repository.")
+            return
+        }
+
+        do {
+            let info = try await gitService.repoInfo()
+
+            // Try to read the remote URL from the git config
+            let remoteURL = Self.readGitRemoteURL(at: resolvedURL) ?? ""
+
+            let config = RepoConfig(
+                repoURL: remoteURL,
+                branch: info.branch,
+                authorName: authorName,
+                authorEmail: authorEmail,
+                vaultFolderName: resolvedURL.lastPathComponent,
+                customVaultBookmarkData: bookmarkData,
+                gitState: GitState(
+                    commitSHA: info.commitSHA,
+                    treeSHA: "",
+                    branch: info.branch,
+                    blobSHAs: [:],
+                    lastSyncDate: Date()
+                )
+            )
+
+            // Track resolved URL and security scope
+            resolvedCustomURLs[config.id] = resolvedURL
+            accessingSecurityScope.insert(config.id)
+
+            repos.append(config)
+            saveRepos()
+            detectChanges(repoID: config.id)
+        } catch {
+            resolvedURL.stopAccessingSecurityScopedResource()
+            showError(message: "Failed to read repository info: \(error.localizedDescription)")
+        }
+    }
+
+    /// Read the `origin` remote URL from a git repository's config.
+    private static func readGitRemoteURL(at repoURL: URL) -> String? {
+        let configURL = repoURL.appendingPathComponent(".git/config")
+        guard let contents = try? String(contentsOf: configURL, encoding: .utf8) else { return nil }
+
+        // Simple parser: find [remote "origin"] section, then the url = ... line
+        let lines = contents.components(separatedBy: .newlines)
+        var inOriginSection = false
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("[remote \"origin\"]") {
+                inOriginSection = true
+                continue
+            }
+            if trimmed.hasPrefix("[") {
+                inOriginSection = false
+                continue
+            }
+            if inOriginSection && trimmed.hasPrefix("url") {
+                let parts = trimmed.split(separator: "=", maxSplits: 1)
+                if parts.count == 2 {
+                    return parts[1].trimmingCharacters(in: .whitespaces)
+                }
+            }
+        }
+        return nil
+    }
+
     func removeRepo(id: UUID) {
         let vaultDir = vaultURL(for: id)
         try? FileManager.default.removeItem(at: vaultDir)
@@ -555,4 +660,15 @@ final class AppState {
         lastError = message
         showError = true
     }
+}
+
+// MARK: - Callback Result State
+
+/// Displayed briefly in the UI after a callback operation completes,
+/// before redirecting back to the calling app.
+struct CallbackResultState: Equatable {
+    let repoID: UUID
+    let action: String
+    let isSuccess: Bool
+    let message: String
 }

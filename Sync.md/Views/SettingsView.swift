@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var vaultName: String = ""
     @State private var showRemoveConfirm = false
     @State private var showFolderPicker = false
+    @State private var showCopiedToast = false
 
     private var repo: RepoConfig? { state.repo(id: repoID) }
 
@@ -27,11 +28,24 @@ struct SettingsView: View {
                         settingsSection(title: "Repository", icon: "book.closed.fill", iconColor: SyncTheme.accent) {
                             VStack(spacing: 14) {
                                 settingsRow(label: "URL") {
-                                    Text(repo?.repoURL ?? "")
+                                    Text(showCopiedToast ? "Copied!" : (repo?.repoURL ?? ""))
                                         .font(.system(size: 13, weight: .regular, design: .rounded))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(showCopiedToast ? .green : .secondary)
                                         .lineLimit(1)
                                         .truncationMode(.middle)
+                                        .onTapGesture {
+                                            if let url = repo?.repoURL, !url.isEmpty {
+                                                UIPasteboard.general.string = url
+                                                withAnimation(.easeOut(duration: 0.2)) {
+                                                    showCopiedToast = true
+                                                }
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                                    withAnimation(.easeOut(duration: 0.3)) {
+                                                        showCopiedToast = false
+                                                    }
+                                                }
+                                            }
+                                        }
                                 }
 
                                 Divider().opacity(0.3)

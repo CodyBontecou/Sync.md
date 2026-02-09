@@ -12,6 +12,12 @@ struct VaultView: View {
     private var changeCount: Int { state.changeCounts[repoID] ?? 0 }
     private var isThisRepoSyncing: Bool { state.isSyncing && state.syncingRepoID == repoID }
 
+    /// Non-nil when a callback operation just finished for this repo.
+    private var callbackResult: CallbackResultState? {
+        guard let result = state.callbackResult, result.repoID == repoID else { return nil }
+        return result
+    }
+
     var body: some View {
         @Bindable var state = state
 
@@ -58,6 +64,8 @@ struct VaultView: View {
         } message: {
             Text(state.lastError ?? "Unknown error")
         }
+        .interactiveDismissDisabled(state.callbackNavigateToRepoID != nil)
+        .navigationBarBackButtonHidden(state.callbackNavigateToRepoID != nil)
         .onAppear {
             state.detectChanges(repoID: repoID)
         }
@@ -90,12 +98,22 @@ struct VaultView: View {
                         ))
                 }
 
+                if let result = callbackResult {
+                    callbackResultBanner(result)
+                        .transition(.asymmetric(
+                            insertion: .scale(scale: 0.9).combined(with: .opacity),
+                            removal: .scale(scale: 0.95).combined(with: .opacity)
+                        ))
+                }
+
                 filesLocationCard
                     .staggeredAppear(index: 2)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 40)
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: isThisRepoSyncing)
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: callbackResult)
         }
         .scrollIndicators(.hidden)
     }
@@ -300,6 +318,55 @@ struct VaultView: View {
         }
         .glassCard(cornerRadius: 16, padding: 16)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: state.isSyncing)
+    }
+
+    // MARK: - Callback Result Banner
+
+    private func callbackResultBanner(_ result: CallbackResultState) -> some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(result.isSuccess
+                        ? Color.green.opacity(0.15)
+                        : Color.red.opacity(0.15)
+                    )
+                    .frame(width: 40, height: 40)
+
+                Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(result.isSuccess ? .green : .red)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(result.isSuccess ? "\(result.action.capitalized) Complete" : "\(result.action.capitalized) Failed")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+
+                Text(result.message)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+
+            // "Returning to Obsidian" indicator
+            if result.isSuccess {
+                Image(systemName: "arrow.uturn.backward.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .glassCard(cornerRadius: 16, padding: 16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(
+                    result.isSuccess
+                        ? Color.green.opacity(0.3)
+                        : Color.red.opacity(0.3),
+                    lineWidth: 1
+                )
+                .padding(1)
+        )
     }
 
     // MARK: - Files Location

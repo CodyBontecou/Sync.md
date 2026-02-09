@@ -9,11 +9,12 @@ struct RepoListView: View {
     @State private var showAddRepo = false
     @State private var showSignOutConfirm = false
     @State private var settingsRepoID: UUID? = nil
+    @State private var navigationPath: [UUID] = []
 
     var body: some View {
         @Bindable var state = state
 
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 FloatingOrbs()
 
@@ -87,6 +88,17 @@ struct RepoListView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(state.lastError ?? "Unknown error")
+            }
+            .onChange(of: state.callbackNavigateToRepoID) { _, newValue in
+                if let repoID = newValue {
+                    // Navigate to the repo's VaultView for the callback operation
+                    if !navigationPath.contains(repoID) {
+                        navigationPath = [repoID]
+                    }
+                } else if !navigationPath.isEmpty {
+                    // Callback cleared — pop back to the list
+                    navigationPath = []
+                }
             }
         }
     }
