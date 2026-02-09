@@ -1,11 +1,14 @@
 import SwiftUI
 
+extension UUID: @retroactive Identifiable {
+    public var id: UUID { self }
+}
+
 struct RepoListView: View {
     @Environment(AppState.self) private var state
     @State private var showAddRepo = false
     @State private var showSignOutConfirm = false
-    @State private var repoToDelete: UUID? = nil
-    @State private var showDeleteConfirm = false
+    @State private var settingsRepoID: UUID? = nil
 
     var body: some View {
         @Bindable var state = state
@@ -67,6 +70,9 @@ struct RepoListView: View {
             .sheet(isPresented: $showAddRepo) {
                 AddRepoView()
             }
+            .sheet(item: $settingsRepoID) { repoID in
+                SettingsView(repoID: repoID)
+            }
             .navigationDestination(for: UUID.self) { repoID in
                 VaultView(repoID: repoID)
             }
@@ -76,17 +82,6 @@ struct RepoListView: View {
                 }
             } message: {
                 Text("This will sign you out of GitHub. Your local repositories will be kept.")
-            }
-            .confirmationDialog("Remove Repository?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
-                Button("Remove", role: .destructive) {
-                    if let id = repoToDelete {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            state.removeRepo(id: id)
-                        }
-                    }
-                }
-            } message: {
-                Text("This will delete all local files for this repository. This cannot be undone.")
             }
             .alert("Error", isPresented: $state.showError) {
                 Button("OK", role: .cancel) {}
@@ -168,11 +163,10 @@ struct RepoListView: View {
                     }
                     .tint(.primary)
                     .contextMenu {
-                        Button(role: .destructive) {
-                            repoToDelete = repo.id
-                            showDeleteConfirm = true
+                        Button {
+                            settingsRepoID = repo.id
                         } label: {
-                            Label("Remove Repository", systemImage: "trash")
+                            Label("Settings", systemImage: "gearshape")
                         }
                     }
                     .staggeredAppear(index: index)
@@ -339,3 +333,5 @@ struct RepoListView: View {
         return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
+
+

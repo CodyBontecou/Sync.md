@@ -1,7 +1,7 @@
 import Foundation
 
 /// Persisted git state — tracks the current HEAD and file blob SHAs
-struct GitState: Codable {
+struct GitState: Codable, Equatable {
     var commitSHA: String
     var treeSHA: String
     var branch: String

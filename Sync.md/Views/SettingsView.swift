@@ -118,7 +118,7 @@ struct SettingsView: View {
                                                 .font(.system(size: 14, design: .rounded))
                                                 .foregroundStyle(.tertiary)
                                         } else {
-                                            Text(repo.gitState.lastSyncDate, style: .relative)
+                                            Text(relativeDate(repo.gitState.lastSyncDate))
                                                 .font(.system(size: 14, design: .rounded))
                                                 .foregroundStyle(.secondary)
                                         }
@@ -198,7 +198,8 @@ struct SettingsView: View {
                     vaultName = repo.vaultFolderName
                 }
             }
-            .confirmationDialog("Remove Repository?", isPresented: $showRemoveConfirm, titleVisibility: .visible) {
+            .alert("Remove Repository?", isPresented: $showRemoveConfirm) {
+                Button("Cancel", role: .cancel) {}
                 Button("Remove", role: .destructive) {
                     state.removeRepo(id: repoID)
                     dismiss()
@@ -246,6 +247,14 @@ struct SettingsView: View {
             Spacer()
             value()
         }
+    }
+
+    // MARK: - Helpers
+
+    private func relativeDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 
     // MARK: - Save

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct VaultView: View {
     @Environment(AppState.self) private var state
+    @Environment(\.dismiss) private var dismiss
     let repoID: UUID
 
     @State private var showSettings = false
@@ -34,17 +35,15 @@ struct VaultView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if repo?.isCloned == true {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 36, height: 36)
-                            .background(.ultraThinMaterial, in: Circle())
-                    }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial, in: Circle())
                 }
             }
         }
@@ -61,6 +60,11 @@ struct VaultView: View {
         }
         .onAppear {
             state.detectChanges(repoID: repoID)
+        }
+        .onChange(of: state.repos) {
+            if state.repo(id: repoID) == nil {
+                dismiss()
+            }
         }
         .refreshable {
             await state.pull(repoID: repoID)
