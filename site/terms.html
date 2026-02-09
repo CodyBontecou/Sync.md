@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<title>Terms of Service — Sync.md</title>
+<meta name="description" content="Terms of Service for Sync.md — Git on your iPhone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white: #f5f5f7;
+    --black: #0a0a0a;
+    --grey-1: #1a1a1a;
+    --grey-2: #2a2a2a;
+    --grey-3: #3a3a3a;
+    --grey-4: #6a6a6a;
+    --grey-5: #8a8a8a;
+    --grey-6: #b0b0b0;
+    --blue: #007AFF;
+    --blue-dim: rgba(0, 122, 255, 0.12);
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  ::selection { background: var(--blue); color: var(--black); }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--mono);
+    background: var(--black);
+    color: var(--white);
+    line-height: 1.6;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 10, 10, 0.7);
+    border-bottom: 1px solid var(--grey-2);
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--blue);
+    display: inline-block;
+    animation: pulse-dot 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--grey-5);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .nav-links a:hover { color: var(--white); }
+
+  .nav-cta {
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: var(--blue) !important;
+    border: 1px solid rgba(0, 122, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: all 0.3s ease !important;
+  }
+
+  .nav-cta:hover {
+    background: var(--blue) !important;
+    color: var(--black) !important;
+    border-color: var(--blue) !important;
+  }
+
+  /* ─── LEGAL CONTENT ─── */
+  .legal {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 140px 24px 120px;
+  }
+
+  .legal-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey-4);
+    margin-bottom: 12px;
+  }
+
+  .legal h1 {
+    font-size: clamp(28px, 3.5vw, 42px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+
+  .legal .effective {
+    font-size: 12px;
+    color: var(--grey-4);
+    margin-bottom: 64px;
+    letter-spacing: 0.02em;
+  }
+
+  .legal h2 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-top: 32px;
+    border-top: 1px solid var(--grey-2);
+  }
+
+  .legal h2:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .legal p {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--grey-5);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+
+  .legal ul, .legal ol {
+    list-style: none;
+    margin-bottom: 16px;
+    padding-left: 0;
+  }
+
+  .legal ul li, .legal ol li {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--grey-5);
+    line-height: 1.8;
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 4px;
+  }
+
+  .legal ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--grey-4);
+  }
+
+  .legal ol { counter-reset: legal-counter; }
+
+  .legal ol li { counter-increment: legal-counter; }
+
+  .legal ol li::before {
+    content: counter(legal-counter, lower-alpha) '.';
+    position: absolute;
+    left: 0;
+    color: var(--grey-4);
+    font-size: 12px;
+  }
+
+  .legal a {
+    color: var(--blue);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .legal a:hover { opacity: 0.7; }
+
+  .legal strong {
+    font-weight: 500;
+    color: var(--grey-6);
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--grey-2);
+    padding: 40px 24px;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-left {
+    font-size: 11px;
+    color: var(--grey-4);
+    letter-spacing: 0.02em;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    font-size: 11px;
+    color: var(--grey-5);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.3s ease;
+  }
+
+  .footer-links a:hover { color: var(--white); }
+
+  @media (max-width: 900px) {
+    .nav-links a:not(.nav-cta) { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .legal { padding: 120px 20px 80px; }
+    .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <span class="logo-dot"></span>
+      sync.md
+    </a>
+    <div class="nav-links">
+      <a href="/#features">Features</a>
+      <a href="/#workflow">Workflow</a>
+      <a href="https://github.com/CodyBontecou/Sync.md" target="_blank">GitHub</a>
+      <a href="/#download" class="nav-cta">Download</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── TERMS OF SERVICE ─── -->
+<main class="legal">
+  <div class="legal-label">Legal</div>
+  <h1>Terms of Service</h1>
+  <p class="effective">Effective date: February 9, 2026</p>
+
+  <h2>Acceptance of Terms</h2>
+  <p>By downloading, installing, or using Sync.md ("the App"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the App.</p>
+
+  <h2>Description of the App</h2>
+  <p>Sync.md is a free, open-source iOS application that provides Git version control functionality on iPhone and iPad. The App uses libgit2 to perform Git operations and connects directly to GitHub for remote repository access. The App is developed and maintained by Cody Bontecou.</p>
+
+  <h2>License</h2>
+  <p>Sync.md is open-source software. The source code is available on <a href="https://github.com/CodyBontecou/Sync.md" target="_blank">GitHub</a> and is subject to the license terms specified in the repository. Your use of the compiled App from the App Store is also subject to Apple's Standard Licensed Application End User License Agreement (EULA).</p>
+
+  <h2>Your Account & Authentication</h2>
+  <p>To use Sync.md's Git features, you must provide your own GitHub credentials via OAuth sign-in or a Personal Access Token. You are responsible for:</p>
+  <ul>
+    <li>Maintaining the security of your GitHub account and tokens</li>
+    <li>All activity that occurs through your authenticated session in the App</li>
+    <li>Ensuring you have the necessary permissions to access and modify any repositories you interact with</li>
+  </ul>
+  <p>Sync.md stores your credentials securely in the iOS Keychain but is not responsible for unauthorized access to your device or accounts.</p>
+
+  <h2>Acceptable Use</h2>
+  <p>You agree to use the App in compliance with all applicable laws and regulations, and in accordance with GitHub's <a href="https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies" target="_blank">Acceptable Use Policies</a>. You agree not to:</p>
+  <ul>
+    <li>Use the App to access repositories without proper authorization</li>
+    <li>Attempt to reverse-engineer, decompile, or tamper with the App's security mechanisms</li>
+    <li>Use the App to distribute malware or malicious content through Git repositories</li>
+    <li>Violate any third-party rights, including intellectual property rights, through your use of the App</li>
+  </ul>
+
+  <h2>Your Content</h2>
+  <p>Sync.md does not claim any ownership of your repositories, files, commits, or any other content. Your content remains yours. The App acts solely as a local Git client — all data flows directly between your device and GitHub.</p>
+
+  <h2>Third-Party Services</h2>
+  <p>The App integrates with GitHub for authentication and Git operations. Your use of GitHub is governed by GitHub's own <a href="https://docs.github.com/en/site-policy/github-terms/github-terms-of-service" target="_blank">Terms of Service</a>. Sync.md is not affiliated with, endorsed by, or sponsored by GitHub, Inc.</p>
+  <p>The App is distributed through Apple's App Store and is subject to Apple's terms and conditions.</p>
+
+  <h2>Disclaimer of Warranties</h2>
+  <p>The App is provided <strong>"as is"</strong> and <strong>"as available"</strong> without warranties of any kind, either express or implied, including but not limited to:</p>
+  <ul>
+    <li>Warranties of merchantability or fitness for a particular purpose</li>
+    <li>Warranties that the App will be uninterrupted, error-free, or secure</li>
+    <li>Warranties regarding the accuracy or reliability of any Git operations performed</li>
+  </ul>
+  <p>You are solely responsible for maintaining backups of your data. Git operations — including but not limited to clone, pull, commit, and push — are performed at your own risk.</p>
+
+  <h2>Limitation of Liability</h2>
+  <p>To the maximum extent permitted by applicable law, Cody Bontecou shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits, data, or goodwill, arising out of or in connection with your use of the App, including but not limited to:</p>
+  <ul>
+    <li>Loss or corruption of repository data</li>
+    <li>Unauthorized access to your accounts or credentials</li>
+    <li>Inability to access or sync repositories</li>
+    <li>Any actions taken by third-party services (including GitHub)</li>
+  </ul>
+
+  <h2>Indemnification</h2>
+  <p>You agree to indemnify and hold harmless Cody Bontecou from any claims, damages, losses, or expenses (including reasonable attorney's fees) arising from your use of the App or violation of these Terms.</p>
+
+  <h2>Modifications to the App</h2>
+  <p>The App may be updated, modified, or discontinued at any time without prior notice. There is no obligation to maintain, support, or update the App.</p>
+
+  <h2>Changes to These Terms</h2>
+  <p>These Terms may be updated from time to time. The revised version will be posted on this page with an updated effective date. Continued use of the App after changes constitutes acceptance of the updated Terms.</p>
+
+  <h2>Governing Law</h2>
+  <p>These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to conflict of law principles.</p>
+
+  <h2>Contact</h2>
+  <p>If you have questions about these Terms, you can reach out via:</p>
+  <ul>
+    <li>GitHub Issues: <a href="https://github.com/CodyBontecou/Sync.md/issues" target="_blank">github.com/CodyBontecou/Sync.md/issues</a></li>
+  </ul>
+</main>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">© 2026 Sync.md — Cody Bontecou</div>
+    <div class="footer-links">
+      <a href="https://github.com/CodyBontecou/Sync.md" target="_blank">GitHub</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/CodyBontecou/Sync.md/issues" target="_blank">Support</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

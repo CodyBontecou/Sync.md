@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<title>Privacy Policy — Sync.md</title>
+<meta name="description" content="Privacy Policy for Sync.md — Git on your iPhone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white: #f5f5f7;
+    --black: #0a0a0a;
+    --grey-1: #1a1a1a;
+    --grey-2: #2a2a2a;
+    --grey-3: #3a3a3a;
+    --grey-4: #6a6a6a;
+    --grey-5: #8a8a8a;
+    --grey-6: #b0b0b0;
+    --blue: #007AFF;
+    --blue-dim: rgba(0, 122, 255, 0.12);
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  ::selection { background: var(--blue); color: var(--black); }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--mono);
+    background: var(--black);
+    color: var(--white);
+    line-height: 1.6;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(10, 10, 10, 0.7);
+    border-bottom: 1px solid var(--grey-2);
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--blue);
+    display: inline-block;
+    animation: pulse-dot 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--grey-5);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .nav-links a:hover { color: var(--white); }
+
+  .nav-cta {
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: var(--blue) !important;
+    border: 1px solid rgba(0, 122, 255, 0.3);
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: all 0.3s ease !important;
+  }
+
+  .nav-cta:hover {
+    background: var(--blue) !important;
+    color: var(--black) !important;
+    border-color: var(--blue) !important;
+  }
+
+  /* ─── LEGAL CONTENT ─── */
+  .legal {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 140px 24px 120px;
+  }
+
+  .legal-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey-4);
+    margin-bottom: 12px;
+  }
+
+  .legal h1 {
+    font-size: clamp(28px, 3.5vw, 42px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+
+  .legal .effective {
+    font-size: 12px;
+    color: var(--grey-4);
+    margin-bottom: 64px;
+    letter-spacing: 0.02em;
+  }
+
+  .legal h2 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-top: 32px;
+    border-top: 1px solid var(--grey-2);
+  }
+
+  .legal h2:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .legal p {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--grey-5);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+
+  .legal ul {
+    list-style: none;
+    margin-bottom: 16px;
+    padding-left: 0;
+  }
+
+  .legal ul li {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--grey-5);
+    line-height: 1.8;
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 4px;
+  }
+
+  .legal ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--grey-4);
+  }
+
+  .legal a {
+    color: var(--blue);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .legal a:hover { opacity: 0.7; }
+
+  .legal strong {
+    font-weight: 500;
+    color: var(--grey-6);
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--grey-2);
+    padding: 40px 24px;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-left {
+    font-size: 11px;
+    color: var(--grey-4);
+    letter-spacing: 0.02em;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    font-size: 11px;
+    color: var(--grey-5);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.3s ease;
+  }
+
+  .footer-links a:hover { color: var(--white); }
+
+  @media (max-width: 900px) {
+    .nav-links a:not(.nav-cta) { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .legal { padding: 120px 20px 80px; }
+    .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <span class="logo-dot"></span>
+      sync.md
+    </a>
+    <div class="nav-links">
+      <a href="/#features">Features</a>
+      <a href="/#workflow">Workflow</a>
+      <a href="https://github.com/CodyBontecou/Sync.md" target="_blank">GitHub</a>
+      <a href="/#download" class="nav-cta">Download</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── PRIVACY POLICY ─── -->
+<main class="legal">
+  <div class="legal-label">Legal</div>
+  <h1>Privacy Policy</h1>
+  <p class="effective">Effective date: February 9, 2026</p>
+
+  <h2>Overview</h2>
+  <p>Sync.md ("the App") is an iOS application developed by Cody Bontecou that provides Git version control on iPhone and iPad. Your privacy matters. This policy explains what data the App accesses, how it's used, and what is never collected.</p>
+
+  <h2>Data We Do Not Collect</h2>
+  <p>Sync.md does not operate any backend servers and does not collect, transmit, or store any of the following:</p>
+  <ul>
+    <li>Personal information (beyond what you provide for Git commits)</li>
+    <li>Analytics or usage tracking data</li>
+    <li>Advertising identifiers</li>
+    <li>Device identifiers or fingerprints</li>
+    <li>Crash reports sent to our servers</li>
+    <li>Location data</li>
+    <li>Contacts, photos, or other device data</li>
+  </ul>
+
+  <h2>Data Stored on Your Device</h2>
+  <p>The following data is stored locally on your device and never transmitted to us:</p>
+  <ul>
+    <li><strong>Git author name and email</strong> — Used solely for Git commit metadata. You provide these when configuring the App.</li>
+    <li><strong>Authentication tokens</strong> — GitHub OAuth tokens or Personal Access Tokens are stored in the iOS Keychain, which is encrypted at rest by the operating system.</li>
+    <li><strong>Repository data</strong> — Cloned repositories, commit history, and working files are stored in the App's sandboxed container and iOS File Provider directory.</li>
+  </ul>
+
+  <h2>Third-Party Services</h2>
+  <p>Sync.md communicates directly with GitHub's servers using the Git protocol and GitHub's API. When you authenticate and perform Git operations (clone, pull, push), data is exchanged between your device and GitHub according to <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank">GitHub's Privacy Statement</a>.</p>
+  <p>No other third-party services, SDKs, or analytics frameworks are integrated into the App.</p>
+
+  <h2>iOS File Provider</h2>
+  <p>Sync.md registers as an iOS File Provider, making your cloned repositories visible in the Files app. This allows other apps on your device to access your repository files. File access is governed by iOS's built-in permission model — the App does not control or monitor how other apps use these files.</p>
+
+  <h2>x-callback-url</h2>
+  <p>Sync.md supports the <code>syncmd://</code> URL scheme for automation. Other apps (such as Obsidian) can invoke Git operations via this URL scheme. No data is shared externally through this mechanism — operations execute locally on your device.</p>
+
+  <h2>Data Security</h2>
+  <p>All sensitive credentials are stored in the iOS Keychain, which provides hardware-backed encryption. Repository data is stored within the App's sandboxed file system, protected by iOS's built-in data protection. All network communication with GitHub uses HTTPS/TLS encryption.</p>
+
+  <h2>Children's Privacy</h2>
+  <p>The App does not knowingly collect any personal information from anyone, including children under the age of 13. Since no personal data is collected or transmitted, there is no data to delete.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>If this Privacy Policy is updated, the revised version will be posted on this page with an updated effective date. Continued use of the App after changes constitutes acceptance of the updated policy.</p>
+
+  <h2>Contact</h2>
+  <p>If you have questions about this Privacy Policy, you can reach out via:</p>
+  <ul>
+    <li>GitHub Issues: <a href="https://github.com/CodyBontecou/Sync.md/issues" target="_blank">github.com/CodyBontecou/Sync.md/issues</a></li>
+  </ul>
+</main>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">© 2026 Sync.md — Cody Bontecou</div>
+    <div class="footer-links">
+      <a href="https://github.com/CodyBontecou/Sync.md" target="_blank">GitHub</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="https://github.com/CodyBontecou/Sync.md/issues" target="_blank">Support</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
