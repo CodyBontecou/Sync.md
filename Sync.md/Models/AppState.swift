@@ -318,13 +318,11 @@ final class AppState {
     /// Compute the Git blob SHA-1 hash for file content.
     /// Git hashes blobs as: SHA1("blob <size>\0" + <content>)
     private func gitBlobSHA1(_ data: Data) -> String {
-        let header = "blob \(data.count)\0"
+        let header = Array("blob \(data.count)\0".utf8)
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
         var ctx = CC_SHA1_CTX()
         CC_SHA1_Init(&ctx)
-        header.utf8.withContiguousStorageIfAvailable { buf in
-            CC_SHA1_Update(&ctx, buf.baseAddress, CC_LONG(buf.count))
-        }
+        CC_SHA1_Update(&ctx, header, CC_LONG(header.count))
         data.withUnsafeBytes { buf in
             CC_SHA1_Update(&ctx, buf.baseAddress, CC_LONG(buf.count))
         }

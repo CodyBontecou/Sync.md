@@ -519,19 +519,33 @@ final class GitHubService: Sendable {
         }
 
         // 2. Create new tree
-        let newTreeSHA = try await createTree(baseTree: currentTreeSHA, entries: treeEntries)
+        let newTreeSHA: String
+        do {
+            newTreeSHA = try await createTree(baseTree: currentTreeSHA, entries: treeEntries)
+        } catch {
+            throw GitHubError.apiError(0, "Failed to create tree: \(error.localizedDescription)")
+        }
 
         // 3. Create commit
-        let newCommitSHA = try await createCommit(
-            message: message,
-            treeSHA: newTreeSHA,
-            parents: [currentCommitSHA],
-            authorName: authorName,
-            authorEmail: authorEmail
-        )
+        let newCommitSHA: String
+        do {
+            newCommitSHA = try await createCommit(
+                message: message,
+                treeSHA: newTreeSHA,
+                parents: [currentCommitSHA],
+                authorName: authorName,
+                authorEmail: authorEmail
+            )
+        } catch {
+            throw GitHubError.apiError(0, "Failed to create commit: \(error.localizedDescription)")
+        }
 
         // 4. Update ref
-        try await updateRef(branch: branch, sha: newCommitSHA)
+        do {
+            try await updateRef(branch: branch, sha: newCommitSHA)
+        } catch {
+            throw GitHubError.apiError(0, "Failed to update ref: \(error.localizedDescription)")
+        }
 
         return (newCommitSHA, newTreeSHA, newBlobSHAs)
     }
