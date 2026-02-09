@@ -133,6 +133,24 @@ struct VaultView: View {
                 Spacer()
             }
 
+            if repo.autoSyncEnabled {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(SyncTheme.accent)
+                    Text("Auto-sync on")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(SyncTheme.accent)
+                    Spacer()
+                    Text(autoSyncIntervalLabel(repo.autoSyncInterval))
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(SyncTheme.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+
             Divider().opacity(0.5)
 
             HStack(spacing: 0) {
@@ -337,6 +355,17 @@ struct VaultView: View {
             .glassCard(cornerRadius: 18, padding: 14)
         }
         .tint(.primary)
+    }
+
+    private func autoSyncIntervalLabel(_ interval: TimeInterval) -> String {
+        switch interval {
+        case 60: return "Every 1 min"
+        case 300: return "Every 5 min"
+        case 900: return "Every 15 min"
+        case 1800: return "Every 30 min"
+        case 3600: return "Every 1 hour"
+        default: return "Every \(Int(interval / 60)) min"
+        }
     }
 
     private func openInFilesApp() {
