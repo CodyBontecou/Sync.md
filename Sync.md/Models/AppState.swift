@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import CommonCrypto
 
 // MARK: - App State
 
@@ -246,150 +245,77 @@ final class AppState {
     func detectChanges(repoID: UUID) {
         guard let repo = repo(id: repoID), repo.isCloned else { return }
         let vaultDir = vaultURL(for: repoID)
-        var count = 0
+        let gitService = LocalGitService(localURL: vaultDir)
 
-        let currentFiles = allFilePaths(in: vaultDir)
+        guard gitService.hasGitDirectory else {
+            changeCounts[repoID] = 0
+            return
+        }
 
-        for path in currentFiles {
-            let url = vaultDir.appendingPathComponent(path)
-            guard let data = try? Data(contentsOf: url) else { continue }
-            let hash = gitBlobSHA1(data)
-            if let storedSHA = repo.gitState.blobSHAs[path] {
-                if hash != storedSHA { count += 1 }
-            } else {
-                count += 1
+        Task {
+            do {
+                let info = try await gitService.repoInfo()
+                changeCounts[repoID] = info.changeCount
+            } catch {
+                changeCounts[repoID] = 0
             }
         }
-
-        for path in repo.gitState.blobSHAs.keys {
-            if !currentFiles.contains(path) { count += 1 }
-        }
-
-        changeCounts[repoID] = count
     }
 
-    private func allFilePaths(in directory: URL) -> Set<String> {
-        let fm = FileManager.default
-        guard let enumerator = fm.enumerator(
-            at: directory,
-            includingPropertiesForKeys: [.isDirectoryKey],
-            options: [.skipsHiddenFiles]
-        ) else { return [] }
-
-        var paths = Set<String>()
-        for case let url as URL in enumerator {
-            let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
-            if !isDir {
-                let relative = url.path.replacingOccurrences(of: directory.path + "/", with: "")
-                paths.insert(relative)
-            }
-        }
-        return paths
-    }
-
-    private func computeChanges(repoID: UUID) -> [FileChange] {
-        guard let repo = repo(id: repoID) else { return [] }
-        let vaultDir = vaultURL(for: repoID)
-        var changes: [FileChange] = []
-        let currentFiles = allFilePaths(in: vaultDir)
-
-        for path in currentFiles {
-            let url = vaultDir.appendingPathComponent(path)
-            guard let data = try? Data(contentsOf: url) else { continue }
-            let hash = gitBlobSHA1(data)
-            if let storedSHA = repo.gitState.blobSHAs[path] {
-                if hash != storedSHA {
-                    changes.append(FileChange(path: path, type: .modified, content: data))
-                }
-            } else {
-                changes.append(FileChange(path: path, type: .added, content: data))
-            }
-        }
-
-        for path in repo.gitState.blobSHAs.keys {
-            if !currentFiles.contains(path) {
-                changes.append(FileChange(path: path, type: .deleted, content: nil))
-            }
-        }
-
-        return changes
-    }
-
-    /// Compute the Git blob SHA-1 hash for file content.
-    /// Git hashes blobs as: SHA1("blob <size>\0" + <content>)
-    private func gitBlobSHA1(_ data: Data) -> String {
-        let header = Array("blob \(data.count)\0".utf8)
-        var hash = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
-        var ctx = CC_SHA1_CTX()
-        CC_SHA1_Init(&ctx)
-        CC_SHA1_Update(&ctx, header, CC_LONG(header.count))
-        data.withUnsafeBytes { buf in
-            CC_SHA1_Update(&ctx, buf.baseAddress, CC_LONG(buf.count))
-        }
-        CC_SHA1_Final(&hash, &ctx)
-        return hash.map { String(format: "%02x", $0) }.joined()
-    }
-
-    // MARK: - GitHub Service
-
-    private func makeService(for repoID: UUID) -> GitHubService? {
-        guard let repo = repo(id: repoID),
-              let parsed = GitHubService.parseRepoURL(repo.repoURL) else { return nil }
-        let token = pat
-        guard !token.isEmpty else { return nil }
-        return GitHubService(pat: token, owner: parsed.owner, repo: parsed.repo)
-    }
-
-    // MARK: - Git Operations
+    // MARK: - Git Operations (libgit2)
 
     func clone(repoID: UUID) async {
-        guard let service = makeService(for: repoID),
-              let idx = repoIndex(id: repoID) else {
-            showError(message: "Invalid repository URL or missing PAT")
+        guard let idx = repoIndex(id: repoID) else {
+            showError(message: "Repository not found")
             return
         }
 
         isSyncing = true
         syncingRepoID = repoID
-        syncProgress = "Detecting default branch..."
+        syncProgress = "Preparing to clone..."
 
         do {
             var repo = repos[idx]
-
-            if repo.branch.isEmpty {
-                repo.branch = try await service.getDefaultBranch()
-            }
-
-            syncProgress = "Cloning repository..."
-            let result = try await service.cloneRepository(branch: repo.branch)
-
             let vaultDir = vaultURL(for: repoID)
             let fm = FileManager.default
+
+            // Remove existing vault directory — git clone needs a clean target
             if fm.fileExists(atPath: vaultDir.path) {
                 try fm.removeItem(at: vaultDir)
             }
-            try fm.createDirectory(at: vaultDir, withIntermediateDirectories: true)
 
-            syncProgress = "Writing \(result.files.count) files..."
-            for (path, content) in result.files {
-                let fileURL = vaultDir.appendingPathComponent(path)
-                let dir = fileURL.deletingLastPathComponent()
-                try fm.createDirectory(at: dir, withIntermediateDirectories: true)
-                try content.write(to: fileURL)
+            // Ensure parent directory exists (git clone creates the target dir itself)
+            let parentDir = vaultDir.deletingLastPathComponent()
+            try fm.createDirectory(at: parentDir, withIntermediateDirectories: true)
+
+            // Build a clone-friendly URL (append .git if missing)
+            var cloneURL = repo.repoURL
+            if !cloneURL.hasSuffix(".git") {
+                cloneURL += ".git"
+            }
+
+            let gitService = LocalGitService(localURL: vaultDir)
+
+            syncProgress = "Cloning repository..."
+            let result = try await gitService.clone(remoteURL: cloneURL, pat: pat)
+
+            // Update branch from what was actually checked out
+            if repo.branch.isEmpty {
+                repo.branch = result.branch
             }
 
             repo.gitState = GitState(
                 commitSHA: result.commitSHA,
-                treeSHA: result.treeSHA,
-                branch: repo.branch,
-                blobSHAs: result.blobSHAs,
+                treeSHA: "",
+                branch: result.branch,
+                blobSHAs: [:],
                 lastSyncDate: Date()
             )
 
             repos[idx] = repo
             saveRepos()
             detectChanges(repoID: repoID)
-            syncProgress = "Clone complete!"
+            syncProgress = "Clone complete! (\(result.fileCount) files)"
 
         } catch {
             showError(message: error.localizedDescription)
@@ -401,9 +327,8 @@ final class AppState {
     }
 
     func pull(repoID: UUID) async {
-        guard let service = makeService(for: repoID),
-              let idx = repoIndex(id: repoID) else {
-            showError(message: "Invalid repository URL or missing PAT")
+        guard let idx = repoIndex(id: repoID) else {
+            showError(message: "Repository not found")
             return
         }
 
@@ -413,48 +338,26 @@ final class AppState {
 
         do {
             var repo = repos[idx]
-
-            guard let result = try await service.pull(
-                branch: repo.gitState.branch,
-                currentCommitSHA: repo.gitState.commitSHA
-            ) else {
-                syncProgress = "Already up to date!"
-                try await Task.sleep(for: .seconds(1))
-                isSyncing = false
-                syncingRepoID = nil
-                return
-            }
-
             let vaultDir = vaultURL(for: repoID)
-            let fm = FileManager.default
+            let gitService = LocalGitService(localURL: vaultDir)
 
-            syncProgress = "Applying \(result.modifiedFiles.count) changes..."
-            for (path, content) in result.modifiedFiles {
-                let fileURL = vaultDir.appendingPathComponent(path)
-                let dir = fileURL.deletingLastPathComponent()
-                try fm.createDirectory(at: dir, withIntermediateDirectories: true)
-                try content.write(to: fileURL)
+            guard gitService.hasGitDirectory else {
+                throw LocalGitError.notCloned
             }
 
-            for path in result.deletedFiles {
-                let fileURL = vaultDir.appendingPathComponent(path)
-                try? fm.removeItem(at: fileURL)
-            }
+            let result = try await gitService.pull(pat: pat)
 
-            repo.gitState.commitSHA = result.newCommitSHA
-            repo.gitState.treeSHA = result.newTreeSHA
-            repo.gitState.lastSyncDate = Date()
-            for (path, sha) in result.newBlobSHAs {
-                repo.gitState.blobSHAs[path] = sha
-            }
-            for path in result.deletedFiles {
-                repo.gitState.blobSHAs.removeValue(forKey: path)
-            }
+            if !result.updated {
+                syncProgress = "Already up to date!"
+            } else {
+                repo.gitState.commitSHA = result.newCommitSHA
+                repo.gitState.lastSyncDate = Date()
 
-            repos[idx] = repo
-            saveRepos()
-            detectChanges(repoID: repoID)
-            syncProgress = "Pull complete!"
+                repos[idx] = repo
+                saveRepos()
+                detectChanges(repoID: repoID)
+                syncProgress = "Pull complete!"
+            }
 
         } catch {
             showError(message: error.localizedDescription)
@@ -466,9 +369,8 @@ final class AppState {
     }
 
     func push(repoID: UUID, message: String) async {
-        guard let service = makeService(for: repoID),
-              let idx = repoIndex(id: repoID) else {
-            showError(message: "Invalid repository URL or missing PAT")
+        guard let idx = repoIndex(id: repoID) else {
+            showError(message: "Repository not found")
             return
         }
 
@@ -478,38 +380,25 @@ final class AppState {
 
         do {
             var repo = repos[idx]
-            let changes = computeChanges(repoID: repoID)
+            let vaultDir = vaultURL(for: repoID)
+            let gitService = LocalGitService(localURL: vaultDir)
 
-            guard !changes.isEmpty else {
-                syncProgress = "No changes to push"
-                try await Task.sleep(for: .seconds(1))
-                isSyncing = false
-                syncingRepoID = nil
-                return
+            guard gitService.hasGitDirectory else {
+                throw LocalGitError.notCloned
             }
 
             let commitMsg = message.isEmpty ? "Update from Sync.md" : message
 
-            syncProgress = "Pushing \(changes.count) changes..."
-            let result = try await service.push(
-                branch: repo.gitState.branch,
-                currentCommitSHA: repo.gitState.commitSHA,
-                currentTreeSHA: repo.gitState.treeSHA,
-                changes: changes,
+            syncProgress = "Committing and pushing..."
+            let result = try await gitService.commitAndPush(
                 message: commitMsg,
                 authorName: repo.authorName,
-                authorEmail: repo.authorEmail
+                authorEmail: repo.authorEmail,
+                pat: pat
             )
 
             repo.gitState.commitSHA = result.commitSHA
-            repo.gitState.treeSHA = result.treeSHA
             repo.gitState.lastSyncDate = Date()
-            for (path, sha) in result.newBlobSHAs {
-                repo.gitState.blobSHAs[path] = sha
-            }
-            for change in changes where change.type == .deleted {
-                repo.gitState.blobSHAs.removeValue(forKey: change.path)
-            }
 
             repos[idx] = repo
             saveRepos()

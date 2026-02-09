@@ -5,3 +5,5 @@ xcuserdata/
 DerivedData/
 node_modules/
 .vercel/
+.build/
+.pi/

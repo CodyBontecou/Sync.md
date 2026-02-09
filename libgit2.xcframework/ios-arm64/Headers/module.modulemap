@@ -1,0 +1,7 @@
+module libgit2 {
+    umbrella header "git2.h"
+    link "git2"
+    link "z"
+    link "iconv"
+    export *
+}

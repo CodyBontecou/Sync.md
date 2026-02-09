@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		62C953FE2F397E44001F79DF /* Clibgit2 in Frameworks */ = {isa = PBXBuildFile; productRef = 62C951C12F3A0001001F79DF /* Clibgit2 */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		62C951962F393029001F79DF /* Sync.md.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sync.md.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				62C953FE2F397E44001F79DF /* Clibgit2 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = Sync.md;
 			packageProductDependencies = (
+				62C951C12F3A0001001F79DF /* Clibgit2 */,
 			);
 			productName = Sync.md;
 			productReference = 62C951962F393029001F79DF /* Sync.md.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = 62C9518D2F393029001F79DF;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				62C951C02F3A0001001F79DF /* XCLocalSwiftPackageReference "Packages/Clibgit2" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 62C951972F393029001F79DF /* Products */;
 			projectDirPath = "";
@@ -347,6 +356,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		62C951C02F3A0001001F79DF /* XCLocalSwiftPackageReference "Packages/Clibgit2" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Clibgit2;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		62C951C12F3A0001001F79DF /* Clibgit2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Clibgit2;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 62C9518E2F393029001F79DF /* Project object */;
 }
