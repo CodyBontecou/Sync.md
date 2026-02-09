@@ -32,8 +32,7 @@ struct VaultView: View {
                 )
             }
         }
-        .navigationTitle(repo?.displayName ?? "Repository")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if repo?.isCloned == true {
                 ToolbarItem(placement: .primaryAction) {
