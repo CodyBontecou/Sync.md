@@ -22,6 +22,11 @@ struct RepoListView: View {
                     emptyState
                 } else {
                     VStack(spacing: 0) {
+                        if state.isDemoMode {
+                            demoBanner
+                                .padding(.horizontal, 20)
+                                .padding(.top, 8)
+                        }
                         repoList
                         addRepoCard
                             .padding(.horizontal, 20)
@@ -343,6 +348,34 @@ struct RepoListView: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    // MARK: - Demo Banner
+
+    private var demoBanner: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "play.circle.fill")
+                .font(.system(size: 16))
+                .foregroundStyle(SyncTheme.accent)
+
+            Text("Demo Mode")
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+
+            Spacer()
+
+            Button {
+                state.deactivateDemoMode()
+            } label: {
+                Text("Exit")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(SyncTheme.accent)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(SyncTheme.accent.opacity(0.12), in: Capsule())
+            }
+        }
+        .padding(12)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 

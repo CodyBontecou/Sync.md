@@ -12,7 +12,6 @@ struct AddRepoView: View {
     @State private var showManualEntry = false
 
     // Local repo selection
-    @State private var showLocalRepoPicker = false
     @State private var localRepoURL: URL? = nil
     @State private var localRepoBookmarkData: Data? = nil
     @State private var localRepoError: String? = nil
@@ -23,9 +22,16 @@ struct AddRepoView: View {
 
     // Vault location
     @State private var vaultName: String = "vault"
-    @State private var showFolderPicker = false
     @State private var customVaultURL: URL? = nil
     @State private var customVaultBookmarkData: Data? = nil
+
+    // Unified folder picker
+    private enum FolderPickerPurpose {
+        case cloneLocation
+        case localRepo
+    }
+    @State private var folderPickerPurpose: FolderPickerPurpose = .cloneLocation
+    @State private var showFolderPicker = false
 
     var body: some View {
         NavigationStack {
@@ -95,16 +101,12 @@ struct AddRepoView: View {
                 allowsMultipleSelection: false
             ) { result in
                 if case .success(let urls) = result, let url = urls.first {
-                    handleFolderSelection(url)
-                }
-            }
-            .fileImporter(
-                isPresented: $showLocalRepoPicker,
-                allowedContentTypes: [.folder],
-                allowsMultipleSelection: false
-            ) { result in
-                if case .success(let urls) = result, let url = urls.first {
-                    handleLocalRepoSelection(url)
+                    switch folderPickerPurpose {
+                    case .cloneLocation:
+                        handleFolderSelection(url)
+                    case .localRepo:
+                        handleLocalRepoSelection(url)
+                    }
                 }
             }
             .onAppear {
@@ -195,7 +197,8 @@ struct AddRepoView: View {
 
                 // Select local repository
                 Button {
-                    showLocalRepoPicker = true
+                    folderPickerPurpose = .localRepo
+                    showFolderPicker = true
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
@@ -409,6 +412,7 @@ struct AddRepoView: View {
             }
 
             Button {
+                folderPickerPurpose = .cloneLocation
                 showFolderPicker = true
             } label: {
                 HStack(spacing: 6) {

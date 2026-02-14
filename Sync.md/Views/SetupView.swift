@@ -153,6 +153,19 @@ struct SetupView: View {
             }
             .buttonStyle(SubtleButtonStyle())
             .staggeredAppear(index: 2)
+
+            // Demo Mode
+            Button {
+                state.activateDemoMode()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 14))
+                    Text("Try Demo")
+                }
+            }
+            .buttonStyle(SubtleButtonStyle())
+            .staggeredAppear(index: 3)
         }
         .opacity(contentAppeared ? 1 : 0)
     }

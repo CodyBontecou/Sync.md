@@ -36,6 +36,10 @@ final class AppState {
     /// Result from a completed callback operation — shown briefly before redirecting.
     var callbackResult: CallbackResultState? = nil
 
+    // MARK: - Demo Mode
+
+    var isDemoMode: Bool = false
+
     // MARK: - Errors
 
     var lastError: String? = nil
@@ -256,6 +260,7 @@ final class AppState {
     /// Check all repos marked as cloned and reset any whose `.git` directory
     /// has been deleted from the filesystem (e.g. via Files app).
     func validateClonedRepos() {
+        if isDemoMode { return }
         var didChange = false
         for (index, repo) in repos.enumerated() where repo.isCloned {
             let vaultDir = vaultURL(for: repo.id)
@@ -276,6 +281,7 @@ final class AppState {
 
     func detectChanges(repoID: UUID) {
         guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
         let vaultDir = vaultURL(for: repoID)
         let gitService = LocalGitService(localURL: vaultDir)
 
@@ -310,6 +316,16 @@ final class AppState {
         isSyncing = true
         syncingRepoID = repoID
         syncProgress = "Preparing to clone..."
+
+        if isDemoMode {
+            syncProgress = "Cloning repository..."
+            try? await Task.sleep(for: .seconds(1.5))
+            syncProgress = "Clone complete! (4 files)"
+            try? await Task.sleep(for: .seconds(1))
+            isSyncing = false
+            syncingRepoID = nil
+            return
+        }
 
         do {
             var repo = repos[idx]
@@ -373,6 +389,17 @@ final class AppState {
         syncingRepoID = repoID
         syncProgress = "Checking for updates..."
 
+        if isDemoMode {
+            try? await Task.sleep(for: .seconds(1))
+            syncProgress = "Already up to date!"
+            repos[idx].gitState.lastSyncDate = Date()
+            saveRepos()
+            try? await Task.sleep(for: .seconds(1))
+            isSyncing = false
+            syncingRepoID = nil
+            return
+        }
+
         do {
             var repo = repos[idx]
             let vaultDir = vaultURL(for: repoID)
@@ -414,6 +441,20 @@ final class AppState {
         isSyncing = true
         syncingRepoID = repoID
         syncProgress = "Preparing changes..."
+
+        if isDemoMode {
+            syncProgress = "Committing and pushing..."
+            try? await Task.sleep(for: .seconds(1.5))
+            repos[idx].gitState.commitSHA = UUID().uuidString.replacingOccurrences(of: "-", with: "").prefix(40).lowercased()
+            repos[idx].gitState.lastSyncDate = Date()
+            saveRepos()
+            changeCounts[repoID] = 0
+            syncProgress = "Push complete!"
+            try? await Task.sleep(for: .seconds(1))
+            isSyncing = false
+            syncingRepoID = nil
+            return
+        }
 
         do {
             var repo = repos[idx]
@@ -643,6 +684,10 @@ final class AppState {
     }
 
     func signOut() {
+        if isDemoMode {
+            deactivateDemoMode()
+            return
+        }
         pat = ""
         isSignedIn = false
         gitHubUsername = ""
@@ -659,6 +704,150 @@ final class AppState {
     private func showError(message: String) {
         lastError = message
         showError = true
+    }
+
+    // MARK: - Demo Mode
+
+    func activateDemoMode() {
+        isDemoMode = true
+        isSignedIn = true
+        gitHubUsername = "demo-user"
+        gitHubDisplayName = "Demo User"
+        gitHubAvatarURL = ""
+        defaultAuthorName = "Demo User"
+        defaultAuthorEmail = "demo@example.com"
+
+        // Create a demo repo that appears already cloned with sample content
+        let demoRepo = RepoConfig(
+            repoURL: "https://github.com/demo-user/my-notes.git",
+            branch: "main",
+            authorName: "Demo User",
+            authorEmail: "demo@example.com",
+            vaultFolderName: "my-notes",
+            gitState: GitState(
+                commitSHA: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+                treeSHA: "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5",
+                branch: "main",
+                blobSHAs: [:],
+                lastSyncDate: Date()
+            )
+        )
+
+        repos = [demoRepo]
+        saveRepos()
+        saveGlobalSettings()
+
+        // Write sample markdown files to the vault directory
+        createDemoFiles(for: demoRepo)
+
+        // Set a fake change count so the reviewer can see the push UI
+        changeCounts[demoRepo.id] = 2
+    }
+
+    func deactivateDemoMode() {
+        isDemoMode = false
+        signOut()
+
+        // Remove demo repo files
+        for repo in repos {
+            let vaultDir = vaultURL(for: repo.id)
+            try? FileManager.default.removeItem(at: vaultDir)
+        }
+        repos = []
+        changeCounts = [:]
+        saveRepos()
+    }
+
+    private func createDemoFiles(for repo: RepoConfig) {
+        let vaultDir = repo.defaultVaultURL
+        let fm = FileManager.default
+
+        // Create vault directory
+        try? fm.createDirectory(at: vaultDir, withIntermediateDirectories: true)
+
+        // Create a fake .git directory so the app considers it cloned
+        let gitDir = vaultDir.appendingPathComponent(".git", isDirectory: true)
+        try? fm.createDirectory(at: gitDir, withIntermediateDirectories: true)
+        // Write a minimal HEAD file
+        let headFile = gitDir.appendingPathComponent("HEAD")
+        try? "ref: refs/heads/main\n".write(to: headFile, atomically: true, encoding: .utf8)
+
+        let sampleFiles: [(String, String)] = [
+            ("Welcome.md", """
+            # Welcome to Sync.md 👋
+
+            This is a **demo vault** showing how Sync.md works.
+
+            ## Features
+            - 📥 **Pull** — fetch changes from your GitHub repo
+            - 📤 **Push** — commit and push local edits
+            - 🔄 **Sync** — keep markdown notes in sync across devices
+
+            ## How It Works
+            1. Sign in with GitHub
+            2. Pick a repository (or create one)
+            3. Clone it to your device
+            4. Edit files with any markdown editor (e.g. Obsidian)
+            5. Push your changes back to GitHub
+
+            > Your notes live in the **Files** app under `Sync.md/`
+            """),
+            ("Meeting Notes.md", """
+            # Meeting Notes — Feb 2026
+
+            ## Team Standup (Feb 10)
+            - Shipped v1.0 to App Store 🚀
+            - Next sprint: collaboration features
+            - @alice to investigate conflict resolution
+
+            ## Product Review (Feb 7)
+            - Approved new sync indicator design
+            - Decided on 3-way merge strategy
+            - Launch marketing site by end of month
+
+            ### Action Items
+            - [ ] Update onboarding flow
+            - [ ] Add pull-to-refresh animation
+            - [x] Fix branch detection on clone
+            """),
+            ("Ideas.md", """
+            # Ideas & Backlog
+
+            ## 🟢 In Progress
+            - Obsidian plugin for one-tap sync
+            - iPad split-view support
+
+            ## 🔵 Planned
+            - Conflict resolution UI
+            - Branch switching
+            - Multiple vault support
+            - Shared team repositories
+
+            ## 💡 Someday
+            - End-to-end encryption option
+            - Markdown preview built-in
+            - Widget for sync status
+            """),
+            ("Journal/2026-02-11.md", """
+            # February 11, 2026
+
+            Today I'm trying out **Sync.md** to keep my notes backed up on GitHub.
+
+            The setup was simple:
+            1. Signed in with GitHub
+            2. Selected my `my-notes` repo
+            3. Cloned — all my files appeared instantly
+
+            Now I can edit in Obsidian and push changes whenever I'm ready. 🎉
+            """),
+        ]
+
+        for (path, content) in sampleFiles {
+            let fileURL = vaultDir.appendingPathComponent(path)
+            let dir = fileURL.deletingLastPathComponent()
+            try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+            try? content.write(to: fileURL, atomically: true, encoding: .utf8)
+        }
     }
 }
 
