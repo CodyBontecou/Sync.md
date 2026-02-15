@@ -410,6 +410,15 @@
     line-height: 1.7;
   }
 
+  .feature-desc code {
+    background: var(--grey-1);
+    border: 1px solid var(--grey-3);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--white);
+    font-size: 11px;
+  }
+
   .feature-icon {
     width: 32px;
     height: 32px;
@@ -549,6 +558,102 @@
     padding: 4px 10px;
     border-radius: 2px;
     margin-bottom: 16px;
+  }
+
+  .integration-desc code {
+    background: var(--grey-1);
+    border: 1px solid var(--grey-3);
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: var(--white);
+    font-size: 11px;
+  }
+
+  .integration-desc a {
+    color: var(--blue);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 122, 255, 0.3);
+  }
+
+  .integration-desc a:hover {
+    border-bottom-color: var(--blue);
+  }
+
+  /* ─── AUTOMATION DOCS ─── */
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .doc-card {
+    border: 1px solid var(--grey-2);
+    background: var(--grey-1);
+    border-radius: 8px;
+    padding: 24px;
+  }
+
+  .doc-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .doc-card p {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--grey-5);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .doc-card ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .doc-card li {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--grey-5);
+    line-height: 1.7;
+    margin-bottom: 6px;
+  }
+
+  .doc-card code {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--white);
+    background: var(--black);
+    border: 1px solid var(--grey-3);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  .doc-card a {
+    color: var(--blue);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 122, 255, 0.3);
+  }
+
+  .doc-card a:hover {
+    border-bottom-color: var(--blue);
+  }
+
+  .doc-url {
+    display: block;
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--grey-6);
+    background: var(--black);
+    border: 1px solid var(--grey-2);
+    border-radius: 6px;
+    padding: 12px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+    margin-top: 8px;
   }
 
   /* ─── SPECS TABLE ─── */
@@ -751,6 +856,10 @@
     .integrations-row {
       flex-direction: column;
     }
+
+    .docs-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 600px) {
@@ -841,9 +950,10 @@
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#workflow">Workflow</a>
+      <a href="#automation">Automation</a>
       <a href="#specs">Specs</a>
       <a href="https://github.com/CodyBontecou/Sync.md" target="_blank">GitHub</a>
-      <a href="#download" class="nav-cta">Download</a>
+      <a href="https://apps.apple.com/us/app/sync-md/id6758960270" class="nav-cta">Download</a>
     </div>
   </div>
 </nav>
@@ -857,7 +967,7 @@
         <h1 class="hero-title">Sync<span class="accent">.md</span></h1>
         <p class="hero-desc">Real Git on your iPhone. Clone, pull, commit & push any repo. No terminal, no sync layer, no lock-in. Your files, version controlled.</p>
         <div class="hero-actions">
-          <a href="#download" class="btn-primary">
+          <a href="https://apps.apple.com/us/app/sync-md/id6758960270" class="btn-primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             App Store
           </a>
@@ -952,7 +1062,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </div>
         <div class="feature-name">x-callback-url</div>
-        <div class="feature-desc">Obsidian Git plugin calls syncmd:// to pull and push without leaving Obsidian. Programmable from any app that speaks URLs.</div>
+        <div class="feature-desc">Obsidian Git plugin calls <code>syncmd://x-callback-url/sync</code> to pull and push without leaving Obsidian. Programmable from any app that speaks URLs.</div>
       </div>
     </div>
   </div>
@@ -1019,7 +1129,7 @@
       <div class="integration-card">
         <div class="integration-tag">x-callback-url</div>
         <div class="integration-name">Obsidian</div>
-        <div class="integration-desc">The Obsidian Git plugin calls syncmd:// to pull and push without leaving the app. Seamless vault sync.</div>
+        <div class="integration-desc">The Obsidian Git plugin calls <code>syncmd://x-callback-url/sync</code> to pull and push without leaving the app. <a href="blog/obsidian-git-ios-setup.html">Implementation guide →</a></div>
       </div>
       <div class="integration-card">
         <div class="integration-tag">Files App</div>
@@ -1035,11 +1145,53 @@
   </div>
 </section>
 
+<!-- ─── AUTOMATION ─── -->
+<section class="section" id="automation" style="border-top: 1px solid var(--grey-2);">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">004 — Automation</div>
+      <h2 class="section-title">Implement x-callback-url in minutes.</h2>
+    </div>
+    <div class="docs-grid reveal-stagger reveal">
+      <div class="doc-card">
+        <h3>Quick start URL</h3>
+        <p>Any app can trigger a full pull + push by opening this URL:</p>
+        <span class="doc-url">syncmd://x-callback-url/sync?repo=MyVault</span>
+        <p>The <code>repo</code> value must match the vault folder name shown in Sync.md.</p>
+      </div>
+      <div class="doc-card">
+        <h3>Supported actions</h3>
+        <ul>
+          <li><code>/pull</code> — fetch + fast-forward from remote</li>
+          <li><code>/push</code> — stage all, commit, and push</li>
+          <li><code>/sync</code> — pull then push (recommended)</li>
+          <li><code>/status</code> — read branch/SHA/change count</li>
+        </ul>
+      </div>
+      <div class="doc-card">
+        <h3>Optional callback parameters</h3>
+        <p>Add these for full x-callback-url flow control:</p>
+        <ul>
+          <li><code>message</code> — commit message for <code>push</code>/<code>sync</code></li>
+          <li><code>x-success</code> — URL opened after success</li>
+          <li><code>x-error</code> — URL opened after failure</li>
+        </ul>
+      </div>
+      <div class="doc-card">
+        <h3>Obsidian implementation</h3>
+        <p>In the Obsidian Git community plugin, set your mobile sync URL to:</p>
+        <span class="doc-url">syncmd://x-callback-url/sync?repo=MyVault&amp;message=Update%20from%20Obsidian</span>
+        <p><a href="blog/obsidian-git-ios-setup.html">See the complete iOS setup guide →</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ─── SPECS ─── -->
 <section class="specs-section" id="specs">
   <div class="container">
     <div class="reveal">
-      <div class="section-label">004 — Technical</div>
+      <div class="section-label">005 — Technical</div>
       <h2 class="section-title">Under the hood.</h2>
     </div>
     <div class="specs-table reveal">
@@ -1091,11 +1243,11 @@
 <section class="cta-section" id="download">
   <div class="container">
     <div class="reveal">
-      <div class="section-label" style="text-align: center;">005 — Get Started</div>
+      <div class="section-label" style="text-align: center;">006 — Get Started</div>
       <h2 class="cta-title">Your notes<span class="accent">.</span><br>Version controlled<span class="accent">.</span></h2>
       <p class="cta-sub">$5 on the App Store. Open source on GitHub.</p>
       <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-        <a href="#" class="btn-primary" style="font-size: 14px; padding: 16px 32px;">
+        <a href="https://apps.apple.com/us/app/sync-md/id6758960270" class="btn-primary" style="font-size: 14px; padding: 16px 32px;">
           <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
           App Store
         </a>
