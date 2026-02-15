@@ -8,6 +8,7 @@ struct RepoListView: View {
     @Environment(AppState.self) private var state
     @State private var showAddRepo = false
     @State private var showSignOutConfirm = false
+    @State private var showAppSettings = false
     @State private var settingsRepoID: UUID? = nil
     @State private var navigationPath: [UUID] = []
 
@@ -50,6 +51,14 @@ struct RepoListView: View {
                                 }
                             }
 
+                            Section {
+                                Button {
+                                    showAppSettings = true
+                                } label: {
+                                    Label("App Settings", systemImage: "gearshape")
+                                }
+                            }
+
                             Button(role: .destructive) {
                                 showSignOutConfirm = true
                             } label: {
@@ -75,6 +84,9 @@ struct RepoListView: View {
             }
             .sheet(isPresented: $showAddRepo) {
                 AddRepoView()
+            }
+            .sheet(isPresented: $showAppSettings) {
+                AppSettingsView()
             }
             .sheet(item: $settingsRepoID) { repoID in
                 SettingsView(repoID: repoID)

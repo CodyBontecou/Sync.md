@@ -36,6 +36,15 @@ final class AppState {
     /// Result from a completed callback operation — shown briefly before redirecting.
     var callbackResult: CallbackResultState? = nil
 
+    // MARK: - Default Save Location
+
+    var defaultSaveLocationBookmarkData: Data? = nil
+    var resolvedDefaultSaveURL: URL? = nil
+    private var defaultSaveAccessingScope: Bool = false
+
+    /// Whether onboarding (including the save-location step) has been completed.
+    var hasCompletedOnboarding: Bool = false
+
     // MARK: - Demo Mode
 
     var isDemoMode: Bool = false
@@ -79,7 +88,12 @@ final class AppState {
         gitHubAvatarURL = defaults.string(forKey: "gitHubAvatarURL") ?? ""
         defaultAuthorName = defaults.string(forKey: "authorName") ?? ""
         defaultAuthorEmail = defaults.string(forKey: "authorEmail") ?? ""
+        hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
         isSignedIn = !pat.isEmpty
+
+        // Load default save location bookmark
+        defaultSaveLocationBookmarkData = defaults.data(forKey: "defaultSaveLocationBookmark")
+        resolveDefaultSaveBookmark()
 
         // Try to load multi-repo state
         if let data = try? Data(contentsOf: Self.reposFileURL) {
@@ -154,6 +168,81 @@ final class AppState {
         defaults.set(gitHubAvatarURL, forKey: "gitHubAvatarURL")
         defaults.set(defaultAuthorName, forKey: "authorName")
         defaults.set(defaultAuthorEmail, forKey: "authorEmail")
+        defaults.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+
+        if let bookmarkData = defaultSaveLocationBookmarkData {
+            defaults.set(bookmarkData, forKey: "defaultSaveLocationBookmark")
+        } else {
+            defaults.removeObject(forKey: "defaultSaveLocationBookmark")
+        }
+    }
+
+    // MARK: - Default Save Location
+
+    func setDefaultSaveLocation(_ url: URL) {
+        clearDefaultSaveLocation()
+
+        guard url.startAccessingSecurityScopedResource() else { return }
+
+        guard let bookmark = try? url.bookmarkData(
+            options: [],
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        ) else {
+            url.stopAccessingSecurityScopedResource()
+            return
+        }
+
+        defaultSaveLocationBookmarkData = bookmark
+        resolvedDefaultSaveURL = url
+        defaultSaveAccessingScope = true
+        saveGlobalSettings()
+    }
+
+    func clearDefaultSaveLocation() {
+        if defaultSaveAccessingScope, let url = resolvedDefaultSaveURL {
+            url.stopAccessingSecurityScopedResource()
+            defaultSaveAccessingScope = false
+        }
+        resolvedDefaultSaveURL = nil
+        defaultSaveLocationBookmarkData = nil
+        saveGlobalSettings()
+    }
+
+    var defaultSaveDisplayPath: String {
+        resolvedDefaultSaveURL?.path ?? ""
+    }
+
+    var hasDefaultSaveLocation: Bool {
+        resolvedDefaultSaveURL != nil
+    }
+
+    private func resolveDefaultSaveBookmark() {
+        guard let bookmarkData = defaultSaveLocationBookmarkData else { return }
+
+        var isStale = false
+        guard let url = try? URL(
+            resolvingBookmarkData: bookmarkData,
+            options: [],
+            relativeTo: nil,
+            bookmarkDataIsStale: &isStale
+        ) else { return }
+
+        if url.startAccessingSecurityScopedResource() {
+            defaultSaveAccessingScope = true
+        }
+        resolvedDefaultSaveURL = url
+
+        if isStale {
+            if let newBookmark = try? url.bookmarkData(
+                options: [],
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            ) {
+                defaultSaveLocationBookmarkData = newBookmark
+                saveGlobalSettings()
+            }
+        }
     }
 
     // MARK: - Repo Access
@@ -168,6 +257,11 @@ final class AppState {
 
     func vaultURL(for repoID: UUID) -> URL {
         if let customURL = resolvedCustomURLs[repoID] {
+            // When the bookmark points to a parent directory (clone to custom
+            // location), append the repo folder name — just like `git clone`.
+            if let repo = repo(id: repoID), repo.customLocationIsParent {
+                return customURL.appendingPathComponent(repo.vaultFolderName, isDirectory: true)
+            }
             return customURL
         }
         guard let repo = repo(id: repoID) else {
@@ -178,6 +272,9 @@ final class AppState {
 
     func vaultDisplayPath(for repoID: UUID) -> String {
         if let customURL = resolvedCustomURLs[repoID] {
+            if let repo = repo(id: repoID), repo.customLocationIsParent {
+                return customURL.appendingPathComponent(repo.vaultFolderName).path
+            }
             return customURL.path
         }
         guard let repo = repo(id: repoID) else { return "" }
@@ -696,6 +793,8 @@ final class AppState {
         defaultAuthorName = ""
         defaultAuthorEmail = ""
         gitHubRepos = []
+        hasCompletedOnboarding = false
+        clearDefaultSaveLocation()
         saveGlobalSettings()
     }
 

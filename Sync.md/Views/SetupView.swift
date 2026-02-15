@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SetupView: View {
     @Environment(AppState.self) private var state
@@ -8,6 +9,12 @@ struct SetupView: View {
     @State private var patToken = ""
     @State private var showPAT = false
     @State private var isSigningIn = false
+
+    // Save location flow
+    @State private var showSaveLocationStep = false
+    @State private var showFolderPicker = false
+    @State private var selectedFolderURL: URL? = nil
+    @State private var saveLocationAppeared = false
 
     // Animation
     @State private var heroAppeared = false
@@ -20,21 +27,29 @@ struct SetupView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        hero
-                            .padding(.bottom, 32)
-
-                        if showPATFlow {
-                            patFlowView
+                        if showSaveLocationStep {
+                            saveLocationStepView
                                 .transition(.asymmetric(
                                     insertion: .move(edge: .trailing).combined(with: .opacity),
                                     removal: .move(edge: .leading).combined(with: .opacity)
                                 ))
                         } else {
-                            signInOptions
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .leading).combined(with: .opacity),
-                                    removal: .move(edge: .trailing).combined(with: .opacity)
-                                ))
+                            hero
+                                .padding(.bottom, 32)
+
+                            if showPATFlow {
+                                patFlowView
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                                        removal: .move(edge: .leading).combined(with: .opacity)
+                                    ))
+                            } else {
+                                signInOptions
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: .leading).combined(with: .opacity),
+                                        removal: .move(edge: .trailing).combined(with: .opacity)
+                                    ))
+                            }
                         }
                     }
                     .padding(.bottom, 60)
@@ -49,6 +64,17 @@ struct SetupView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(state.lastError ?? "Unknown error")
+            }
+            .fileImporter(
+                isPresented: $showFolderPicker,
+                allowedContentTypes: [.folder],
+                allowsMultipleSelection: false
+            ) { result in
+                if case .success(let urls) = result, let url = urls.first {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                        selectedFolderURL = url
+                    }
+                }
             }
         }
     }
@@ -112,7 +138,12 @@ struct SetupView: View {
         VStack(spacing: 20) {
             // Primary: OAuth
             Button {
-                Task { await state.signInWithGitHub() }
+                Task {
+                    await state.signInWithGitHub()
+                    if state.isSignedIn {
+                        presentSaveLocationStep()
+                    }
+                }
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "person.circle.fill")
@@ -157,6 +188,8 @@ struct SetupView: View {
             // Demo Mode
             Button {
                 state.activateDemoMode()
+                state.hasCompletedOnboarding = true
+                state.saveGlobalSettings()
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "play.circle.fill")
@@ -240,6 +273,9 @@ struct SetupView: View {
                 Task {
                     await state.signInWithPAT(token: patToken)
                     isSigningIn = false
+                    if state.isSignedIn {
+                        presentSaveLocationStep()
+                    }
                 }
             } label: {
                 HStack(spacing: 10) {
@@ -258,6 +294,154 @@ struct SetupView: View {
             .disabled(patToken.trimmingCharacters(in: .whitespaces).isEmpty || isSigningIn)
             .opacity(patToken.trimmingCharacters(in: .whitespaces).isEmpty || isSigningIn ? 0.6 : 1)
             .padding(.horizontal, 24)
+        }
+    }
+
+    // MARK: - Save Location Step
+
+    private func presentSaveLocationStep() {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+            showSaveLocationStep = true
+        }
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
+            saveLocationAppeared = true
+        }
+    }
+
+    private func finishOnboarding() {
+        if let url = selectedFolderURL {
+            state.setDefaultSaveLocation(url)
+        }
+        state.hasCompletedOnboarding = true
+        state.saveGlobalSettings()
+    }
+
+    private var saveLocationStepView: some View {
+        VStack(spacing: 0) {
+            // Hero
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [SyncTheme.blue.opacity(0.3), .clear],
+                                center: .center,
+                                startRadius: 20,
+                                endRadius: 60
+                            )
+                        )
+                        .frame(width: 120, height: 120)
+                        .blur(radius: 10)
+
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                            .frame(width: 80, height: 80)
+                            .shadow(color: SyncTheme.blue.opacity(0.2), radius: 20, x: 0, y: 8)
+
+                        Image(systemName: "folder.fill.badge.gearshape")
+                            .font(.system(size: 34, weight: .medium))
+                            .foregroundStyle(SyncTheme.primaryGradient)
+                    }
+                }
+                .scaleEffect(saveLocationAppeared ? 1 : 0.5)
+                .opacity(saveLocationAppeared ? 1 : 0)
+
+                VStack(spacing: 6) {
+                    Text("Default Save Location")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+
+                    Text("Choose where new repositories\nare saved on your device")
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .opacity(saveLocationAppeared ? 1 : 0)
+                .offset(y: saveLocationAppeared ? 0 : 10)
+            }
+            .padding(.top, 60)
+            .padding(.bottom, 32)
+
+            // Content
+            VStack(spacing: 20) {
+                // Selected location display
+                if let url = selectedFolderURL {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(SyncTheme.blue.opacity(0.12))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "folder.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(SyncTheme.accent)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(url.lastPathComponent)
+                                .font(.system(size: 15, weight: .medium, design: .rounded))
+                            Text(url.path)
+                                .font(.system(size: 12, design: .rounded))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+
+                        Spacer()
+
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                selectedFolderURL = nil
+                            }
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .padding(14)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .padding(.horizontal, 24)
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+                    // Info hint
+                    HStack(spacing: 8) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.tertiary)
+                        Text("Without a default, repos save to\nFiles › On My iPhone › Sync.md")
+                            .font(.system(size: 13, design: .rounded))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 28)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // Choose folder button
+                Button {
+                    showFolderPicker = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "folder.badge.plus")
+                            .font(.system(size: 18))
+                        Text(selectedFolderURL != nil ? "Change Location" : "Choose Location")
+                    }
+                }
+                .buttonStyle(LiquidButtonStyle(gradient: SyncTheme.primaryGradient))
+                .padding(.horizontal, 24)
+
+                // Skip / Continue
+                Button {
+                    finishOnboarding()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: selectedFolderURL != nil ? "checkmark.circle.fill" : "arrow.right.circle.fill")
+                            .font(.system(size: 14))
+                        Text(selectedFolderURL != nil ? "Continue" : "Skip for Now")
+                    }
+                }
+                .buttonStyle(SubtleButtonStyle())
+            }
+            .opacity(saveLocationAppeared ? 1 : 0)
         }
     }
 }

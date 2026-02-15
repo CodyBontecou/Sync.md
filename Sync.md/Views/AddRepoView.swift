@@ -113,6 +113,13 @@ struct AddRepoView: View {
                 authorName = state.defaultAuthorName
                 authorEmail = state.defaultAuthorEmail
 
+                // Pre-populate clone location from default save location
+                if let defaultURL = state.resolvedDefaultSaveURL,
+                   let defaultBookmark = state.defaultSaveLocationBookmarkData {
+                    customVaultURL = defaultURL
+                    customVaultBookmarkData = defaultBookmark
+                }
+
                 // Pre-fetch repos if needed
                 if state.gitHubRepos.isEmpty {
                     Task { await state.refreshRepos() }
@@ -356,6 +363,7 @@ struct AddRepoView: View {
                 .padding(.horizontal, 4)
 
             if let customURL = customVaultURL {
+                let repoDir = customURL.appendingPathComponent(vaultName)
                 HStack(spacing: 12) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -366,9 +374,9 @@ struct AddRepoView: View {
                             .foregroundStyle(SyncTheme.accent)
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(customURL.lastPathComponent)
+                        Text(repoDir.lastPathComponent)
                             .font(.system(size: 15, weight: .medium, design: .rounded))
-                        Text(customURL.path)
+                        Text(repoDir.path)
                             .font(.system(size: 12, design: .rounded))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -547,7 +555,8 @@ struct AddRepoView: View {
             authorName: authorName,
             authorEmail: authorEmail,
             vaultFolderName: vaultName.isEmpty ? "vault" : vaultName,
-            customVaultBookmarkData: customVaultBookmarkData
+            customVaultBookmarkData: customVaultBookmarkData,
+            customLocationIsParent: customVaultBookmarkData != nil
         )
         state.addRepo(config)
         Task { await state.clone(repoID: config.id) }

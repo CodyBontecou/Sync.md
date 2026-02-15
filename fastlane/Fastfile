@@ -1,0 +1,46 @@
+default_platform(:ios)
+
+platform :ios do
+  lane :release do
+    build_app(
+      project: "Sync.md.xcodeproj",
+      scheme: "Sync.md",
+      export_method: "app-store",
+      export_options: {
+        teamID: "67KC823C9A",
+        signingStyle: "automatic",
+        uploadSymbols: true
+      }
+    )
+    upload_to_app_store(
+      skip_screenshots: true,
+      skip_metadata: true,
+      submit_for_review: true,
+      automatic_release: false,
+      app_version: "1.1",
+      release_notes: {
+        "en-US" => "Users can now select where to save git repositories on their iOS device."
+      },
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
+
+  lane :upload_only do
+    upload_to_app_store(
+      ipa: "Sync.md.ipa",
+      skip_screenshots: true,
+      skip_metadata: true,
+      submit_for_review: true,
+      automatic_release: false,
+      app_version: "1.1",
+      release_notes: {
+        "en-US" => "Users can now select where to save git repositories on their iOS device."
+      },
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
+end
