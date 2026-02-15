@@ -1,9 +1,29 @@
+# Secrets
 .env
+
+# macOS
 .DS_Store
+
+# Xcode
 xcuserdata/
 *.xcuserstate
 DerivedData/
-node_modules/
-.vercel/
+build/
+
+# Swift Package Manager
 .build/
+.swiftpm/
+
+# Node
+node_modules/
+
+# Vercel
+.vercel/
+
+# Pi agent
 .pi/
+
+# Build artifacts
+*.ipa
+*.dSYM.zip
+*.app.dSYM/

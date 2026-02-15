@@ -1,2 +1,0 @@
-Target dependency graph (1 target)
-Target 'Sync.md' in project 'Sync.md' (no dependencies)
