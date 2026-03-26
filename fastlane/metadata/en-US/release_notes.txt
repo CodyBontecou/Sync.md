@@ -1,2 +1,4 @@
-• Fixed a bug where .gitignore rules were not being respected when committing changes
+• Added a one-time unlock for unlimited repositories
 • Added Send Feedback and Report a Bug actions in Settings
+• Improved clone setup by prefilling your GitHub email when available
+• Better validation when required clone fields are missing
