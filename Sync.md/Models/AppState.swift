@@ -780,6 +780,46 @@ final class AppState {
         isLoadingRepos = false
     }
 
+    func hydrateGitHubProfileIfNeeded() async {
+        let token = pat
+        guard !token.isEmpty else { return }
+
+        let needsProfile = gitHubUsername.isEmpty
+            || gitHubDisplayName.isEmpty
+            || defaultAuthorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || defaultAuthorEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        guard needsProfile else { return }
+
+        do {
+            let user = try await GitHubService.fetchUser(token: token)
+
+            if gitHubUsername.isEmpty {
+                gitHubUsername = user.login
+            }
+            if gitHubDisplayName.isEmpty {
+                gitHubDisplayName = user.name ?? user.login
+            }
+            if gitHubAvatarURL.isEmpty {
+                gitHubAvatarURL = user.avatar_url ?? ""
+            }
+            if defaultAuthorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                defaultAuthorName = user.name ?? user.login
+            }
+            if defaultAuthorEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                if let email = user.email, !email.isEmpty {
+                    defaultAuthorEmail = email
+                } else if let email = try await GitHubService.fetchPrimaryEmail(token: token), !email.isEmpty {
+                    defaultAuthorEmail = email
+                }
+            }
+
+            saveGlobalSettings()
+        } catch {
+            // Best-effort hydration for older sessions; keep existing values if unavailable.
+        }
+    }
+
     func signOut() {
         if isDemoMode {
             deactivateDemoMode()

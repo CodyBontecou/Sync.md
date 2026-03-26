@@ -1,0 +1,2 @@
+• Fixed a bug where .gitignore rules were not being respected when committing changes
+• Added Send Feedback and Report a Bug actions in Settings

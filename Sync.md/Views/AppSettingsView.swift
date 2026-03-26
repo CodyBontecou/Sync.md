@@ -1,13 +1,19 @@
 import SwiftUI
+import StoreKit
 import UniformTypeIdentifiers
 
 struct AppSettingsView: View {
     @Environment(AppState.self) private var state
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var purchaseManager = PurchaseManager.shared
 
     @State private var showFolderPicker = false
     @State private var showClearConfirm = false
     @State private var showMailCompose = false
+    @State private var showPaywall = false
+    @State private var showDebugAlert = false
+    @State private var debugResult = ""
+    @State private var isRunningDebug = false
 
     var body: some View {
         NavigationStack {
@@ -17,7 +23,6 @@ struct AppSettingsView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Account Section
                         settingsSection(title: "Account", icon: "person.fill", iconColor: SyncTheme.accent) {
                             VStack(spacing: 14) {
                                 if !state.gitHubDisplayName.isEmpty {
@@ -47,7 +52,100 @@ struct AppSettingsView: View {
                         }
                         .staggeredAppear(index: 0)
 
-                        // Default Save Location Section
+                        settingsSection(title: "Unlock", icon: "sparkles", iconColor: SyncTheme.accent) {
+                            VStack(spacing: 14) {
+                                if purchaseManager.isUnlocked {
+                                    statusInfoRow(
+                                        icon: "checkmark.seal.fill",
+                                        title: "Full Access Unlocked",
+                                        subtitle: purchaseManager.isLegacyUser
+                                            ? "Legacy paid user — restored from previous purchase"
+                                            : "Unlimited repositories enabled"
+                                    )
+                                    .foregroundStyle(.green)
+
+                                    Divider().opacity(0.3)
+
+                                    settingsRow(label: "Access Type") {
+                                        Text(purchaseManager.isLegacyUser ? "Legacy paid user" : "One-time purchase")
+                                            .font(.system(size: 15, weight: .medium, design: .rounded))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                } else {
+                                    statusInfoRow(
+                                        icon: "info.circle.fill",
+                                        title: "1 free repository included",
+                                        subtitle: "Unlock unlimited repositories with a one-time purchase."
+                                    )
+
+                                    Button {
+                                        showPaywall = true
+                                    } label: {
+                                        Text(unlockButtonTitle)
+                                    }
+                                    .buttonStyle(LiquidButtonStyle(gradient: SyncTheme.primaryGradient))
+                                    .disabled(purchaseManager.isPurchasing || purchaseManager.isRestoring)
+
+                                    Button {
+                                        Task { await purchaseManager.restore() }
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            if purchaseManager.isRestoring {
+                                                ProgressView()
+                                                    .controlSize(.small)
+                                                    .tint(SyncTheme.accent)
+                                            }
+
+                                            Text("Restore Purchase")
+                                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                        }
+                                        .foregroundStyle(SyncTheme.accent)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 14)
+                                        .background(SyncTheme.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .disabled(purchaseManager.isPurchasing || purchaseManager.isRestoring)
+                                }
+
+                                if let error = purchaseManager.purchaseError {
+                                    Divider().opacity(0.3)
+
+                                    Text(error)
+                                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                                        .foregroundStyle(
+                                            error.contains("cody@isolated.tech")
+                                                ? .secondary
+                                                : Color.red
+                                        )
+                                        .multilineTextAlignment(.leading)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+
+                                #if DEBUG
+                                Divider().opacity(0.3)
+
+                                Button {
+                                    guard !isRunningDebug else { return }
+                                    isRunningDebug = true
+                                    Task {
+                                        debugResult = await purchaseManager.debugVerifyReceipt()
+                                        isRunningDebug = false
+                                        showDebugAlert = true
+                                    }
+                                } label: {
+                                    settingsActionRow(
+                                        icon: "checkmark.shield.fill",
+                                        title: isRunningDebug ? "Running…" : "Debug: Verify Receipt",
+                                        subtitle: "Test worker ↔ Apple end-to-end"
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                #endif
+                            }
+                        }
+                        .staggeredAppear(index: 1)
+
                         settingsSection(title: "Default Save Location", icon: "folder.fill", iconColor: SyncTheme.accent) {
                             VStack(spacing: 14) {
                                 if let url = state.resolvedDefaultSaveURL {
@@ -132,9 +230,8 @@ struct AppSettingsView: View {
                                 }
                             }
                         }
-                        .staggeredAppear(index: 1)
+                        .staggeredAppear(index: 2)
 
-                        // Feedback Section
                         settingsSection(title: "Feedback", icon: "bubble.left.and.bubble.right.fill", iconColor: SyncTheme.accent) {
                             VStack(spacing: 14) {
                                 Button {
@@ -166,9 +263,8 @@ struct AppSettingsView: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        .staggeredAppear(index: 2)
+                        .staggeredAppear(index: 3)
 
-                        // Info Section
                         settingsSection(title: "About", icon: "info.circle.fill", iconColor: .secondary) {
                             VStack(spacing: 14) {
                                 settingsRow(label: "Version") {
@@ -186,7 +282,7 @@ struct AppSettingsView: View {
                                 }
                             }
                         }
-                        .staggeredAppear(index: 3)
+                        .staggeredAppear(index: 4)
                     }
                     .padding(.top, 12)
                     .padding(.bottom, 40)
@@ -208,6 +304,9 @@ struct AppSettingsView: View {
             .sheet(isPresented: $showMailCompose) {
                 MailComposeView()
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
             .fileImporter(
                 isPresented: $showFolderPicker,
                 allowedContentTypes: [.folder],
@@ -225,7 +324,25 @@ struct AppSettingsView: View {
             } message: {
                 Text("New repositories will be saved to the app's default location instead.")
             }
+            .alert("Receipt Verification", isPresented: $showDebugAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(debugResult)
+            }
+            .task {
+                await purchaseManager.refreshStatus()
+                if purchaseManager.product == nil {
+                    await purchaseManager.loadProduct()
+                }
+            }
         }
+    }
+
+    private var unlockButtonTitle: String {
+        if let product = purchaseManager.product {
+            return "Unlock Unlimited — \(product.displayPrice)"
+        }
+        return "Unlock Unlimited"
     }
 
     // MARK: - Settings Section
@@ -264,6 +381,28 @@ struct AppSettingsView: View {
                 .foregroundStyle(.secondary)
             Spacer()
             value()
+        }
+    }
+
+    private func statusInfoRow(icon: String, title: String, subtitle: String) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(SyncTheme.blue.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                Text(subtitle)
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
         }
     }
 

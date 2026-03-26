@@ -17,7 +17,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: `${baseURL}/api/auth/callback`,
-    scope: "repo",
+    scope: "repo user:email",
     state,
   });
 

@@ -32,6 +32,8 @@ struct AddRepoView: View {
     }
     @State private var folderPickerPurpose: FolderPickerPurpose = .cloneLocation
     @State private var showFolderPicker = false
+    @State private var validationMessage: String? = nil
+    @State private var showValidationAlert = false
 
     var body: some View {
         NavigationStack {
@@ -110,8 +112,12 @@ struct AddRepoView: View {
                 }
             }
             .onAppear {
-                authorName = state.defaultAuthorName
-                authorEmail = state.defaultAuthorEmail
+                if authorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    authorName = state.defaultAuthorName
+                }
+                if authorEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    authorEmail = state.defaultAuthorEmail
+                }
 
                 // Pre-populate clone location from default save location
                 if let defaultURL = state.resolvedDefaultSaveURL,
@@ -120,10 +126,31 @@ struct AddRepoView: View {
                     customVaultBookmarkData = defaultBookmark
                 }
 
+                if state.isSignedIn,
+                   (state.defaultAuthorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    || state.defaultAuthorEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) {
+                    Task { await state.hydrateGitHubProfileIfNeeded() }
+                }
+
                 // Pre-fetch repos if needed
                 if state.gitHubRepos.isEmpty {
                     Task { await state.refreshRepos() }
                 }
+            }
+            .onChange(of: state.defaultAuthorName) { _, newValue in
+                if authorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    authorName = newValue
+                }
+            }
+            .onChange(of: state.defaultAuthorEmail) { _, newValue in
+                if authorEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    authorEmail = newValue
+                }
+            }
+            .alert("Missing Required Fields", isPresented: $showValidationAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(validationMessage ?? "Please fill in the required fields.")
             }
         }
     }
@@ -496,8 +523,8 @@ struct AddRepoView: View {
             }
         }
         .buttonStyle(LiquidButtonStyle(gradient: SyncTheme.primaryGradient))
-        .disabled(!isLocalRepoValid || state.isSyncing)
-        .opacity(!isLocalRepoValid || state.isSyncing ? 0.6 : 1)
+        .disabled(!canSubmitLocalRepo)
+        .opacity(!canSubmitLocalRepo ? 0.6 : 1)
         .padding(.horizontal, 24)
     }
 
@@ -511,24 +538,46 @@ struct AddRepoView: View {
             }
         }
         .buttonStyle(LiquidButtonStyle(gradient: SyncTheme.primaryGradient))
-        .disabled(!isValid || state.isSyncing)
-        .opacity(!isValid || state.isSyncing ? 0.6 : 1)
+        .disabled(!canSubmitRemoteRepo)
+        .opacity(!canSubmitRemoteRepo ? 0.6 : 1)
         .padding(.horizontal, 24)
     }
 
     // MARK: - Validation
 
-    private var isLocalRepoValid: Bool {
-        localRepoURL != nil
-            && localRepoBookmarkData != nil
-            && !authorName.trimmingCharacters(in: .whitespaces).isEmpty
-            && !authorEmail.trimmingCharacters(in: .whitespaces).isEmpty
+    private var trimmedAuthorName: String {
+        authorName.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var isValid: Bool {
-        GitHubService.parseRepoURL(selectedRepoURL) != nil
-            && !authorName.trimmingCharacters(in: .whitespaces).isEmpty
-            && !authorEmail.trimmingCharacters(in: .whitespaces).isEmpty
+    private var trimmedAuthorEmail: String {
+        authorEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canSubmitLocalRepo: Bool {
+        localRepoURL != nil && localRepoBookmarkData != nil && !state.isSyncing
+    }
+
+    private var canSubmitRemoteRepo: Bool {
+        GitHubService.parseRepoURL(selectedRepoURL) != nil && !state.isSyncing
+    }
+
+    private var missingAuthorFields: [String] {
+        var fields: [String] = []
+        if trimmedAuthorName.isEmpty {
+            fields.append("Author Name")
+        }
+        if trimmedAuthorEmail.isEmpty {
+            fields.append("Author Email")
+        }
+        return fields
+    }
+
+    private func showMissingFieldsError(_ fields: [String]) {
+        guard !fields.isEmpty else { return }
+        validationMessage = fields.count == 1
+            ? "Please fill in \(fields[0])."
+            : "Please fill in these fields: \(fields.joined(separator: ", "))."
+        showValidationAlert = true
     }
 
     // MARK: - Actions
@@ -537,24 +586,39 @@ struct AddRepoView: View {
         guard let url = localRepoURL,
               let bookmarkData = localRepoBookmarkData else { return }
 
+        let missingFields = missingAuthorFields
+        guard missingFields.isEmpty else {
+            showMissingFieldsError(missingFields)
+            return
+        }
+
         Task {
             await state.addLocalRepo(
                 url: url,
                 bookmarkData: bookmarkData,
-                authorName: authorName,
-                authorEmail: authorEmail
+                authorName: trimmedAuthorName,
+                authorEmail: trimmedAuthorEmail
             )
         }
         dismiss()
     }
 
     private func addAndClone() {
+        let missingFields = missingAuthorFields
+        guard missingFields.isEmpty else {
+            showMissingFieldsError(missingFields)
+            return
+        }
+
+        let trimmedBranch = selectedBranch.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedVaultName = vaultName.trimmingCharacters(in: .whitespacesAndNewlines)
+
         let config = RepoConfig(
             repoURL: selectedRepoURL,
-            branch: selectedBranch.isEmpty ? "main" : selectedBranch,
-            authorName: authorName,
-            authorEmail: authorEmail,
-            vaultFolderName: vaultName.isEmpty ? "vault" : vaultName,
+            branch: trimmedBranch.isEmpty ? "main" : trimmedBranch,
+            authorName: trimmedAuthorName,
+            authorEmail: trimmedAuthorEmail,
+            vaultFolderName: trimmedVaultName.isEmpty ? "vault" : trimmedVaultName,
             customVaultBookmarkData: customVaultBookmarkData,
             customLocationIsParent: customVaultBookmarkData != nil
         )

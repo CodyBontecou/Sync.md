@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 @main
 struct Sync_mdApp: App {
     @State private var appState = AppState()

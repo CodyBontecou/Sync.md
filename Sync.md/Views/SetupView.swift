@@ -254,7 +254,7 @@ struct SetupView: View {
                 .padding(14)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-                Link(destination: URL(string: "https://github.com/settings/tokens/new?scopes=repo&description=Sync.md")!) {
+                Link(destination: URL(string: "https://github.com/settings/tokens/new?scopes=repo,user:email&description=Sync.md")!) {
                     HStack(spacing: 4) {
                         Text("Create a PAT on GitHub")
                         Image(systemName: "arrow.up.right")

@@ -22,7 +22,8 @@ platform :ios do
   private_lane :deliver_options do |options|
     {
       skip_screenshots: true,
-      skip_metadata: true,
+      skip_metadata: false,
+      force: true,
       submit_for_review: true,
       automatic_release: false,
       app_version: app_version,

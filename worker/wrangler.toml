@@ -1,0 +1,11 @@
+name               = "syncmd-receipt-verifier"
+main               = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Set to "true" temporarily to force isLegacy: true for any valid receipt.
+# NEVER deploy with this enabled — remove or set to "false" before shipping.
+DEBUG_FORCE_LEGACY = "false"
+
+# Secrets (set via `wrangler secret put`, never committed to source control):
+#   APPLE_SHARED_SECRET — App Store Connect → In-App Purchases → Shared Secret

@@ -6,7 +6,9 @@ extension UUID: @retroactive Identifiable {
 
 struct RepoListView: View {
     @Environment(AppState.self) private var state
+    @ObservedObject private var purchaseManager = PurchaseManager.shared
     @State private var showAddRepo = false
+    @State private var showPaywall = false
     @State private var showSignOutConfirm = false
     @State private var showAppSettings = false
     @State private var settingsRepoID: UUID? = nil
@@ -84,6 +86,9 @@ struct RepoListView: View {
             }
             .sheet(isPresented: $showAddRepo) {
                 AddRepoView()
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
             }
             .sheet(isPresented: $showAppSettings) {
                 AppSettingsView()
@@ -163,7 +168,7 @@ struct RepoListView: View {
             .staggeredAppear(index: 1)
 
             Button {
-                showAddRepo = true
+                handleAddRepoTapped()
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "plus.circle.fill")
@@ -312,7 +317,7 @@ struct RepoListView: View {
 
     private var addRepoCard: some View {
         Button {
-            showAddRepo = true
+            handleAddRepoTapped()
         } label: {
             HStack(spacing: 14) {
                 ZStack {
@@ -360,6 +365,22 @@ struct RepoListView: View {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private func handleAddRepoTapped() {
+        if state.repos.count < PurchaseManager.freeRepoLimit {
+            showAddRepo = true
+            return
+        }
+
+        Task { @MainActor in
+            await purchaseManager.refreshStatus()
+            if purchaseManager.isUnlocked {
+                showAddRepo = true
+            } else {
+                showPaywall = true
+            }
+        }
     }
 
     // MARK: - Demo Banner
