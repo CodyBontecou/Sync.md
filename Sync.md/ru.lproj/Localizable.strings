@@ -1,0 +1,518 @@
+/* Generic cancel button */
+"Cancel" = "Отмена";
+
+/* Generic OK / dismiss button */
+"OK" = "ОК";
+
+/* Generic done / close button */
+"Done" = "Готово";
+
+/* Generic save button */
+"Save" = "Сохранить";
+
+/* Generic back navigation button */
+"Back" = "Назад";
+
+/* Generic error alert title */
+"Error" = "Ошибка";
+
+/* Fallback when no specific error message is available */
+"Unknown error" = "Неизвестная ошибка";
+
+/* Divider label between two alternative actions */
+"or" = "или";
+
+/* Displayed when a sync or date has never occurred */
+"Never" = "Никогда";
+
+/* Form field label for a person's name */
+"Name" = "Имя";
+
+/* Form field label for an email address */
+"Email" = "Эл. почта";
+
+/* Git branch field or row label */
+"Branch" = "Ветка";
+
+/* Section header label for a git repository */
+"Repository" = "Репозиторий";
+
+/* Navigation title and context menu item for the repo settings screen */
+"Settings" = "Настройки";
+
+/* Row label showing a file system path */
+"Path" = "Путь";
+
+/* Row label showing a file location */
+"Location" = "Расположение";
+
+/* Row label for a folder name */
+"Folder" = "Папка";
+
+/* Row label for the app version number */
+"Version" = "Версия";
+
+/* Row label showing the count of repositories */
+"Repositories" = "Репозитории";
+
+/* Subtitle shown below a selected item to indicate it is tappable */
+"Tap to change" = "Нажмите, чтобы изменить";
+
+/* Placeholder text for author name field */
+"Your Name" = "Ваше имя";
+
+/* Placeholder text for email address field */
+"you@example.com" = "you@example.com";
+
+/* Git pull action title */
+"Pull" = "Pull";
+
+/* Subtitle for the pull action button */
+"Fetch remote changes" = "Получить удалённые изменения";
+
+/* Git commit and push action title */
+"Commit & Push" = "Commit & Push";
+
+/* Subtitle for the commit and push action button */
+"Push local changes to remote" = "Отправить локальные изменения на сервер";
+
+/* Navigation title and button label for adding a new repository */
+"Add Repository" = "Добавить репозиторий";
+
+/* Toolbar button to sign in */
+"Sign In" = "Войти";
+
+/* Menu item to sign out of GitHub */
+"Sign Out" = "Выйти";
+
+/* Button to restore a previous in-app purchase */
+"Restore Purchase" = "Восстановить покупку";
+
+/* Fallback unlock button title when product price is unavailable */
+"Unlock Unlimited" = "Разблокировать безлимит";
+
+/* Section title and onboarding step title for setting the default save folder */
+"Default Save Location" = "Место сохранения по умолчанию";
+
+/* Button to open a folder picker and choose a save location */
+"Choose Location" = "Выбрать расположение";
+
+/* Button to change the currently selected save location */
+"Change Location" = "Изменить расположение";
+
+/* Label for the GitHub Personal Access Token input field */
+"Personal Access Token" = "Personal Access Token";
+
+/* Section title for user feedback options */
+"Feedback" = "Обратная связь";
+
+/* Generic remove or delete button */
+"Remove" = "Удалить";
+
+/* Generic change or edit button */
+"Change" = "Изменить";
+
+/* Row label showing the date and time of the last successful sync */
+"Last Sync" = "Последняя синхронизация";
+
+/* Git commit SHA row label */
+"Commit" = "Коммит";
+
+/* Button title to pick a repository from the user's GitHub account */
+"Pick from GitHub" = "Выбрать из GitHub";
+
+/* Subtitle for the Pick from GitHub button */
+"Select from your repositories" = "Выберите из ваших репозиториев";
+
+/* Button title to open a local git repository from the device */
+"Open Existing Repository" = "Открыть существующий репозиторий";
+
+/* Subtitle for the Open Existing Repository button */
+"Select a git repo on this device" = "Выберите Git-репозиторий на этом устройстве";
+
+/* Validation error shown when the entered repository URL is not a valid GitHub URL */
+"Invalid GitHub URL" = "Недействительный GitHub URL";
+
+/* Button to reveal a text field for typing a repository URL */
+"Enter URL manually" = "Ввести URL вручную";
+
+/* Label for the repository URL input field */
+"Repository URL" = "URL репозитория";
+
+/* Placeholder text for the repository URL field */
+"https://github.com/user/repo" = "https://github.com/user/repo";
+
+/* Label for the git commit author name field */
+"Author Name" = "Имя автора";
+
+/* Label for the git commit author email field */
+"Author Email" = "Эл. почта автора";
+
+/* Section header for the destination folder when cloning a repository */
+"Clone To" = "Клонировать в";
+
+/* Placeholder for the folder name text field in the clone destination section */
+"Folder name" = "Имя папки";
+
+/* Info text showing the default clone destination path. %@ is the folder name. */
+"Files › On My iPhone › Sync.md › %@" = "Файлы › На iPhone › Sync.md › %@";
+
+/* Button to change the currently selected clone location */
+"Change Location…" = "Изменить расположение…";
+
+/* Button to choose a custom clone destination folder */
+"Choose Different Location…" = "Выбрать другое расположение…";
+
+/* Button to add a remote repository and immediately start cloning it */
+"Add & Clone Repository" = "Добавить и клонировать репозиторий";
+
+/* Alert title shown when the user tries to submit without filling required fields */
+"Missing Required Fields" = "Не заполнены обязательные поля";
+
+/* Generic validation error message when required fields are empty */
+"Please fill in the required fields." = "Пожалуйста, заполните обязательные поля.";
+
+/* Validation message for a single missing field. %@ is the field name. */
+"Please fill in %@." = "Пожалуйста, заполните %@.";
+
+/* Validation message for multiple missing fields. %@ is a comma-separated list of field names. */
+"Please fill in these fields: %@." = "Пожалуйста, заполните следующие поля: %@.";
+
+/* Error when the app cannot obtain security-scoped access to a chosen folder */
+"Could not access the selected folder." = "Не удалось получить доступ к выбранной папке.";
+
+/* Error when the chosen folder does not contain a git repository */
+"No .git directory found in the selected folder." = "В выбранной папке не найдена директория .git.";
+
+/* Error when creating a security-scoped bookmark for the chosen folder fails */
+"Could not create a bookmark for the selected folder." = "Не удалось создать закладку для выбранной папки.";
+
+/* Navigation title for the application-wide settings screen and menu item label */
+"App Settings" = "Настройки приложения";
+
+/* Section header for GitHub account information */
+"Account" = "Учётная запись";
+
+/* Row label for the GitHub username */
+"Username" = "Имя пользователя";
+
+/* Section header for the in-app purchase unlock section */
+"Unlock" = "Разблокировка";
+
+/* Status row title shown when the user has purchased full access */
+"Full Access Unlocked" = "Полный доступ разблокирован";
+
+/* Subtitle for legacy users who paid before the IAP system was introduced */
+"Legacy paid user — restored from previous purchase" = "Ранее оплативший пользователь — восстановлено из предыдущей покупки";
+
+/* Subtitle for users who have purchased full access */
+"Unlimited repositories enabled" = "Безлимитные репозитории включены";
+
+/* Row label showing how the user obtained access (legacy vs. purchase) */
+"Access Type" = "Тип доступа";
+
+/* Access type value for users who paid before the IAP system */
+"Legacy paid user" = "Ранее оплативший пользователь";
+
+/* Access type value for users who made an in-app purchase */
+"One-time purchase" = "Разовая покупка";
+
+/* Status row title for users who have not yet purchased */
+"1 free repository included" = "1 бесплатный репозиторий включён";
+
+/* Subtitle encouraging the user to unlock unlimited repositories */
+"Unlock unlimited repositories with a one-time purchase." = "Разблокируйте безлимитные репозитории одной покупкой.";
+
+/* Info text shown when no custom default save location has been set */
+"New repositories will be saved to the app's default location." = "Новые репозитории будут сохранены в расположение по умолчанию.";
+
+/* Button to select a default save folder for new repositories */
+"Choose Default Location" = "Выбрать расположение по умолчанию";
+
+/* Action row title to send feedback via email */
+"Send Feedback" = "Отправить отзыв";
+
+/* Subtitle for the Send Feedback action row */
+"Questions, ideas, or issues" = "Вопросы, идеи или проблемы";
+
+/* Action row title to open a GitHub issue */
+"Report a Bug" = "Сообщить об ошибке";
+
+/* Subtitle for the Report a Bug action row */
+"Open an issue on GitHub" = "Создать issue на GitHub";
+
+/* Section header for app version and general information */
+"About" = "О приложении";
+
+/* Alert title when confirming removal of the default save location */
+"Remove Default Location?" = "Удалить расположение по умолчанию?";
+
+/* Alert message explaining what happens after removing the custom default location */
+"New repositories will be saved to the app's default location instead." = "Новые репозитории будут сохраняться в расположение по умолчанию.";
+
+/* Alert title for the debug receipt verification result (DEBUG only) */
+"Receipt Verification" = "Проверка чека";
+
+/* Unlock button title with the product price. %@ is the formatted price string. */
+"Unlock Unlimited — %@" = "Разблокировать безлимит — %@";
+
+/* DEBUG-only action row title for testing receipt verification */
+"Debug: Verify Receipt" = "Отладка: проверить чек";
+
+/* DEBUG-only subtitle describing the receipt verification test */
+"Test worker ↔ Apple end-to-end" = "Тестирование worker ↔ Apple сквозное";
+
+/* Loading state text shown while a debug action is running */
+"Running…" = "Выполняется…";
+
+/* Navigation title for the Git control sheet */
+"Git" = "Git";
+
+/* Card title showing the current state of the git repository */
+"Repository Status" = "Состояние репозитория";
+
+/* Row label showing the number of uncommitted local changes */
+"Local Changes" = "Локальные изменения";
+
+/* Displayed when there are zero local changes */
+"None" = "Нет";
+
+/* Subtitle for the pull action in the Git control sheet */
+"Fetch and apply remote changes" = "Получить и применить удалённые изменения";
+
+/* Subtitle for the commit and push action in the Git control sheet */
+"Commit local changes and push to remote" = "Зафиксировать локальные изменения и отправить на сервер";
+
+/* Placeholder for the commit message text field */
+"Commit message…" = "Сообщение коммита…";
+
+/* Push button label when there is exactly one local change */
+"Push 1 change" = "Отправить 1 изменение";
+
+/* Push button label showing the number of local changes. %lld is the count (2 or more). */
+"Push %lld changes" = "Отправить %lld изменений";
+
+/* Accessibility label for the close button on the paywall sheet */
+"Dismiss" = "Закрыть";
+
+/* Hero title on the paywall screen */
+"Unlock Sync.md" = "Разблокировать Sync.md";
+
+/* Hero subtitle on the paywall, explaining why it is shown */
+"You've reached the 1 free repository limit" = "Вы достигли лимита в 1 бесплатный репозиторий";
+
+/* Paywall feature row: unlimited repository count */
+"Unlimited repositories" = "Безлимитные репозитории";
+
+/* Paywall feature row: sync unlimited vaults */
+"Sync any number of vaults" = "Синхронизация любого количества хранилищ";
+
+/* Paywall feature row: all future updates included */
+"All future features included" = "Все будущие функции включены";
+
+/* Paywall feature row: no recurring charge */
+"One-time payment — no subscription" = "Разовый платёж — без подписки";
+
+/* Accessibility label for the restore purchase button on the paywall */
+"Restore previous purchase" = "Восстановить предыдущую покупку";
+
+/* Purchase button title showing the product price. %@ is the formatted price. */
+"Unlock for %@" = "Разблокировать за %@";
+
+/* Empty state title shown when the user has no repositories */
+"No Repositories" = "Нет репозиториев";
+
+/* Empty state subtitle encouraging the user to add a repository */
+"Add a GitHub repository to start\nsyncing your markdown files." = "Добавьте репозиторий GitHub, чтобы начать\nсинхронизацию ваших markdown-файлов.";
+
+/* Status text on a repo card that has been added but not yet cloned */
+"Not yet cloned" = "Ещё не клонирован";
+
+/* Confirmation dialog title for signing out */
+"Sign Out?" = "Выйти?";
+
+/* Sign-out confirmation dialog message */
+"This will sign you out of GitHub. Your local repositories will be kept." = "Вы будете отключены от GitHub. Ваши локальные репозитории сохранятся.";
+
+/* Banner label shown when the app is running in demo mode */
+"Demo Mode" = "Демо-режим";
+
+/* Button to exit demo mode */
+"Exit" = "Выход";
+
+/* Search bar prompt when filtering the list of GitHub repositories */
+"Filter repositories" = "Фильтр репозиториев";
+
+/* Navigation title for the repository picker sheet */
+"Select Repository" = "Выбрать репозиторий";
+
+/* Row label for the repository remote URL */
+"URL" = "URL";
+
+/* Transient confirmation text shown after copying the repository URL */
+"Copied!" = "Скопировано!";
+
+/* Placeholder for the branch name text field, showing the default branch name */
+"main" = "main";
+
+/* Section header for git author name and email fields */
+"Git Author" = "Git-автор";
+
+/* Section header for the vault storage location information */
+"Storage" = "Хранилище";
+
+/* Display path for a vault stored in the app's default location. %@ is the folder name. */
+"On My iPhone › Sync.md › %@" = "На iPhone › Sync.md › %@";
+
+/* Section header for sync metadata such as last sync date, commit SHA, and file count */
+"Sync Info" = "Сведения о синхронизации";
+
+/* Row label for the current HEAD commit SHA */
+"Commit SHA" = "SHA коммита";
+
+/* Row label for the number of tracked files in the vault */
+"Files" = "Файлы";
+
+/* Destructive button to remove a repository and delete its local files */
+"Remove Repository" = "Удалить репозиторий";
+
+/* Alert title when confirming removal of a repository */
+"Remove Repository?" = "Удалить репозиторий?";
+
+/* Alert message warning that removing a repository is permanent */
+"This will delete all local files for this repository. This cannot be undone." = "Все локальные файлы этого репозитория будут удалены. Это действие нельзя отменить.";
+
+/* App name shown in the onboarding hero section */
+"Sync.md" = "Sync.md";
+
+/* App tagline shown on the onboarding screen */
+"Markdown notes synced with Git" = "Markdown-заметки с синхронизацией через Git";
+
+/* Primary sign-in button using GitHub OAuth */
+"Sign in with GitHub" = "Войти через GitHub";
+
+/* Secondary sign-in option using a GitHub Personal Access Token */
+"Use a Personal Access Token" = "Использовать Personal Access Token";
+
+/* Button to launch the app in demo mode without signing in */
+"Try Demo" = "Попробовать демо";
+
+/* Placeholder text for the Personal Access Token input field */
+"ghp_..." = "ghp_...";
+
+/* Link text that opens the GitHub token creation page */
+"Create a PAT on GitHub" = "Создать PAT на GitHub";
+
+/* Loading state text shown while PAT sign-in is in progress */
+"Signing in…" = "Выполняется вход…";
+
+/* Subtitle for the default save location onboarding step */
+"Choose where new repositories\nare saved on your device" = "Выберите, куда сохранять\nновые репозитории на устройстве";
+
+/* Info hint shown when no default save location is chosen during onboarding */
+"Without a default, repos save to\nFiles › On My iPhone › Sync.md" = "Без настройки репозитории сохраняются в\nФайлы › На iPhone › Sync.md";
+
+/* Button to proceed after selecting a save location during onboarding */
+"Continue" = "Продолжить";
+
+/* Button to skip setting a default save location during onboarding */
+"Skip for Now" = "Пропустить";
+
+/* Card title linking to the vault folder in the Files app */
+"Files Location" = "Расположение файлов";
+
+/* Title shown while a repository is being cloned */
+"Cloning Repository" = "Клонирование репозитория";
+
+/* State title shown when a repository has been added but not yet cloned */
+"Not Cloned" = "Не клонирован";
+
+/* Subtitle shown when a repository has not been cloned yet */
+"This repository hasn't been cloned yet.\nTap below to download it." = "Этот репозиторий ещё не клонирован.\nНажмите ниже, чтобы загрузить его.";
+
+/* Button to start cloning a repository that has not been downloaded yet */
+"Clone Repository" = "Клонировать репозиторий";
+
+/* Error state title when the repository cannot be found in the app state */
+"Repository Not Found" = "Репозиторий не найден";
+
+/* Callback result banner title on success. %@ is the capitalized action name, e.g. Pull. */
+"%@ Complete" = "%@ завершено";
+
+/* Callback result banner title on failure. %@ is the capitalized action name, e.g. Pull. */
+"%@ Failed" = "%@ не удалось";
+
+/* Error message when a repository ID does not match any stored repo */
+"Repository not found" = "Репозиторий не найден";
+
+/* Sync progress message at the start of a clone operation */
+"Preparing to clone..." = "Подготовка к клонированию...";
+
+/* Sync progress message while a repository is being cloned */
+"Cloning repository..." = "Клонирование репозитория...";
+
+/* Sync progress message after a successful clone. %lld is the number of files. */
+"Clone complete! (%lld files)" = "Клонирование завершено! (%lld файлов)";
+
+/* Sync progress message at the start of a pull operation */
+"Checking for updates..." = "Проверка обновлений...";
+
+/* Sync progress message when a pull finds no new changes */
+"Already up to date!" = "Уже актуально!";
+
+/* Sync progress message after a successful pull */
+"Pull complete!" = "Pull завершён!";
+
+/* Sync progress message at the start of a push operation */
+"Preparing changes..." = "Подготовка изменений...";
+
+/* Sync progress message while committing and pushing changes */
+"Committing and pushing..." = "Фиксация и отправка...";
+
+/* Sync progress message after a successful push */
+"Push complete!" = "Push завершён!";
+
+/* Sync progress message while fetching the user's GitHub profile after sign-in */
+"Fetching profile..." = "Загрузка профиля...";
+
+/* Error message when PAT sign-in fails. %@ is the underlying error description. */
+"Invalid token: %@" = "Недействительный токен: %@";
+
+/* Error when a stored security-scoped bookmark can no longer be resolved */
+"Could not resolve folder bookmark." = "Не удалось разрешить закладку папки.";
+
+/* Error when adding a local repo whose folder has no .git directory */
+"No .git directory found. Please select a folder that contains a git repository." = "Директория .git не найдена. Выберите папку, содержащую Git-репозиторий.";
+
+/* Error when reading git metadata from a local repository fails. %@ is the error detail. */
+"Failed to read repository info: %@" = "Не удалось прочитать данные репозитория: %@";
+
+/* Default commit message used when the user does not provide one */
+"Update from Sync.md" = "Обновление из Sync.md";
+
+/* Error when a git operation is attempted on a repository that has not been cloned */
+"Repository not cloned yet. Clone it first." = "Репозиторий ещё не клонирован. Сначала клонируйте его.";
+
+/* Error when the repository's remote URL is malformed or missing */
+"Invalid remote URL." = "Недействительный удалённый URL.";
+
+/* Error when cloning a repository fails. %@ is the libgit2 error detail. */
+"Clone failed: %@" = "Ошибка клонирования: %@";
+
+/* Error when fetching remote changes fails. %@ is the libgit2 error detail. */
+"Fetch failed: %@" = "Ошибка получения: %@";
+
+/* Error when pushing commits fails. %@ is the libgit2 error detail. */
+"Push failed: %@" = "Ошибка отправки: %@";
+
+/* Error when creating a commit fails. %@ is the libgit2 error detail. */
+"Commit failed: %@" = "Ошибка коммита: %@";
+
+/* Error when attempting to commit but the working tree is clean */
+"No changes to commit." = "Нет изменений для коммита.";
+
+/* Error when the local git repository is in a corrupted state. %@ is the detail. */
+"Repository corrupted: %@. Try removing and re-cloning." = "Репозиторий повреждён: %@. Попробуйте удалить и клонировать заново.";
+
+/* Generic libgit2 error wrapper. %@ is the libgit2 error message. */
+"Git error: %@" = "Ошибка Git: %@";

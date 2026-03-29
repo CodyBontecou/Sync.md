@@ -1,0 +1,518 @@
+/* Generic cancel button */
+"Cancel" = "취소";
+
+/* Generic OK / dismiss button */
+"OK" = "확인";
+
+/* Generic done / close button */
+"Done" = "완료";
+
+/* Generic save button */
+"Save" = "저장";
+
+/* Generic back navigation button */
+"Back" = "뒤로";
+
+/* Generic error alert title */
+"Error" = "오류";
+
+/* Fallback when no specific error message is available */
+"Unknown error" = "알 수 없는 오류";
+
+/* Divider label between two alternative actions */
+"or" = "또는";
+
+/* Displayed when a sync or date has never occurred */
+"Never" = "없음";
+
+/* Form field label for a person's name */
+"Name" = "이름";
+
+/* Form field label for an email address */
+"Email" = "이메일";
+
+/* Git branch field or row label */
+"Branch" = "브랜치";
+
+/* Section header label for a git repository */
+"Repository" = "저장소";
+
+/* Navigation title and context menu item for the repo settings screen */
+"Settings" = "설정";
+
+/* Row label showing a file system path */
+"Path" = "경로";
+
+/* Row label showing a file location */
+"Location" = "위치";
+
+/* Row label for a folder name */
+"Folder" = "폴더";
+
+/* Row label for the app version number */
+"Version" = "버전";
+
+/* Row label showing the count of repositories */
+"Repositories" = "저장소";
+
+/* Subtitle shown below a selected item to indicate it is tappable */
+"Tap to change" = "탭하여 변경";
+
+/* Placeholder text for author name field */
+"Your Name" = "이름을 입력하십시오";
+
+/* Placeholder text for email address field */
+"you@example.com" = "you@example.com";
+
+/* Git pull action title */
+"Pull" = "Pull";
+
+/* Subtitle for the pull action button */
+"Fetch remote changes" = "원격 변경 사항 가져오기";
+
+/* Git commit and push action title */
+"Commit & Push" = "Commit & Push";
+
+/* Subtitle for the commit and push action button */
+"Push local changes to remote" = "로컬 변경 사항을 원격으로 푸시";
+
+/* Navigation title and button label for adding a new repository */
+"Add Repository" = "저장소 추가";
+
+/* Toolbar button to sign in */
+"Sign In" = "로그인";
+
+/* Menu item to sign out of GitHub */
+"Sign Out" = "로그아웃";
+
+/* Button to restore a previous in-app purchase */
+"Restore Purchase" = "구매 복원";
+
+/* Fallback unlock button title when product price is unavailable */
+"Unlock Unlimited" = "무제한 잠금 해제";
+
+/* Section title and onboarding step title for setting the default save folder */
+"Default Save Location" = "기본 저장 위치";
+
+/* Button to open a folder picker and choose a save location */
+"Choose Location" = "위치 선택";
+
+/* Button to change the currently selected save location */
+"Change Location" = "위치 변경";
+
+/* Label for the GitHub Personal Access Token input field */
+"Personal Access Token" = "Personal Access Token";
+
+/* Section title for user feedback options */
+"Feedback" = "피드백";
+
+/* Generic remove or delete button */
+"Remove" = "삭제";
+
+/* Generic change or edit button */
+"Change" = "변경";
+
+/* Row label showing the date and time of the last successful sync */
+"Last Sync" = "마지막 동기화";
+
+/* Git commit SHA row label */
+"Commit" = "커밋";
+
+/* Button title to pick a repository from the user's GitHub account */
+"Pick from GitHub" = "GitHub에서 선택";
+
+/* Subtitle for the Pick from GitHub button */
+"Select from your repositories" = "내 저장소에서 선택하십시오";
+
+/* Button title to open a local git repository from the device */
+"Open Existing Repository" = "기존 저장소 열기";
+
+/* Subtitle for the Open Existing Repository button */
+"Select a git repo on this device" = "이 기기에서 Git 저장소를 선택하십시오";
+
+/* Validation error shown when the entered repository URL is not a valid GitHub URL */
+"Invalid GitHub URL" = "잘못된 GitHub URL";
+
+/* Button to reveal a text field for typing a repository URL */
+"Enter URL manually" = "URL 직접 입력";
+
+/* Label for the repository URL input field */
+"Repository URL" = "저장소 URL";
+
+/* Placeholder text for the repository URL field */
+"https://github.com/user/repo" = "https://github.com/user/repo";
+
+/* Label for the git commit author name field */
+"Author Name" = "작성자 이름";
+
+/* Label for the git commit author email field */
+"Author Email" = "작성자 이메일";
+
+/* Section header for the destination folder when cloning a repository */
+"Clone To" = "복제 위치";
+
+/* Placeholder for the folder name text field in the clone destination section */
+"Folder name" = "폴더 이름";
+
+/* Info text showing the default clone destination path. %@ is the folder name. */
+"Files › On My iPhone › Sync.md › %@" = "파일 › 나의 iPhone › Sync.md › %@";
+
+/* Button to change the currently selected clone location */
+"Change Location…" = "위치 변경…";
+
+/* Button to choose a custom clone destination folder */
+"Choose Different Location…" = "다른 위치 선택…";
+
+/* Button to add a remote repository and immediately start cloning it */
+"Add & Clone Repository" = "저장소 추가 및 복제";
+
+/* Alert title shown when the user tries to submit without filling required fields */
+"Missing Required Fields" = "필수 항목 누락";
+
+/* Generic validation error message when required fields are empty */
+"Please fill in the required fields." = "필수 항목을 입력하십시오.";
+
+/* Validation message for a single missing field. %@ is the field name. */
+"Please fill in %@." = "%@ 항목을 입력하십시오.";
+
+/* Validation message for multiple missing fields. %@ is a comma-separated list of field names. */
+"Please fill in these fields: %@." = "다음 항목을 입력하십시오: %@.";
+
+/* Error when the app cannot obtain security-scoped access to a chosen folder */
+"Could not access the selected folder." = "선택한 폴더에 접근할 수 없습니다.";
+
+/* Error when the chosen folder does not contain a git repository */
+"No .git directory found in the selected folder." = "선택한 폴더에서 .git 디렉토리를 찾을 수 없습니다.";
+
+/* Error when creating a security-scoped bookmark for the chosen folder fails */
+"Could not create a bookmark for the selected folder." = "선택한 폴더의 북마크를 생성할 수 없습니다.";
+
+/* Navigation title for the application-wide settings screen and menu item label */
+"App Settings" = "앱 설정";
+
+/* Section header for GitHub account information */
+"Account" = "계정";
+
+/* Row label for the GitHub username */
+"Username" = "사용자 이름";
+
+/* Section header for the in-app purchase unlock section */
+"Unlock" = "잠금 해제";
+
+/* Status row title shown when the user has purchased full access */
+"Full Access Unlocked" = "전체 기능 잠금 해제됨";
+
+/* Subtitle for legacy users who paid before the IAP system was introduced */
+"Legacy paid user — restored from previous purchase" = "기존 유료 사용자 — 이전 구매에서 복원됨";
+
+/* Subtitle for users who have purchased full access */
+"Unlimited repositories enabled" = "무제한 저장소가 활성화되었습니다";
+
+/* Row label showing how the user obtained access (legacy vs. purchase) */
+"Access Type" = "이용 유형";
+
+/* Access type value for users who paid before the IAP system */
+"Legacy paid user" = "기존 유료 사용자";
+
+/* Access type value for users who made an in-app purchase */
+"One-time purchase" = "일회성 구매";
+
+/* Status row title for users who have not yet purchased */
+"1 free repository included" = "무료 저장소 1개 포함";
+
+/* Subtitle encouraging the user to unlock unlimited repositories */
+"Unlock unlimited repositories with a one-time purchase." = "일회성 구매로 무제한 저장소를 이용하십시오.";
+
+/* Info text shown when no custom default save location has been set */
+"New repositories will be saved to the app’s default location." = "새 저장소는 앱의 기본 위치에 저장됩니다.";
+
+/* Button to select a default save folder for new repositories */
+"Choose Default Location" = "기본 위치 선택";
+
+/* Action row title to send feedback via email */
+"Send Feedback" = "피드백 보내기";
+
+/* Subtitle for the Send Feedback action row */
+"Questions, ideas, or issues" = "질문, 아이디어 또는 문제";
+
+/* Action row title to open a GitHub issue */
+"Report a Bug" = "버그 신고";
+
+/* Subtitle for the Report a Bug action row */
+"Open an issue on GitHub" = "GitHub에서 이슈 등록";
+
+/* Section header for app version and general information */
+"About" = "정보";
+
+/* Alert title when confirming removal of the default save location */
+"Remove Default Location?" = "기본 위치를 삭제하시겠습니까?";
+
+/* Alert message explaining what happens after removing the custom default location */
+"New repositories will be saved to the app’s default location instead." = "새 저장소는 앱의 기본 위치에 저장됩니다.";
+
+/* Alert title for the debug receipt verification result (DEBUG only) */
+"Receipt Verification" = "영수증 검증";
+
+/* Unlock button title with the product price. %@ is the formatted price string. */
+"Unlock Unlimited — %@" = "무제한 잠금 해제 — %@";
+
+/* DEBUG-only action row title for testing receipt verification */
+"Debug: Verify Receipt" = "디버그: 영수증 검증";
+
+/* DEBUG-only subtitle describing the receipt verification test */
+"Test worker ↔ Apple end-to-end" = "워커 ↔ Apple 종단 간 테스트";
+
+/* Loading state text shown while a debug action is running */
+"Running…" = "실행 중…";
+
+/* Navigation title for the Git control sheet */
+"Git" = "Git";
+
+/* Card title showing the current state of the git repository */
+"Repository Status" = "저장소 상태";
+
+/* Row label showing the number of uncommitted local changes */
+"Local Changes" = "로컬 변경 사항";
+
+/* Displayed when there are zero local changes */
+"None" = "없음";
+
+/* Subtitle for the pull action in the Git control sheet */
+"Fetch and apply remote changes" = "원격 변경 사항을 가져와 적용";
+
+/* Subtitle for the commit and push action in the Git control sheet */
+"Commit local changes and push to remote" = "로컬 변경 사항을 커밋하고 원격으로 푸시";
+
+/* Placeholder for the commit message text field */
+"Commit message…" = "커밋 메시지…";
+
+/* Push button label when there is exactly one local change */
+"Push 1 change" = "변경 사항 1개 푸시";
+
+/* Push button label showing the number of local changes. %lld is the count (2 or more). */
+"Push %lld changes" = "변경 사항 %lld개 푸시";
+
+/* Accessibility label for the close button on the paywall sheet */
+"Dismiss" = "닫기";
+
+/* Hero title on the paywall screen */
+"Unlock Sync.md" = "Sync.md 잠금 해제";
+
+/* Hero subtitle on the paywall, explaining why it is shown */
+"You’ve reached the 1 free repository limit" = "무료 저장소 1개 한도에 도달하였습니다";
+
+/* Paywall feature row: unlimited repository count */
+"Unlimited repositories" = "무제한 저장소";
+
+/* Paywall feature row: sync unlimited vaults */
+"Sync any number of vaults" = "볼트를 무제한으로 동기화";
+
+/* Paywall feature row: all future updates included */
+"All future features included" = "향후 모든 기능 포함";
+
+/* Paywall feature row: no recurring charge */
+"One-time payment — no subscription" = "일회성 결제 — 구독 없음";
+
+/* Accessibility label for the restore purchase button on the paywall */
+"Restore previous purchase" = "이전 구매 복원";
+
+/* Purchase button title showing the product price. %@ is the formatted price. */
+"Unlock for %@" = "%@에 잠금 해제";
+
+/* Empty state title shown when the user has no repositories */
+"No Repositories" = "저장소 없음";
+
+/* Empty state subtitle encouraging the user to add a repository */
+"Add a GitHub repository to start\nsyncing your markdown files." = "GitHub 저장소를 추가하여\n마크다운 파일 동기화를 시작하십시오.";
+
+/* Status text on a repo card that has been added but not yet cloned */
+"Not yet cloned" = "아직 복제되지 않음";
+
+/* Confirmation dialog title for signing out */
+"Sign Out?" = "로그아웃하시겠습니까?";
+
+/* Sign-out confirmation dialog message */
+"This will sign you out of GitHub. Your local repositories will be kept." = "GitHub에서 로그아웃됩니다. 로컬 저장소는 유지됩니다.";
+
+/* Banner label shown when the app is running in demo mode */
+"Demo Mode" = "데모 모드";
+
+/* Button to exit demo mode */
+"Exit" = "종료";
+
+/* Search bar prompt when filtering the list of GitHub repositories */
+"Filter repositories" = "저장소 검색";
+
+/* Navigation title for the repository picker sheet */
+"Select Repository" = "저장소 선택";
+
+/* Row label for the repository remote URL */
+"URL" = "URL";
+
+/* Transient confirmation text shown after copying the repository URL */
+"Copied!" = "복사됨!";
+
+/* Placeholder for the branch name text field, showing the default branch name */
+"main" = "main";
+
+/* Section header for git author name and email fields */
+"Git Author" = "Git 작성자";
+
+/* Section header for the vault storage location information */
+"Storage" = "저장 공간";
+
+/* Display path for a vault stored in the app's default location. %@ is the folder name. */
+"On My iPhone › Sync.md › %@" = "나의 iPhone › Sync.md › %@";
+
+/* Section header for sync metadata such as last sync date, commit SHA, and file count */
+"Sync Info" = "동기화 정보";
+
+/* Row label for the current HEAD commit SHA */
+"Commit SHA" = "커밋 SHA";
+
+/* Row label for the number of tracked files in the vault */
+"Files" = "파일";
+
+/* Destructive button to remove a repository and delete its local files */
+"Remove Repository" = "저장소 삭제";
+
+/* Alert title when confirming removal of a repository */
+"Remove Repository?" = "저장소를 삭제하시겠습니까?";
+
+/* Alert message warning that removing a repository is permanent */
+"This will delete all local files for this repository. This cannot be undone." = "이 저장소의 모든 로컬 파일이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.";
+
+/* App name shown in the onboarding hero section */
+"Sync.md" = "Sync.md";
+
+/* App tagline shown on the onboarding screen */
+"Markdown notes synced with Git" = "Git으로 동기화되는 마크다운 노트";
+
+/* Primary sign-in button using GitHub OAuth */
+"Sign in with GitHub" = "GitHub으로 로그인";
+
+/* Secondary sign-in option using a GitHub Personal Access Token */
+"Use a Personal Access Token" = "Personal Access Token 사용";
+
+/* Button to launch the app in demo mode without signing in */
+"Try Demo" = "데모 체험";
+
+/* Placeholder text for the Personal Access Token input field */
+"ghp_..." = "ghp_...";
+
+/* Link text that opens the GitHub token creation page */
+"Create a PAT on GitHub" = "GitHub에서 PAT 생성";
+
+/* Loading state text shown while PAT sign-in is in progress */
+"Signing in…" = "로그인 중…";
+
+/* Subtitle for the default save location onboarding step */
+"Choose where new repositories\nare saved on your device" = "새 저장소가 기기에\n저장될 위치를 선택하십시오";
+
+/* Info hint shown when no default save location is chosen during onboarding */
+"Without a default, repos save to\nFiles › On My iPhone › Sync.md" = "기본 위치를 설정하지 않으면\n파일 › 나의 iPhone › Sync.md에 저장됩니다";
+
+/* Button to proceed after selecting a save location during onboarding */
+"Continue" = "계속";
+
+/* Button to skip setting a default save location during onboarding */
+"Skip for Now" = "나중에 설정";
+
+/* Card title linking to the vault folder in the Files app */
+"Files Location" = "파일 위치";
+
+/* Title shown while a repository is being cloned */
+"Cloning Repository" = "저장소 복제 중";
+
+/* State title shown when a repository has been added but not yet cloned */
+"Not Cloned" = "복제되지 않음";
+
+/* Subtitle shown when a repository has not been cloned yet */
+"This repository hasn’t been cloned yet.\nTap below to download it." = "이 저장소는 아직 복제되지 않았습니다.\n아래를 탭하여 다운로드하십시오.";
+
+/* Button to start cloning a repository that has not been downloaded yet */
+"Clone Repository" = "저장소 복제";
+
+/* Error state title when the repository cannot be found in the app state */
+"Repository Not Found" = "저장소를 찾을 수 없음";
+
+/* Callback result banner title on success. %@ is the capitalized action name, e.g. Pull. */
+"%@ Complete" = "%@ 완료";
+
+/* Callback result banner title on failure. %@ is the capitalized action name, e.g. Pull. */
+"%@ Failed" = "%@ 실패";
+
+/* Error message when a repository ID does not match any stored repo */
+"Repository not found" = "저장소를 찾을 수 없습니다";
+
+/* Sync progress message at the start of a clone operation */
+"Preparing to clone..." = "복제 준비 중...";
+
+/* Sync progress message while a repository is being cloned */
+"Cloning repository..." = "저장소 복제 중...";
+
+/* Sync progress message after a successful clone. %lld is the number of files. */
+"Clone complete! (%lld files)" = "복제 완료! (파일 %lld개)";
+
+/* Sync progress message at the start of a pull operation */
+"Checking for updates..." = "업데이트 확인 중...";
+
+/* Sync progress message when a pull finds no new changes */
+"Already up to date!" = "이미 최신 상태입니다!";
+
+/* Sync progress message after a successful pull */
+"Pull complete!" = "Pull 완료!";
+
+/* Sync progress message at the start of a push operation */
+"Preparing changes..." = "변경 사항 준비 중...";
+
+/* Sync progress message while committing and pushing changes */
+"Committing and pushing..." = "커밋 및 푸시 중...";
+
+/* Sync progress message after a successful push */
+"Push complete!" = "Push 완료!";
+
+/* Sync progress message while fetching the user's GitHub profile after sign-in */
+"Fetching profile..." = "프로필 가져오는 중...";
+
+/* Error message when PAT sign-in fails. %@ is the underlying error description. */
+"Invalid token: %@" = "잘못된 토큰: %@";
+
+/* Error when a stored security-scoped bookmark can no longer be resolved */
+"Could not resolve folder bookmark." = "폴더 북마크를 확인할 수 없습니다.";
+
+/* Error when adding a local repo whose folder has no .git directory */
+"No .git directory found. Please select a folder that contains a git repository." = ".git 디렉토리를 찾을 수 없습니다. Git 저장소가 포함된 폴더를 선택하십시오.";
+
+/* Error when reading git metadata from a local repository fails. %@ is the error detail. */
+"Failed to read repository info: %@" = "저장소 정보를 읽지 못하였습니다: %@";
+
+/* Default commit message used when the user does not provide one */
+"Update from Sync.md" = "Sync.md에서 업데이트";
+
+/* Error when a git operation is attempted on a repository that has not been cloned */
+"Repository not cloned yet. Clone it first." = "저장소가 아직 복제되지 않았습니다. 먼저 복제하십시오.";
+
+/* Error when the repository's remote URL is malformed or missing */
+"Invalid remote URL." = "잘못된 원격 URL입니다.";
+
+/* Error when cloning a repository fails. %@ is the libgit2 error detail. */
+"Clone failed: %@" = "복제 실패: %@";
+
+/* Error when fetching remote changes fails. %@ is the libgit2 error detail. */
+"Fetch failed: %@" = "가져오기 실패: %@";
+
+/* Error when pushing commits fails. %@ is the libgit2 error detail. */
+"Push failed: %@" = "푸시 실패: %@";
+
+/* Error when creating a commit fails. %@ is the libgit2 error detail. */
+"Commit failed: %@" = "커밋 실패: %@";
+
+/* Error when attempting to commit but the working tree is clean */
+"No changes to commit." = "커밋할 변경 사항이 없습니다.";
+
+/* Error when the local git repository is in a corrupted state. %@ is the detail. */
+"Repository corrupted: %@. Try removing and re-cloning." = "저장소가 손상되었습니다: %@. 삭제 후 다시 복제하십시오.";
+
+/* Generic libgit2 error wrapper. %@ is the libgit2 error message. */
+"Git error: %@" = "Git 오류: %@";

@@ -1,0 +1,518 @@
+/* Generic cancel button */
+"Cancel" = "Vazgeç";
+
+/* Generic OK / dismiss button */
+"OK" = "Tamam";
+
+/* Generic done / close button */
+"Done" = "Bitti";
+
+/* Generic save button */
+"Save" = "Kaydet";
+
+/* Generic back navigation button */
+"Back" = "Geri";
+
+/* Generic error alert title */
+"Error" = "Hata";
+
+/* Fallback when no specific error message is available */
+"Unknown error" = "Bilinmeyen hata";
+
+/* Divider label between two alternative actions */
+"or" = "veya";
+
+/* Displayed when a sync or date has never occurred */
+"Never" = "Hiç";
+
+/* Form field label for a person's name */
+"Name" = "Ad";
+
+/* Form field label for an email address */
+"Email" = "E-posta";
+
+/* Git branch field or row label */
+"Branch" = "Dal";
+
+/* Section header label for a git repository */
+"Repository" = "Depo";
+
+/* Navigation title and context menu item for the repo settings screen */
+"Settings" = "Ayarlar";
+
+/* Row label showing a file system path */
+"Path" = "Yol";
+
+/* Row label showing a file location */
+"Location" = "Konum";
+
+/* Row label for a folder name */
+"Folder" = "Klasör";
+
+/* Row label for the app version number */
+"Version" = "Sürüm";
+
+/* Row label showing the count of repositories */
+"Repositories" = "Depolar";
+
+/* Subtitle shown below a selected item to indicate it is tappable */
+"Tap to change" = "Değiştirmek için dokun";
+
+/* Placeholder text for author name field */
+"Your Name" = "Adınız";
+
+/* Placeholder text for email address field */
+"you@example.com" = "siz@ornek.com";
+
+/* Git pull action title */
+"Pull" = "Pull";
+
+/* Subtitle for the pull action button */
+"Fetch remote changes" = "Uzak değişiklikleri getir";
+
+/* Git commit and push action title */
+"Commit & Push" = "Commit & Push";
+
+/* Subtitle for the commit and push action button */
+"Push local changes to remote" = "Yerel değişiklikleri uzak depoya gönder";
+
+/* Navigation title and button label for adding a new repository */
+"Add Repository" = "Depo Ekle";
+
+/* Toolbar button to sign in */
+"Sign In" = "Giriş Yap";
+
+/* Menu item to sign out of GitHub */
+"Sign Out" = "Çıkış Yap";
+
+/* Button to restore a previous in-app purchase */
+"Restore Purchase" = "Satın Almayı Geri Yükle";
+
+/* Fallback unlock button title when product price is unavailable */
+"Unlock Unlimited" = "Sınırsız Aç";
+
+/* Section title and onboarding step title for setting the default save folder */
+"Default Save Location" = "Varsayılan Kayıt Konumu";
+
+/* Button to open a folder picker and choose a save location */
+"Choose Location" = "Konum Seç";
+
+/* Button to change the currently selected save location */
+"Change Location" = "Konumu Değiştir";
+
+/* Label for the GitHub Personal Access Token input field */
+"Personal Access Token" = "Personal Access Token";
+
+/* Section title for user feedback options */
+"Feedback" = "Geri Bildirim";
+
+/* Generic remove or delete button */
+"Remove" = "Kaldır";
+
+/* Generic change or edit button */
+"Change" = "Değiştir";
+
+/* Row label showing the date and time of the last successful sync */
+"Last Sync" = "Son Eşitleme";
+
+/* Git commit SHA row label */
+"Commit" = "Commit";
+
+/* Button title to pick a repository from the user's GitHub account */
+"Pick from GitHub" = "GitHub'dan Seç";
+
+/* Subtitle for the Pick from GitHub button */
+"Select from your repositories" = "Depolarınızdan seçin";
+
+/* Button title to open a local git repository from the device */
+"Open Existing Repository" = "Mevcut Depoyu Aç";
+
+/* Subtitle for the Open Existing Repository button */
+"Select a git repo on this device" = "Bu cihazdaki bir Git deposunu seçin";
+
+/* Validation error shown when the entered repository URL is not a valid GitHub URL */
+"Invalid GitHub URL" = "Geçersiz GitHub URL'si";
+
+/* Button to reveal a text field for typing a repository URL */
+"Enter URL manually" = "URL'yi elle girin";
+
+/* Label for the repository URL input field */
+"Repository URL" = "Depo URL'si";
+
+/* Placeholder text for the repository URL field */
+"https://github.com/user/repo" = "https://github.com/user/repo";
+
+/* Label for the git commit author name field */
+"Author Name" = "Yazar Adı";
+
+/* Label for the git commit author email field */
+"Author Email" = "Yazar E-postası";
+
+/* Section header for the destination folder when cloning a repository */
+"Clone To" = "Klonlama Konumu";
+
+/* Placeholder for the folder name text field in the clone destination section */
+"Folder name" = "Klasör adı";
+
+/* Info text showing the default clone destination path. %@ is the folder name. */
+"Files › On My iPhone › Sync.md › %@" = "Dosyalar › iPhone'umda › Sync.md › %@";
+
+/* Button to change the currently selected clone location */
+"Change Location…" = "Konumu Değiştir…";
+
+/* Button to choose a custom clone destination folder */
+"Choose Different Location…" = "Farklı Konum Seç…";
+
+/* Button to add a remote repository and immediately start cloning it */
+"Add & Clone Repository" = "Depo Ekle ve Klonla";
+
+/* Alert title shown when the user tries to submit without filling required fields */
+"Missing Required Fields" = "Zorunlu Alanlar Eksik";
+
+/* Generic validation error message when required fields are empty */
+"Please fill in the required fields." = "Lütfen zorunlu alanları doldurun.";
+
+/* Validation message for a single missing field. %@ is the field name. */
+"Please fill in %@." = "Lütfen %@ alanını doldurun.";
+
+/* Validation message for multiple missing fields. %@ is a comma-separated list of field names. */
+"Please fill in these fields: %@." = "Lütfen şu alanları doldurun: %@.";
+
+/* Error when the app cannot obtain security-scoped access to a chosen folder */
+"Could not access the selected folder." = "Seçilen klasöre erişilemedi.";
+
+/* Error when the chosen folder does not contain a git repository */
+"No .git directory found in the selected folder." = "Seçilen klasörde .git dizini bulunamadı.";
+
+/* Error when creating a security-scoped bookmark for the chosen folder fails */
+"Could not create a bookmark for the selected folder." = "Seçilen klasör için yer imi oluşturulamadı.";
+
+/* Navigation title for the application-wide settings screen and menu item label */
+"App Settings" = "Uygulama Ayarları";
+
+/* Section header for GitHub account information */
+"Account" = "Hesap";
+
+/* Row label for the GitHub username */
+"Username" = "Kullanıcı Adı";
+
+/* Section header for the in-app purchase unlock section */
+"Unlock" = "Kilidi Aç";
+
+/* Status row title shown when the user has purchased full access */
+"Full Access Unlocked" = "Tam Erişim Açıldı";
+
+/* Subtitle for legacy users who paid before the IAP system was introduced */
+"Legacy paid user — restored from previous purchase" = "Önceki sürüm kullanıcısı — önceki satın alımdan geri yüklendi";
+
+/* Subtitle for users who have purchased full access */
+"Unlimited repositories enabled" = "Sınırsız depo etkinleştirildi";
+
+/* Row label showing how the user obtained access (legacy vs. purchase) */
+"Access Type" = "Erişim Türü";
+
+/* Access type value for users who paid before the IAP system */
+"Legacy paid user" = "Önceki sürüm kullanıcısı";
+
+/* Access type value for users who made an in-app purchase */
+"One-time purchase" = "Tek seferlik satın alma";
+
+/* Status row title for users who have not yet purchased */
+"1 free repository included" = "1 ücretsiz depo dahil";
+
+/* Subtitle encouraging the user to unlock unlimited repositories */
+"Unlock unlimited repositories with a one-time purchase." = "Tek seferlik satın alma ile sınırsız depo açın.";
+
+/* Info text shown when no custom default save location has been set */
+"New repositories will be saved to the app\u2019s default location." = "Yeni depolar uygulamanın varsayılan konumuna kaydedilecek.";
+
+/* Button to select a default save folder for new repositories */
+"Choose Default Location" = "Varsayılan Konum Seç";
+
+/* Action row title to send feedback via email */
+"Send Feedback" = "Geri Bildirim Gönder";
+
+/* Subtitle for the Send Feedback action row */
+"Questions, ideas, or issues" = "Sorular, fikirler veya sorunlar";
+
+/* Action row title to open a GitHub issue */
+"Report a Bug" = "Hata Bildir";
+
+/* Subtitle for the Report a Bug action row */
+"Open an issue on GitHub" = "GitHub'da sorun bildirin";
+
+/* Section header for app version and general information */
+"About" = "Hakkında";
+
+/* Alert title when confirming removal of the default save location */
+"Remove Default Location?" = "Varsayılan Konum Kaldırılsın mı?";
+
+/* Alert message explaining what happens after removing the custom default location */
+"New repositories will be saved to the app\u2019s default location instead." = "Yeni depolar bunun yerine uygulamanın varsayılan konumuna kaydedilecek.";
+
+/* Alert title for the debug receipt verification result (DEBUG only) */
+"Receipt Verification" = "Makbuz Doğrulaması";
+
+/* Unlock button title with the product price. %@ is the formatted price string. */
+"Unlock Unlimited — %@" = "Sınırsız Aç — %@";
+
+/* DEBUG-only action row title for testing receipt verification */
+"Debug: Verify Receipt" = "Hata Ayıklama: Makbuzu Doğrula";
+
+/* DEBUG-only subtitle describing the receipt verification test */
+"Test worker ↔ Apple end-to-end" = "Test worker ↔ Apple uçtan uca";
+
+/* Loading state text shown while a debug action is running */
+"Running…" = "Çalışıyor…";
+
+/* Navigation title for the Git control sheet */
+"Git" = "Git";
+
+/* Card title showing the current state of the git repository */
+"Repository Status" = "Depo Durumu";
+
+/* Row label showing the number of uncommitted local changes */
+"Local Changes" = "Yerel Değişiklikler";
+
+/* Displayed when there are zero local changes */
+"None" = "Yok";
+
+/* Subtitle for the pull action in the Git control sheet */
+"Fetch and apply remote changes" = "Uzak değişiklikleri getir ve uygula";
+
+/* Subtitle for the commit and push action in the Git control sheet */
+"Commit local changes and push to remote" = "Yerel değişiklikleri commit et ve uzak depoya gönder";
+
+/* Placeholder for the commit message text field */
+"Commit message…" = "Commit mesajı…";
+
+/* Push button label when there is exactly one local change */
+"Push 1 change" = "1 değişikliği gönder";
+
+/* Push button label showing the number of local changes. %lld is the count (2 or more). */
+"Push %lld changes" = "%lld değişikliği gönder";
+
+/* Accessibility label for the close button on the paywall sheet */
+"Dismiss" = "Kapat";
+
+/* Hero title on the paywall screen */
+"Unlock Sync.md" = "Sync.md Kilidini Aç";
+
+/* Hero subtitle on the paywall, explaining why it is shown */
+"You\u2019ve reached the 1 free repository limit" = "1 ücretsiz depo sınırına ulaştınız";
+
+/* Paywall feature row: unlimited repository count */
+"Unlimited repositories" = "Sınırsız depo";
+
+/* Paywall feature row: sync unlimited vaults */
+"Sync any number of vaults" = "İstediğiniz kadar kasayı eşitleyin";
+
+/* Paywall feature row: all future updates included */
+"All future features included" = "Gelecekteki tüm özellikler dahil";
+
+/* Paywall feature row: no recurring charge */
+"One-time payment — no subscription" = "Tek seferlik ödeme — abonelik yok";
+
+/* Accessibility label for the restore purchase button on the paywall */
+"Restore previous purchase" = "Önceki satın almayı geri yükle";
+
+/* Purchase button title showing the product price. %@ is the formatted price. */
+"Unlock for %@" = "%@ karşılığında aç";
+
+/* Empty state title shown when the user has no repositories */
+"No Repositories" = "Depo Yok";
+
+/* Empty state subtitle encouraging the user to add a repository */
+"Add a GitHub repository to start\nsyncing your markdown files." = "Markdown dosyalarınızı eşitlemeye başlamak\niçin bir GitHub deposu ekleyin.";
+
+/* Status text on a repo card that has been added but not yet cloned */
+"Not yet cloned" = "Henüz klonlanmadı";
+
+/* Confirmation dialog title for signing out */
+"Sign Out?" = "Çıkış Yapılsın mı?";
+
+/* Sign-out confirmation dialog message */
+"This will sign you out of GitHub. Your local repositories will be kept." = "GitHub oturumunuz kapatılacak. Yerel depolarınız korunacak.";
+
+/* Banner label shown when the app is running in demo mode */
+"Demo Mode" = "Demo Modu";
+
+/* Button to exit demo mode */
+"Exit" = "Çıkış";
+
+/* Search bar prompt when filtering the list of GitHub repositories */
+"Filter repositories" = "Depoları filtrele";
+
+/* Navigation title for the repository picker sheet */
+"Select Repository" = "Depo Seç";
+
+/* Row label for the repository remote URL */
+"URL" = "URL";
+
+/* Transient confirmation text shown after copying the repository URL */
+"Copied!" = "Kopyalandı!";
+
+/* Placeholder for the branch name text field, showing the default branch name */
+"main" = "main";
+
+/* Section header for git author name and email fields */
+"Git Author" = "Git Yazarı";
+
+/* Section header for the vault storage location information */
+"Storage" = "Depolama";
+
+/* Display path for a vault stored in the app's default location. %@ is the folder name. */
+"On My iPhone › Sync.md › %@" = "iPhone'umda › Sync.md › %@";
+
+/* Section header for sync metadata such as last sync date, commit SHA, and file count */
+"Sync Info" = "Eşitleme Bilgisi";
+
+/* Row label for the current HEAD commit SHA */
+"Commit SHA" = "Commit SHA";
+
+/* Row label for the number of tracked files in the vault */
+"Files" = "Dosyalar";
+
+/* Destructive button to remove a repository and delete its local files */
+"Remove Repository" = "Depoyu Kaldır";
+
+/* Alert title when confirming removal of a repository */
+"Remove Repository?" = "Depo Kaldırılsın mı?";
+
+/* Alert message warning that removing a repository is permanent */
+"This will delete all local files for this repository. This cannot be undone." = "Bu depoya ait tüm yerel dosyalar silinecek. Bu işlem geri alınamaz.";
+
+/* App name shown in the onboarding hero section */
+"Sync.md" = "Sync.md";
+
+/* App tagline shown on the onboarding screen */
+"Markdown notes synced with Git" = "Git ile eşitlenen Markdown notları";
+
+/* Primary sign-in button using GitHub OAuth */
+"Sign in with GitHub" = "GitHub ile giriş yap";
+
+/* Secondary sign-in option using a GitHub Personal Access Token */
+"Use a Personal Access Token" = "Personal Access Token kullan";
+
+/* Button to launch the app in demo mode without signing in */
+"Try Demo" = "Demoyu Dene";
+
+/* Placeholder text for the Personal Access Token input field */
+"ghp_..." = "ghp_...";
+
+/* Link text that opens the GitHub token creation page */
+"Create a PAT on GitHub" = "GitHub'da PAT oluştur";
+
+/* Loading state text shown while PAT sign-in is in progress */
+"Signing in…" = "Giriş yapılıyor…";
+
+/* Subtitle for the default save location onboarding step */
+"Choose where new repositories\nare saved on your device" = "Yeni depoların cihazınızda\nnereye kaydedileceğini seçin";
+
+/* Info hint shown when no default save location is chosen during onboarding */
+"Without a default, repos save to\nFiles › On My iPhone › Sync.md" = "Varsayılan belirlenmezse depolar şu konuma kaydedilir:\nDosyalar › iPhone'umda › Sync.md";
+
+/* Button to proceed after selecting a save location during onboarding */
+"Continue" = "Devam";
+
+/* Button to skip setting a default save location during onboarding */
+"Skip for Now" = "Şimdilik Atla";
+
+/* Card title linking to the vault folder in the Files app */
+"Files Location" = "Dosya Konumu";
+
+/* Title shown while a repository is being cloned */
+"Cloning Repository" = "Depo Klonlanıyor";
+
+/* State title shown when a repository has been added but not yet cloned */
+"Not Cloned" = "Klonlanmadı";
+
+/* Subtitle shown when a repository has not been cloned yet */
+"This repository hasn\u2019t been cloned yet.\nTap below to download it." = "Bu depo henüz klonlanmadı.\nİndirmek için aşağıya dokun.";
+
+/* Button to start cloning a repository that has not been downloaded yet */
+"Clone Repository" = "Depoyu Klonla";
+
+/* Error state title when the repository cannot be found in the app state */
+"Repository Not Found" = "Depo Bulunamadı";
+
+/* Callback result banner title on success. %@ is the capitalized action name, e.g. Pull. */
+"%@ Complete" = "%@ Tamamlandı";
+
+/* Callback result banner title on failure. %@ is the capitalized action name, e.g. Pull. */
+"%@ Failed" = "%@ Başarısız";
+
+/* Error message when a repository ID does not match any stored repo */
+"Repository not found" = "Depo bulunamadı";
+
+/* Sync progress message at the start of a clone operation */
+"Preparing to clone..." = "Klonlamaya hazırlanıyor...";
+
+/* Sync progress message while a repository is being cloned */
+"Cloning repository..." = "Depo klonlanıyor...";
+
+/* Sync progress message after a successful clone. %lld is the number of files. */
+"Clone complete! (%lld files)" = "Klonlama tamamlandı! (%lld dosya)";
+
+/* Sync progress message at the start of a pull operation */
+"Checking for updates..." = "Güncellemeler kontrol ediliyor...";
+
+/* Sync progress message when a pull finds no new changes */
+"Already up to date!" = "Zaten güncel!";
+
+/* Sync progress message after a successful pull */
+"Pull complete!" = "Pull tamamlandı!";
+
+/* Sync progress message at the start of a push operation */
+"Preparing changes..." = "Değişiklikler hazırlanıyor...";
+
+/* Sync progress message while committing and pushing changes */
+"Committing and pushing..." = "Commit ediliyor ve gönderiliyor...";
+
+/* Sync progress message after a successful push */
+"Push complete!" = "Push tamamlandı!";
+
+/* Sync progress message while fetching the user's GitHub profile after sign-in */
+"Fetching profile..." = "Profil getiriliyor...";
+
+/* Error message when PAT sign-in fails. %@ is the underlying error description. */
+"Invalid token: %@" = "Geçersiz token: %@";
+
+/* Error when a stored security-scoped bookmark can no longer be resolved */
+"Could not resolve folder bookmark." = "Klasör yer imi çözümlenemedi.";
+
+/* Error when adding a local repo whose folder has no .git directory */
+"No .git directory found. Please select a folder that contains a git repository." = ".git dizini bulunamadı. Lütfen bir Git deposu içeren klasör seçin.";
+
+/* Error when reading git metadata from a local repository fails. %@ is the error detail. */
+"Failed to read repository info: %@" = "Depo bilgisi okunamadı: %@";
+
+/* Default commit message used when the user does not provide one */
+"Update from Sync.md" = "Sync.md'den güncelleme";
+
+/* Error when a git operation is attempted on a repository that has not been cloned */
+"Repository not cloned yet. Clone it first." = "Depo henüz klonlanmadı. Önce klonlayın.";
+
+/* Error when the repository's remote URL is malformed or missing */
+"Invalid remote URL." = "Geçersiz uzak URL.";
+
+/* Error when cloning a repository fails. %@ is the libgit2 error detail. */
+"Clone failed: %@" = "Klonlama başarısız: %@";
+
+/* Error when fetching remote changes fails. %@ is the libgit2 error detail. */
+"Fetch failed: %@" = "Getirme başarısız: %@";
+
+/* Error when pushing commits fails. %@ is the libgit2 error detail. */
+"Push failed: %@" = "Gönderme başarısız: %@";
+
+/* Error when creating a commit fails. %@ is the libgit2 error detail. */
+"Commit failed: %@" = "Commit başarısız: %@";
+
+/* Error when attempting to commit but the working tree is clean */
+"No changes to commit." = "Commit edilecek değişiklik yok.";
+
+/* Error when the local git repository is in a corrupted state. %@ is the detail. */
+"Repository corrupted: %@. Try removing and re-cloning." = "Depo bozulmuş: %@. Kaldırıp yeniden klonlamayı deneyin.";
+
+/* Generic libgit2 error wrapper. %@ is the libgit2 error message. */
+"Git error: %@" = "Git hatası: %@";

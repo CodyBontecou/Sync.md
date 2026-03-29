@@ -1,0 +1,518 @@
+/* Generic cancel button */
+"Cancel" = "ยกเลิก";
+
+/* Generic OK / dismiss button */
+"OK" = "ตกลง";
+
+/* Generic done / close button */
+"Done" = "เสร็จ";
+
+/* Generic save button */
+"Save" = "บันทึก";
+
+/* Generic back navigation button */
+"Back" = "ย้อนกลับ";
+
+/* Generic error alert title */
+"Error" = "ข้อผิดพลาด";
+
+/* Fallback when no specific error message is available */
+"Unknown error" = "ข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+
+/* Divider label between two alternative actions */
+"or" = "หรือ";
+
+/* Displayed when a sync or date has never occurred */
+"Never" = "ไม่เคย";
+
+/* Form field label for a person's name */
+"Name" = "ชื่อ";
+
+/* Form field label for an email address */
+"Email" = "อีเมล";
+
+/* Git branch field or row label */
+"Branch" = "Branch";
+
+/* Section header label for a git repository */
+"Repository" = "Repository";
+
+/* Navigation title and context menu item for the repo settings screen */
+"Settings" = "การตั้งค่า";
+
+/* Row label showing a file system path */
+"Path" = "เส้นทาง";
+
+/* Row label showing a file location */
+"Location" = "ตำแหน่ง";
+
+/* Row label for a folder name */
+"Folder" = "โฟลเดอร์";
+
+/* Row label for the app version number */
+"Version" = "เวอร์ชัน";
+
+/* Row label showing the count of repositories */
+"Repositories" = "Repository";
+
+/* Subtitle shown below a selected item to indicate it is tappable */
+"Tap to change" = "แตะเพื่อเปลี่ยน";
+
+/* Placeholder text for author name field */
+"Your Name" = "ชื่อของคุณ";
+
+/* Placeholder text for email address field */
+"you@example.com" = "you@example.com";
+
+/* Git pull action title */
+"Pull" = "Pull";
+
+/* Subtitle for the pull action button */
+"Fetch remote changes" = "ดึงการเปลี่ยนแปลงจากรีโมต";
+
+/* Git commit and push action title */
+"Commit & Push" = "Commit & Push";
+
+/* Subtitle for the commit and push action button */
+"Push local changes to remote" = "ส่งการเปลี่ยนแปลงในเครื่องไปยังรีโมต";
+
+/* Navigation title and button label for adding a new repository */
+"Add Repository" = "เพิ่ม Repository";
+
+/* Toolbar button to sign in */
+"Sign In" = "ลงชื่อเข้าใช้";
+
+/* Menu item to sign out of GitHub */
+"Sign Out" = "ออกจากระบบ";
+
+/* Button to restore a previous in-app purchase */
+"Restore Purchase" = "กู้คืนการซื้อ";
+
+/* Fallback unlock button title when product price is unavailable */
+"Unlock Unlimited" = "ปลดล็อกไม่จำกัด";
+
+/* Section title and onboarding step title for setting the default save folder */
+"Default Save Location" = "ตำแหน่งบันทึกเริ่มต้น";
+
+/* Button to open a folder picker and choose a save location */
+"Choose Location" = "เลือกตำแหน่ง";
+
+/* Button to change the currently selected save location */
+"Change Location" = "เปลี่ยนตำแหน่ง";
+
+/* Label for the GitHub Personal Access Token input field */
+"Personal Access Token" = "Personal Access Token";
+
+/* Section title for user feedback options */
+"Feedback" = "ข้อเสนอแนะ";
+
+/* Generic remove or delete button */
+"Remove" = "ลบ";
+
+/* Generic change or edit button */
+"Change" = "เปลี่ยน";
+
+/* Row label showing the date and time of the last successful sync */
+"Last Sync" = "ซิงค์ล่าสุด";
+
+/* Git commit SHA row label */
+"Commit" = "Commit";
+
+/* Button title to pick a repository from the user's GitHub account */
+"Pick from GitHub" = "เลือกจาก GitHub";
+
+/* Subtitle for the Pick from GitHub button */
+"Select from your repositories" = "เลือกจาก repository ของคุณ";
+
+/* Button title to open a local git repository from the device */
+"Open Existing Repository" = "เปิด Repository ที่มีอยู่";
+
+/* Subtitle for the Open Existing Repository button */
+"Select a git repo on this device" = "เลือก Git repo บนอุปกรณ์นี้";
+
+/* Validation error shown when the entered repository URL is not a valid GitHub URL */
+"Invalid GitHub URL" = "URL GitHub ไม่ถูกต้อง";
+
+/* Button to reveal a text field for typing a repository URL */
+"Enter URL manually" = "ป้อน URL ด้วยตนเอง";
+
+/* Label for the repository URL input field */
+"Repository URL" = "URL ของ Repository";
+
+/* Placeholder text for the repository URL field */
+"https://github.com/user/repo" = "https://github.com/user/repo";
+
+/* Label for the git commit author name field */
+"Author Name" = "ชื่อผู้เขียน";
+
+/* Label for the git commit author email field */
+"Author Email" = "อีเมลผู้เขียน";
+
+/* Section header for the destination folder when cloning a repository */
+"Clone To" = "โคลนไปยัง";
+
+/* Placeholder for the folder name text field in the clone destination section */
+"Folder name" = "ชื่อโฟลเดอร์";
+
+/* Info text showing the default clone destination path. %@ is the folder name. */
+"Files › On My iPhone › Sync.md › %@" = "ไฟล์ › บน iPhone ของฉัน › Sync.md › %@";
+
+/* Button to change the currently selected clone location */
+"Change Location…" = "เปลี่ยนตำแหน่ง…";
+
+/* Button to choose a custom clone destination folder */
+"Choose Different Location…" = "เลือกตำแหน่งอื่น…";
+
+/* Button to add a remote repository and immediately start cloning it */
+"Add & Clone Repository" = "เพิ่มและโคลน Repository";
+
+/* Alert title shown when the user tries to submit without filling required fields */
+"Missing Required Fields" = "ข้อมูลที่จำเป็นขาดหายไป";
+
+/* Generic validation error message when required fields are empty */
+"Please fill in the required fields." = "กรุณากรอกข้อมูลในช่องที่จำเป็น";
+
+/* Validation message for a single missing field. %@ is the field name. */
+"Please fill in %@." = "กรุณากรอก %@";
+
+/* Validation message for multiple missing fields. %@ is a comma-separated list of field names. */
+"Please fill in these fields: %@." = "กรุณากรอกข้อมูลในช่องเหล่านี้: %@";
+
+/* Error when the app cannot obtain security-scoped access to a chosen folder */
+"Could not access the selected folder." = "ไม่สามารถเข้าถึงโฟลเดอร์ที่เลือกได้";
+
+/* Error when the chosen folder does not contain a git repository */
+"No .git directory found in the selected folder." = "ไม่พบไดเรกทอรี .git ในโฟลเดอร์ที่เลือก";
+
+/* Error when creating a security-scoped bookmark for the chosen folder fails */
+"Could not create a bookmark for the selected folder." = "ไม่สามารถสร้างบุ๊กมาร์กสำหรับโฟลเดอร์ที่เลือกได้";
+
+/* Navigation title for the application-wide settings screen and menu item label */
+"App Settings" = "การตั้งค่าแอป";
+
+/* Section header for GitHub account information */
+"Account" = "บัญชี";
+
+/* Row label for the GitHub username */
+"Username" = "ชื่อผู้ใช้";
+
+/* Section header for the in-app purchase unlock section */
+"Unlock" = "ปลดล็อก";
+
+/* Status row title shown when the user has purchased full access */
+"Full Access Unlocked" = "ปลดล็อกการเข้าถึงเต็มรูปแบบแล้ว";
+
+/* Subtitle for legacy users who paid before the IAP system was introduced */
+"Legacy paid user — restored from previous purchase" = "ผู้ใช้ที่ชำระเงินก่อนหน้า — กู้คืนจากการซื้อครั้งก่อน";
+
+/* Subtitle for users who have purchased full access */
+"Unlimited repositories enabled" = "เปิดใช้งาน repository ไม่จำกัดแล้ว";
+
+/* Row label showing how the user obtained access (legacy vs. purchase) */
+"Access Type" = "ประเภทการเข้าถึง";
+
+/* Access type value for users who paid before the IAP system */
+"Legacy paid user" = "ผู้ใช้ที่ชำระเงินก่อนหน้า";
+
+/* Access type value for users who made an in-app purchase */
+"One-time purchase" = "ซื้อครั้งเดียว";
+
+/* Status row title for users who have not yet purchased */
+"1 free repository included" = "รวม repository ฟรี 1 รายการ";
+
+/* Subtitle encouraging the user to unlock unlimited repositories */
+"Unlock unlimited repositories with a one-time purchase." = "ปลดล็อก repository ไม่จำกัดด้วยการซื้อครั้งเดียว";
+
+/* Info text shown when no custom default save location has been set */
+"New repositories will be saved to the app\U2019s default location." = "Repository ใหม่จะถูกบันทึกไว้ที่ตำแหน่งเริ่มต้นของแอป";
+
+/* Button to select a default save folder for new repositories */
+"Choose Default Location" = "เลือกตำแหน่งเริ่มต้น";
+
+/* Action row title to send feedback via email */
+"Send Feedback" = "ส่งข้อเสนอแนะ";
+
+/* Subtitle for the Send Feedback action row */
+"Questions, ideas, or issues" = "คำถาม แนวคิด หรือปัญหา";
+
+/* Action row title to open a GitHub issue */
+"Report a Bug" = "รายงานข้อบกพร่อง";
+
+/* Subtitle for the Report a Bug action row */
+"Open an issue on GitHub" = "เปิด issue บน GitHub";
+
+/* Section header for app version and general information */
+"About" = "เกี่ยวกับ";
+
+/* Alert title when confirming removal of the default save location */
+"Remove Default Location?" = "ลบตำแหน่งเริ่มต้น?";
+
+/* Alert message explaining what happens after removing the custom default location */
+"New repositories will be saved to the app\U2019s default location instead." = "Repository ใหม่จะถูกบันทึกไว้ที่ตำแหน่งเริ่มต้นของแอปแทน";
+
+/* Alert title for the debug receipt verification result (DEBUG only) */
+"Receipt Verification" = "การตรวจสอบใบเสร็จ";
+
+/* Unlock button title with the product price. %@ is the formatted price string. */
+"Unlock Unlimited — %@" = "ปลดล็อกไม่จำกัด — %@";
+
+/* DEBUG-only action row title for testing receipt verification */
+"Debug: Verify Receipt" = "Debug: ตรวจสอบใบเสร็จ";
+
+/* DEBUG-only subtitle describing the receipt verification test */
+"Test worker ↔ Apple end-to-end" = "ทดสอบ worker ↔ Apple แบบครบวงจร";
+
+/* Loading state text shown while a debug action is running */
+"Running…" = "กำลังทำงาน…";
+
+/* Navigation title for the Git control sheet */
+"Git" = "Git";
+
+/* Card title showing the current state of the git repository */
+"Repository Status" = "สถานะ Repository";
+
+/* Row label showing the number of uncommitted local changes */
+"Local Changes" = "การเปลี่ยนแปลงในเครื่อง";
+
+/* Displayed when there are zero local changes */
+"None" = "ไม่มี";
+
+/* Subtitle for the pull action in the Git control sheet */
+"Fetch and apply remote changes" = "ดึงและนำการเปลี่ยนแปลงจากรีโมตมาใช้";
+
+/* Subtitle for the commit and push action in the Git control sheet */
+"Commit local changes and push to remote" = "Commit การเปลี่ยนแปลงในเครื่องและส่งไปยังรีโมต";
+
+/* Placeholder for the commit message text field */
+"Commit message…" = "ข้อความ commit…";
+
+/* Push button label when there is exactly one local change */
+"Push 1 change" = "ส่ง 1 การเปลี่ยนแปลง";
+
+/* Push button label showing the number of local changes. %lld is the count (2 or more). */
+"Push %lld changes" = "ส่ง %lld การเปลี่ยนแปลง";
+
+/* Accessibility label for the close button on the paywall sheet */
+"Dismiss" = "ปิด";
+
+/* Hero title on the paywall screen */
+"Unlock Sync.md" = "ปลดล็อก Sync.md";
+
+/* Hero subtitle on the paywall, explaining why it is shown */
+"You\U2019ve reached the 1 free repository limit" = "คุณใช้ repository ฟรี 1 รายการครบแล้ว";
+
+/* Paywall feature row: unlimited repository count */
+"Unlimited repositories" = "Repository ไม่จำกัด";
+
+/* Paywall feature row: sync unlimited vaults */
+"Sync any number of vaults" = "ซิงค์ vault ได้ไม่จำกัดจำนวน";
+
+/* Paywall feature row: all future updates included */
+"All future features included" = "รวมฟีเจอร์ในอนาคตทั้งหมด";
+
+/* Paywall feature row: no recurring charge */
+"One-time payment — no subscription" = "ชำระครั้งเดียว — ไม่มีการสมัครสมาชิก";
+
+/* Accessibility label for the restore purchase button on the paywall */
+"Restore previous purchase" = "กู้คืนการซื้อครั้งก่อน";
+
+/* Purchase button title showing the product price. %@ is the formatted price. */
+"Unlock for %@" = "ปลดล็อกในราคา %@";
+
+/* Empty state title shown when the user has no repositories */
+"No Repositories" = "ไม่มี Repository";
+
+/* Empty state subtitle encouraging the user to add a repository */
+"Add a GitHub repository to start\nsyncing your markdown files." = "เพิ่ม GitHub repository เพื่อเริ่ม\nซิงค์ไฟล์ markdown ของคุณ";
+
+/* Status text on a repo card that has been added but not yet cloned */
+"Not yet cloned" = "ยังไม่ได้โคลน";
+
+/* Confirmation dialog title for signing out */
+"Sign Out?" = "ออกจากระบบ?";
+
+/* Sign-out confirmation dialog message */
+"This will sign you out of GitHub. Your local repositories will be kept." = "การดำเนินการนี้จะออกจากระบบ GitHub ของคุณ Repository ในเครื่องจะยังคงอยู่";
+
+/* Banner label shown when the app is running in demo mode */
+"Demo Mode" = "โหมดทดลอง";
+
+/* Button to exit demo mode */
+"Exit" = "ออก";
+
+/* Search bar prompt when filtering the list of GitHub repositories */
+"Filter repositories" = "กรอง repository";
+
+/* Navigation title for the repository picker sheet */
+"Select Repository" = "เลือก Repository";
+
+/* Row label for the repository remote URL */
+"URL" = "URL";
+
+/* Transient confirmation text shown after copying the repository URL */
+"Copied!" = "คัดลอกแล้ว!";
+
+/* Placeholder for the branch name text field, showing the default branch name */
+"main" = "main";
+
+/* Section header for git author name and email fields */
+"Git Author" = "ผู้เขียน Git";
+
+/* Section header for the vault storage location information */
+"Storage" = "พื้นที่จัดเก็บ";
+
+/* Display path for a vault stored in the app's default location. %@ is the folder name. */
+"On My iPhone › Sync.md › %@" = "บน iPhone ของฉัน › Sync.md › %@";
+
+/* Section header for sync metadata such as last sync date, commit SHA, and file count */
+"Sync Info" = "ข้อมูลการซิงค์";
+
+/* Row label for the current HEAD commit SHA */
+"Commit SHA" = "Commit SHA";
+
+/* Row label for the number of tracked files in the vault */
+"Files" = "ไฟล์";
+
+/* Destructive button to remove a repository and delete its local files */
+"Remove Repository" = "ลบ Repository";
+
+/* Alert title when confirming removal of a repository */
+"Remove Repository?" = "ลบ Repository?";
+
+/* Alert message warning that removing a repository is permanent */
+"This will delete all local files for this repository. This cannot be undone." = "การดำเนินการนี้จะลบไฟล์ในเครื่องทั้งหมดของ repository นี้ ไม่สามารถยกเลิกได้";
+
+/* App name shown in the onboarding hero section */
+"Sync.md" = "Sync.md";
+
+/* App tagline shown on the onboarding screen */
+"Markdown notes synced with Git" = "โน้ต Markdown ซิงค์ด้วย Git";
+
+/* Primary sign-in button using GitHub OAuth */
+"Sign in with GitHub" = "ลงชื่อเข้าใช้ด้วย GitHub";
+
+/* Secondary sign-in option using a GitHub Personal Access Token */
+"Use a Personal Access Token" = "ใช้ Personal Access Token";
+
+/* Button to launch the app in demo mode without signing in */
+"Try Demo" = "ทดลองใช้";
+
+/* Placeholder text for the Personal Access Token input field */
+"ghp_..." = "ghp_...";
+
+/* Link text that opens the GitHub token creation page */
+"Create a PAT on GitHub" = "สร้าง PAT บน GitHub";
+
+/* Loading state text shown while PAT sign-in is in progress */
+"Signing in…" = "กำลังลงชื่อเข้าใช้…";
+
+/* Subtitle for the default save location onboarding step */
+"Choose where new repositories\nare saved on your device" = "เลือกตำแหน่งที่จะบันทึก\nrepository ใหม่บนอุปกรณ์ของคุณ";
+
+/* Info hint shown when no default save location is chosen during onboarding */
+"Without a default, repos save to\nFiles › On My iPhone › Sync.md" = "หากไม่ได้ตั้งค่า repository จะบันทึกที่\nไฟล์ › บน iPhone ของฉัน › Sync.md";
+
+/* Button to proceed after selecting a save location during onboarding */
+"Continue" = "ดำเนินการต่อ";
+
+/* Button to skip setting a default save location during onboarding */
+"Skip for Now" = "ข้ามไปก่อน";
+
+/* Card title linking to the vault folder in the Files app */
+"Files Location" = "ตำแหน่งไฟล์";
+
+/* Title shown while a repository is being cloned */
+"Cloning Repository" = "กำลังโคลน Repository";
+
+/* State title shown when a repository has been added but not yet cloned */
+"Not Cloned" = "ยังไม่ได้โคลน";
+
+/* Subtitle shown when a repository has not been cloned yet */
+"This repository hasn\U2019t been cloned yet.\nTap below to download it." = "Repository นี้ยังไม่ได้โคลน\nแตะด้านล่างเพื่อดาวน์โหลด";
+
+/* Button to start cloning a repository that has not been downloaded yet */
+"Clone Repository" = "โคลน Repository";
+
+/* Error state title when the repository cannot be found in the app state */
+"Repository Not Found" = "ไม่พบ Repository";
+
+/* Callback result banner title on success. %@ is the capitalized action name, e.g. Pull. */
+"%@ Complete" = "%@ เสร็จสมบูรณ์";
+
+/* Callback result banner title on failure. %@ is the capitalized action name, e.g. Pull. */
+"%@ Failed" = "%@ ล้มเหลว";
+
+/* Error message when a repository ID does not match any stored repo */
+"Repository not found" = "ไม่พบ repository";
+
+/* Sync progress message at the start of a clone operation */
+"Preparing to clone..." = "กำลังเตรียมโคลน...";
+
+/* Sync progress message while a repository is being cloned */
+"Cloning repository..." = "กำลังโคลน repository...";
+
+/* Sync progress message after a successful clone. %lld is the number of files. */
+"Clone complete! (%lld files)" = "โคลนเสร็จสมบูรณ์! (%lld ไฟล์)";
+
+/* Sync progress message at the start of a pull operation */
+"Checking for updates..." = "กำลังตรวจสอบการอัปเดต...";
+
+/* Sync progress message when a pull finds no new changes */
+"Already up to date!" = "เป็นเวอร์ชันล่าสุดแล้ว!";
+
+/* Sync progress message after a successful pull */
+"Pull complete!" = "Pull เสร็จสมบูรณ์!";
+
+/* Sync progress message at the start of a push operation */
+"Preparing changes..." = "กำลังเตรียมการเปลี่ยนแปลง...";
+
+/* Sync progress message while committing and pushing changes */
+"Committing and pushing..." = "กำลัง commit และส่ง...";
+
+/* Sync progress message after a successful push */
+"Push complete!" = "Push เสร็จสมบูรณ์!";
+
+/* Sync progress message while fetching the user's GitHub profile after sign-in */
+"Fetching profile..." = "กำลังดึงข้อมูลโปรไฟล์...";
+
+/* Error message when PAT sign-in fails. %@ is the underlying error description. */
+"Invalid token: %@" = "โทเค็นไม่ถูกต้อง: %@";
+
+/* Error when a stored security-scoped bookmark can no longer be resolved */
+"Could not resolve folder bookmark." = "ไม่สามารถเปิดบุ๊กมาร์กโฟลเดอร์ได้";
+
+/* Error when adding a local repo whose folder has no .git directory */
+"No .git directory found. Please select a folder that contains a git repository." = "ไม่พบไดเรกทอรี .git กรุณาเลือกโฟลเดอร์ที่มี Git repository";
+
+/* Error when reading git metadata from a local repository fails. %@ is the error detail. */
+"Failed to read repository info: %@" = "ไม่สามารถอ่านข้อมูล repository: %@";
+
+/* Default commit message used when the user does not provide one */
+"Update from Sync.md" = "อัปเดตจาก Sync.md";
+
+/* Error when a git operation is attempted on a repository that has not been cloned */
+"Repository not cloned yet. Clone it first." = "ยังไม่ได้โคลน repository กรุณาโคลนก่อน";
+
+/* Error when the repository's remote URL is malformed or missing */
+"Invalid remote URL." = "URL รีโมตไม่ถูกต้อง";
+
+/* Error when cloning a repository fails. %@ is the libgit2 error detail. */
+"Clone failed: %@" = "โคลนล้มเหลว: %@";
+
+/* Error when fetching remote changes fails. %@ is the libgit2 error detail. */
+"Fetch failed: %@" = "ดึงข้อมูลล้มเหลว: %@";
+
+/* Error when pushing commits fails. %@ is the libgit2 error detail. */
+"Push failed: %@" = "ส่งข้อมูลล้มเหลว: %@";
+
+/* Error when creating a commit fails. %@ is the libgit2 error detail. */
+"Commit failed: %@" = "Commit ล้มเหลว: %@";
+
+/* Error when attempting to commit but the working tree is clean */
+"No changes to commit." = "ไม่มีการเปลี่ยนแปลงที่จะ commit";
+
+/* Error when the local git repository is in a corrupted state. %@ is the detail. */
+"Repository corrupted: %@. Try removing and re-cloning." = "Repository เสียหาย: %@ ลองลบแล้วโคลนใหม่";
+
+/* Generic libgit2 error wrapper. %@ is the libgit2 error message. */
+"Git error: %@" = "Git error: %@";

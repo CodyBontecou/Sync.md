@@ -1,0 +1,518 @@
+/* Generic cancel button */
+"Cancel" = "Batal";
+
+/* Generic OK / dismiss button */
+"OK" = "OK";
+
+/* Generic done / close button */
+"Done" = "Selesai";
+
+/* Generic save button */
+"Save" = "Simpan";
+
+/* Generic back navigation button */
+"Back" = "Kembali";
+
+/* Generic error alert title */
+"Error" = "Error";
+
+/* Fallback when no specific error message is available */
+"Unknown error" = "Kesalahan tidak diketahui";
+
+/* Divider label between two alternative actions */
+"or" = "atau";
+
+/* Displayed when a sync or date has never occurred */
+"Never" = "Tidak pernah";
+
+/* Form field label for a person's name */
+"Name" = "Nama";
+
+/* Form field label for an email address */
+"Email" = "Email";
+
+/* Git branch field or row label */
+"Branch" = "Branch";
+
+/* Section header label for a git repository */
+"Repository" = "Repositori";
+
+/* Navigation title and context menu item for the repo settings screen */
+"Settings" = "Pengaturan";
+
+/* Row label showing a file system path */
+"Path" = "Path";
+
+/* Row label showing a file location */
+"Location" = "Lokasi";
+
+/* Row label for a folder name */
+"Folder" = "Folder";
+
+/* Row label for the app version number */
+"Version" = "Versi";
+
+/* Row label showing the count of repositories */
+"Repositories" = "Repositori";
+
+/* Subtitle shown below a selected item to indicate it is tappable */
+"Tap to change" = "Ketuk untuk mengubah";
+
+/* Placeholder text for author name field */
+"Your Name" = "Nama Anda";
+
+/* Placeholder text for email address field */
+"you@example.com" = "anda@contoh.com";
+
+/* Git pull action title */
+"Pull" = "Pull";
+
+/* Subtitle for the pull action button */
+"Fetch remote changes" = "Ambil perubahan remote";
+
+/* Git commit and push action title */
+"Commit & Push" = "Commit & Push";
+
+/* Subtitle for the commit and push action button */
+"Push local changes to remote" = "Kirim perubahan lokal ke remote";
+
+/* Navigation title and button label for adding a new repository */
+"Add Repository" = "Tambah Repositori";
+
+/* Toolbar button to sign in */
+"Sign In" = "Masuk";
+
+/* Menu item to sign out of GitHub */
+"Sign Out" = "Keluar";
+
+/* Button to restore a previous in-app purchase */
+"Restore Purchase" = "Pulihkan Pembelian";
+
+/* Fallback unlock button title when product price is unavailable */
+"Unlock Unlimited" = "Buka Tanpa Batas";
+
+/* Section title and onboarding step title for setting the default save folder */
+"Default Save Location" = "Lokasi Simpan Default";
+
+/* Button to open a folder picker and choose a save location */
+"Choose Location" = "Pilih Lokasi";
+
+/* Button to change the currently selected save location */
+"Change Location" = "Ubah Lokasi";
+
+/* Label for the GitHub Personal Access Token input field */
+"Personal Access Token" = "Personal Access Token";
+
+/* Section title for user feedback options */
+"Feedback" = "Masukan";
+
+/* Generic remove or delete button */
+"Remove" = "Hapus";
+
+/* Generic change or edit button */
+"Change" = "Ubah";
+
+/* Row label showing the date and time of the last successful sync */
+"Last Sync" = "Sinkronisasi Terakhir";
+
+/* Git commit SHA row label */
+"Commit" = "Commit";
+
+/* Button title to pick a repository from the user's GitHub account */
+"Pick from GitHub" = "Pilih dari GitHub";
+
+/* Subtitle for the Pick from GitHub button */
+"Select from your repositories" = "Pilih dari repositori Anda";
+
+/* Button title to open a local git repository from the device */
+"Open Existing Repository" = "Buka Repositori yang Ada";
+
+/* Subtitle for the Open Existing Repository button */
+"Select a git repo on this device" = "Pilih repositori Git di perangkat ini";
+
+/* Validation error shown when the entered repository URL is not a valid GitHub URL */
+"Invalid GitHub URL" = "URL GitHub tidak valid";
+
+/* Button to reveal a text field for typing a repository URL */
+"Enter URL manually" = "Masukkan URL secara manual";
+
+/* Label for the repository URL input field */
+"Repository URL" = "URL Repositori";
+
+/* Placeholder text for the repository URL field */
+"https://github.com/user/repo" = "https://github.com/user/repo";
+
+/* Label for the git commit author name field */
+"Author Name" = "Nama Penulis";
+
+/* Label for the git commit author email field */
+"Author Email" = "Email Penulis";
+
+/* Section header for the destination folder when cloning a repository */
+"Clone To" = "Clone Ke";
+
+/* Placeholder for the folder name text field in the clone destination section */
+"Folder name" = "Nama folder";
+
+/* Info text showing the default clone destination path. %@ is the folder name. */
+"Files › On My iPhone › Sync.md › %@" = "File › Di iPhone Saya › Sync.md › %@";
+
+/* Button to change the currently selected clone location */
+"Change Location…" = "Ubah Lokasi…";
+
+/* Button to choose a custom clone destination folder */
+"Choose Different Location…" = "Pilih Lokasi Lain…";
+
+/* Button to add a remote repository and immediately start cloning it */
+"Add & Clone Repository" = "Tambah & Clone Repositori";
+
+/* Alert title shown when the user tries to submit without filling required fields */
+"Missing Required Fields" = "Kolom Wajib Belum Diisi";
+
+/* Generic validation error message when required fields are empty */
+"Please fill in the required fields." = "Harap isi kolom yang wajib diisi.";
+
+/* Validation message for a single missing field. %@ is the field name. */
+"Please fill in %@." = "Harap isi %@.";
+
+/* Validation message for multiple missing fields. %@ is a comma-separated list of field names. */
+"Please fill in these fields: %@." = "Harap isi kolom berikut: %@.";
+
+/* Error when the app cannot obtain security-scoped access to a chosen folder */
+"Could not access the selected folder." = "Tidak dapat mengakses folder yang dipilih.";
+
+/* Error when the chosen folder does not contain a git repository */
+"No .git directory found in the selected folder." = "Direktori .git tidak ditemukan di folder yang dipilih.";
+
+/* Error when creating a security-scoped bookmark for the chosen folder fails */
+"Could not create a bookmark for the selected folder." = "Tidak dapat membuat bookmark untuk folder yang dipilih.";
+
+/* Navigation title for the application-wide settings screen and menu item label */
+"App Settings" = "Pengaturan Aplikasi";
+
+/* Section header for GitHub account information */
+"Account" = "Akun";
+
+/* Row label for the GitHub username */
+"Username" = "Nama Pengguna";
+
+/* Section header for the in-app purchase unlock section */
+"Unlock" = "Buka";
+
+/* Status row title shown when the user has purchased full access */
+"Full Access Unlocked" = "Akses Penuh Terbuka";
+
+/* Subtitle for legacy users who paid before the IAP system was introduced */
+"Legacy paid user — restored from previous purchase" = "Pengguna berbayar lama — dipulihkan dari pembelian sebelumnya";
+
+/* Subtitle for users who have purchased full access */
+"Unlimited repositories enabled" = "Repositori tanpa batas diaktifkan";
+
+/* Row label showing how the user obtained access (legacy vs. purchase) */
+"Access Type" = "Tipe Akses";
+
+/* Access type value for users who paid before the IAP system */
+"Legacy paid user" = "Pengguna berbayar lama";
+
+/* Access type value for users who made an in-app purchase */
+"One-time purchase" = "Pembelian satu kali";
+
+/* Status row title for users who have not yet purchased */
+"1 free repository included" = "1 repositori gratis tersedia";
+
+/* Subtitle encouraging the user to unlock unlimited repositories */
+"Unlock unlimited repositories with a one-time purchase." = "Buka repositori tanpa batas dengan pembelian satu kali.";
+
+/* Info text shown when no custom default save location has been set */
+"New repositories will be saved to the app\U2019s default location." = "Repositori baru akan disimpan di lokasi default aplikasi.";
+
+/* Button to select a default save folder for new repositories */
+"Choose Default Location" = "Pilih Lokasi Default";
+
+/* Action row title to send feedback via email */
+"Send Feedback" = "Kirim Masukan";
+
+/* Subtitle for the Send Feedback action row */
+"Questions, ideas, or issues" = "Pertanyaan, ide, atau masalah";
+
+/* Action row title to open a GitHub issue */
+"Report a Bug" = "Laporkan Bug";
+
+/* Subtitle for the Report a Bug action row */
+"Open an issue on GitHub" = "Buka issue di GitHub";
+
+/* Section header for app version and general information */
+"About" = "Tentang";
+
+/* Alert title when confirming removal of the default save location */
+"Remove Default Location?" = "Hapus Lokasi Default?";
+
+/* Alert message explaining what happens after removing the custom default location */
+"New repositories will be saved to the app\U2019s default location instead." = "Repositori baru akan disimpan di lokasi default aplikasi.";
+
+/* Alert title for the debug receipt verification result (DEBUG only) */
+"Receipt Verification" = "Verifikasi Tanda Terima";
+
+/* Unlock button title with the product price. %@ is the formatted price string. */
+"Unlock Unlimited — %@" = "Buka Tanpa Batas — %@";
+
+/* DEBUG-only action row title for testing receipt verification */
+"Debug: Verify Receipt" = "Debug: Verifikasi Tanda Terima";
+
+/* DEBUG-only subtitle describing the receipt verification test */
+"Test worker ↔ Apple end-to-end" = "Uji worker ↔ Apple secara menyeluruh";
+
+/* Loading state text shown while a debug action is running */
+"Running…" = "Berjalan…";
+
+/* Navigation title for the Git control sheet */
+"Git" = "Git";
+
+/* Card title showing the current state of the git repository */
+"Repository Status" = "Status Repositori";
+
+/* Row label showing the number of uncommitted local changes */
+"Local Changes" = "Perubahan Lokal";
+
+/* Displayed when there are zero local changes */
+"None" = "Tidak ada";
+
+/* Subtitle for the pull action in the Git control sheet */
+"Fetch and apply remote changes" = "Ambil dan terapkan perubahan remote";
+
+/* Subtitle for the commit and push action in the Git control sheet */
+"Commit local changes and push to remote" = "Commit perubahan lokal dan kirim ke remote";
+
+/* Placeholder for the commit message text field */
+"Commit message…" = "Pesan commit…";
+
+/* Push button label when there is exactly one local change */
+"Push 1 change" = "Kirim 1 perubahan";
+
+/* Push button label showing the number of local changes. %lld is the count (2 or more). */
+"Push %lld changes" = "Kirim %lld perubahan";
+
+/* Accessibility label for the close button on the paywall sheet */
+"Dismiss" = "Tutup";
+
+/* Hero title on the paywall screen */
+"Unlock Sync.md" = "Buka Sync.md";
+
+/* Hero subtitle on the paywall, explaining why it is shown */
+"You\U2019ve reached the 1 free repository limit" = "Anda telah mencapai batas 1 repositori gratis";
+
+/* Paywall feature row: unlimited repository count */
+"Unlimited repositories" = "Repositori tanpa batas";
+
+/* Paywall feature row: sync unlimited vaults */
+"Sync any number of vaults" = "Sinkronkan vault dalam jumlah berapa pun";
+
+/* Paywall feature row: all future updates included */
+"All future features included" = "Semua fitur mendatang termasuk";
+
+/* Paywall feature row: no recurring charge */
+"One-time payment — no subscription" = "Pembayaran satu kali — tanpa langganan";
+
+/* Accessibility label for the restore purchase button on the paywall */
+"Restore previous purchase" = "Pulihkan pembelian sebelumnya";
+
+/* Purchase button title showing the product price. %@ is the formatted price. */
+"Unlock for %@" = "Buka seharga %@";
+
+/* Empty state title shown when the user has no repositories */
+"No Repositories" = "Tidak Ada Repositori";
+
+/* Empty state subtitle encouraging the user to add a repository */
+"Add a GitHub repository to start\nsyncing your markdown files." = "Tambahkan repositori GitHub untuk mulai\nmenyinkronkan file markdown Anda.";
+
+/* Status text on a repo card that has been added but not yet cloned */
+"Not yet cloned" = "Belum di-clone";
+
+/* Confirmation dialog title for signing out */
+"Sign Out?" = "Keluar?";
+
+/* Sign-out confirmation dialog message */
+"This will sign you out of GitHub. Your local repositories will be kept." = "Anda akan keluar dari GitHub. Repositori lokal Anda akan tetap disimpan.";
+
+/* Banner label shown when the app is running in demo mode */
+"Demo Mode" = "Mode Demo";
+
+/* Button to exit demo mode */
+"Exit" = "Keluar";
+
+/* Search bar prompt when filtering the list of GitHub repositories */
+"Filter repositories" = "Filter repositori";
+
+/* Navigation title for the repository picker sheet */
+"Select Repository" = "Pilih Repositori";
+
+/* Row label for the repository remote URL */
+"URL" = "URL";
+
+/* Transient confirmation text shown after copying the repository URL */
+"Copied!" = "Disalin!";
+
+/* Placeholder for the branch name text field, showing the default branch name */
+"main" = "main";
+
+/* Section header for git author name and email fields */
+"Git Author" = "Penulis Git";
+
+/* Section header for the vault storage location information */
+"Storage" = "Penyimpanan";
+
+/* Display path for a vault stored in the app's default location. %@ is the folder name. */
+"On My iPhone › Sync.md › %@" = "Di iPhone Saya › Sync.md › %@";
+
+/* Section header for sync metadata such as last sync date, commit SHA, and file count */
+"Sync Info" = "Info Sinkronisasi";
+
+/* Row label for the current HEAD commit SHA */
+"Commit SHA" = "Commit SHA";
+
+/* Row label for the number of tracked files in the vault */
+"Files" = "File";
+
+/* Destructive button to remove a repository and delete its local files */
+"Remove Repository" = "Hapus Repositori";
+
+/* Alert title when confirming removal of a repository */
+"Remove Repository?" = "Hapus Repositori?";
+
+/* Alert message warning that removing a repository is permanent */
+"This will delete all local files for this repository. This cannot be undone." = "Semua file lokal untuk repositori ini akan dihapus. Tindakan ini tidak dapat dibatalkan.";
+
+/* App name shown in the onboarding hero section */
+"Sync.md" = "Sync.md";
+
+/* App tagline shown on the onboarding screen */
+"Markdown notes synced with Git" = "Catatan markdown yang disinkronkan dengan Git";
+
+/* Primary sign-in button using GitHub OAuth */
+"Sign in with GitHub" = "Masuk dengan GitHub";
+
+/* Secondary sign-in option using a GitHub Personal Access Token */
+"Use a Personal Access Token" = "Gunakan Personal Access Token";
+
+/* Button to launch the app in demo mode without signing in */
+"Try Demo" = "Coba Demo";
+
+/* Placeholder text for the Personal Access Token input field */
+"ghp_..." = "ghp_...";
+
+/* Link text that opens the GitHub token creation page */
+"Create a PAT on GitHub" = "Buat PAT di GitHub";
+
+/* Loading state text shown while PAT sign-in is in progress */
+"Signing in…" = "Sedang masuk…";
+
+/* Subtitle for the default save location onboarding step */
+"Choose where new repositories\nare saved on your device" = "Pilih tempat repositori baru\ndisimpan di perangkat Anda";
+
+/* Info hint shown when no default save location is chosen during onboarding */
+"Without a default, repos save to\nFiles › On My iPhone › Sync.md" = "Tanpa lokasi default, repositori disimpan di\nFile › Di iPhone Saya › Sync.md";
+
+/* Button to proceed after selecting a save location during onboarding */
+"Continue" = "Lanjutkan";
+
+/* Button to skip setting a default save location during onboarding */
+"Skip for Now" = "Lewati untuk Sekarang";
+
+/* Card title linking to the vault folder in the Files app */
+"Files Location" = "Lokasi File";
+
+/* Title shown while a repository is being cloned */
+"Cloning Repository" = "Meng-clone Repositori";
+
+/* State title shown when a repository has been added but not yet cloned */
+"Not Cloned" = "Belum Di-clone";
+
+/* Subtitle shown when a repository has not been cloned yet */
+"This repository hasn\U2019t been cloned yet.\nTap below to download it." = "Repositori ini belum di-clone.\nKetuk di bawah untuk mengunduhnya.";
+
+/* Button to start cloning a repository that has not been downloaded yet */
+"Clone Repository" = "Clone Repositori";
+
+/* Error state title when the repository cannot be found in the app state */
+"Repository Not Found" = "Repositori Tidak Ditemukan";
+
+/* Callback result banner title on success. %@ is the capitalized action name, e.g. Pull. */
+"%@ Complete" = "%@ Selesai";
+
+/* Callback result banner title on failure. %@ is the capitalized action name, e.g. Pull. */
+"%@ Failed" = "%@ Gagal";
+
+/* Error message when a repository ID does not match any stored repo */
+"Repository not found" = "Repositori tidak ditemukan";
+
+/* Sync progress message at the start of a clone operation */
+"Preparing to clone..." = "Menyiapkan clone...";
+
+/* Sync progress message while a repository is being cloned */
+"Cloning repository..." = "Meng-clone repositori...";
+
+/* Sync progress message after a successful clone. %lld is the number of files. */
+"Clone complete! (%lld files)" = "Clone selesai! (%lld file)";
+
+/* Sync progress message at the start of a pull operation */
+"Checking for updates..." = "Memeriksa pembaruan...";
+
+/* Sync progress message when a pull finds no new changes */
+"Already up to date!" = "Sudah yang terbaru!";
+
+/* Sync progress message after a successful pull */
+"Pull complete!" = "Pull selesai!";
+
+/* Sync progress message at the start of a push operation */
+"Preparing changes..." = "Menyiapkan perubahan...";
+
+/* Sync progress message while committing and pushing changes */
+"Committing and pushing..." = "Melakukan commit dan push...";
+
+/* Sync progress message after a successful push */
+"Push complete!" = "Push selesai!";
+
+/* Sync progress message while fetching the user's GitHub profile after sign-in */
+"Fetching profile..." = "Mengambil profil...";
+
+/* Error message when PAT sign-in fails. %@ is the underlying error description. */
+"Invalid token: %@" = "Token tidak valid: %@";
+
+/* Error when a stored security-scoped bookmark can no longer be resolved */
+"Could not resolve folder bookmark." = "Tidak dapat memproses bookmark folder.";
+
+/* Error when adding a local repo whose folder has no .git directory */
+"No .git directory found. Please select a folder that contains a git repository." = "Direktori .git tidak ditemukan. Silakan pilih folder yang berisi repositori Git.";
+
+/* Error when reading git metadata from a local repository fails. %@ is the error detail. */
+"Failed to read repository info: %@" = "Gagal membaca info repositori: %@";
+
+/* Default commit message used when the user does not provide one */
+"Update from Sync.md" = "Pembaruan dari Sync.md";
+
+/* Error when a git operation is attempted on a repository that has not been cloned */
+"Repository not cloned yet. Clone it first." = "Repositori belum di-clone. Clone terlebih dahulu.";
+
+/* Error when the repository's remote URL is malformed or missing */
+"Invalid remote URL." = "URL remote tidak valid.";
+
+/* Error when cloning a repository fails. %@ is the libgit2 error detail. */
+"Clone failed: %@" = "Clone gagal: %@";
+
+/* Error when fetching remote changes fails. %@ is the libgit2 error detail. */
+"Fetch failed: %@" = "Fetch gagal: %@";
+
+/* Error when pushing commits fails. %@ is the libgit2 error detail. */
+"Push failed: %@" = "Push gagal: %@";
+
+/* Error when creating a commit fails. %@ is the libgit2 error detail. */
+"Commit failed: %@" = "Commit gagal: %@";
+
+/* Error when attempting to commit but the working tree is clean */
+"No changes to commit." = "Tidak ada perubahan untuk di-commit.";
+
+/* Error when the local git repository is in a corrupted state. %@ is the detail. */
+"Repository corrupted: %@. Try removing and re-cloning." = "Repositori rusak: %@. Coba hapus dan clone ulang.";
+
+/* Generic libgit2 error wrapper. %@ is the libgit2 error message. */
+"Git error: %@" = "Git error: %@";

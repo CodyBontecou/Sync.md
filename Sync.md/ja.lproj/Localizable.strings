@@ -1,0 +1,518 @@
+/* Generic cancel button */
+"Cancel" = "キャンセル";
+
+/* Generic OK / dismiss button */
+"OK" = "OK";
+
+/* Generic done / close button */
+"Done" = "完了";
+
+/* Generic save button */
+"Save" = "保存";
+
+/* Generic back navigation button */
+"Back" = "戻る";
+
+/* Generic error alert title */
+"Error" = "エラー";
+
+/* Fallback when no specific error message is available */
+"Unknown error" = "不明なエラー";
+
+/* Divider label between two alternative actions */
+"or" = "または";
+
+/* Displayed when a sync or date has never occurred */
+"Never" = "未実行";
+
+/* Form field label for a person's name */
+"Name" = "名前";
+
+/* Form field label for an email address */
+"Email" = "メール";
+
+/* Git branch field or row label */
+"Branch" = "ブランチ";
+
+/* Section header label for a git repository */
+"Repository" = "リポジトリ";
+
+/* Navigation title and context menu item for the repo settings screen */
+"Settings" = "設定";
+
+/* Row label showing a file system path */
+"Path" = "パス";
+
+/* Row label showing a file location */
+"Location" = "場所";
+
+/* Row label for a folder name */
+"Folder" = "フォルダ";
+
+/* Row label for the app version number */
+"Version" = "バージョン";
+
+/* Row label showing the count of repositories */
+"Repositories" = "リポジトリ";
+
+/* Subtitle shown below a selected item to indicate it is tappable */
+"Tap to change" = "タップして変更";
+
+/* Placeholder text for author name field */
+"Your Name" = "お名前";
+
+/* Placeholder text for email address field */
+"you@example.com" = "you@example.com";
+
+/* Git pull action title */
+"Pull" = "プル";
+
+/* Subtitle for the pull action button */
+"Fetch remote changes" = "リモートの変更を取得";
+
+/* Git commit and push action title */
+"Commit & Push" = "コミット & プッシュ";
+
+/* Subtitle for the commit and push action button */
+"Push local changes to remote" = "ローカルの変更をリモートにプッシュ";
+
+/* Navigation title and button label for adding a new repository */
+"Add Repository" = "リポジトリを追加";
+
+/* Toolbar button to sign in */
+"Sign In" = "サインイン";
+
+/* Menu item to sign out of GitHub */
+"Sign Out" = "サインアウト";
+
+/* Button to restore a previous in-app purchase */
+"Restore Purchase" = "購入を復元";
+
+/* Fallback unlock button title when product price is unavailable */
+"Unlock Unlimited" = "無制限にアンロック";
+
+/* Section title and onboarding step title for setting the default save folder */
+"Default Save Location" = "デフォルトの保存場所";
+
+/* Button to open a folder picker and choose a save location */
+"Choose Location" = "場所を選択";
+
+/* Button to change the currently selected save location */
+"Change Location" = "場所を変更";
+
+/* Label for the GitHub Personal Access Token input field */
+"Personal Access Token" = "Personal Access Token";
+
+/* Section title for user feedback options */
+"Feedback" = "フィードバック";
+
+/* Generic remove or delete button */
+"Remove" = "削除";
+
+/* Generic change or edit button */
+"Change" = "変更";
+
+/* Row label showing the date and time of the last successful sync */
+"Last Sync" = "最終同期";
+
+/* Git commit SHA row label */
+"Commit" = "コミット";
+
+/* Button title to pick a repository from the user's GitHub account */
+"Pick from GitHub" = "GitHub から選択";
+
+/* Subtitle for the Pick from GitHub button */
+"Select from your repositories" = "リポジトリから選択";
+
+/* Button title to open a local git repository from the device */
+"Open Existing Repository" = "既存のリポジトリを開く";
+
+/* Subtitle for the Open Existing Repository button */
+"Select a git repo on this device" = "このデバイス上の Git リポジトリを選択";
+
+/* Validation error shown when the entered repository URL is not a valid GitHub URL */
+"Invalid GitHub URL" = "無効な GitHub URL";
+
+/* Button to reveal a text field for typing a repository URL */
+"Enter URL manually" = "URL を手動で入力";
+
+/* Label for the repository URL input field */
+"Repository URL" = "リポジトリ URL";
+
+/* Placeholder text for the repository URL field */
+"https://github.com/user/repo" = "https://github.com/user/repo";
+
+/* Label for the git commit author name field */
+"Author Name" = "作成者名";
+
+/* Label for the git commit author email field */
+"Author Email" = "作成者メール";
+
+/* Section header for the destination folder when cloning a repository */
+"Clone To" = "クローン先";
+
+/* Placeholder for the folder name text field in the clone destination section */
+"Folder name" = "フォルダ名";
+
+/* Info text showing the default clone destination path. %@ is the folder name. */
+"Files › On My iPhone › Sync.md › %@" = "ファイル › このiPhone内 › Sync.md › %@";
+
+/* Button to change the currently selected clone location */
+"Change Location…" = "場所を変更…";
+
+/* Button to choose a custom clone destination folder */
+"Choose Different Location…" = "別の場所を選択…";
+
+/* Button to add a remote repository and immediately start cloning it */
+"Add & Clone Repository" = "リポジトリを追加してクローン";
+
+/* Alert title shown when the user tries to submit without filling required fields */
+"Missing Required Fields" = "必須項目が未入力です";
+
+/* Generic validation error message when required fields are empty */
+"Please fill in the required fields." = "必須項目を入力してください。";
+
+/* Validation message for a single missing field. %@ is the field name. */
+"Please fill in %@." = "%@を入力してください。";
+
+/* Validation message for multiple missing fields. %@ is a comma-separated list of field names. */
+"Please fill in these fields: %@." = "以下の項目を入力してください: %@。";
+
+/* Error when the app cannot obtain security-scoped access to a chosen folder */
+"Could not access the selected folder." = "選択したフォルダにアクセスできませんでした。";
+
+/* Error when the chosen folder does not contain a git repository */
+"No .git directory found in the selected folder." = "選択したフォルダに .git ディレクトリが見つかりません。";
+
+/* Error when creating a security-scoped bookmark for the chosen folder fails */
+"Could not create a bookmark for the selected folder." = "選択したフォルダのブックマークを作成できませんでした。";
+
+/* Navigation title for the application-wide settings screen and menu item label */
+"App Settings" = "アプリ設定";
+
+/* Section header for GitHub account information */
+"Account" = "アカウント";
+
+/* Row label for the GitHub username */
+"Username" = "ユーザー名";
+
+/* Section header for the in-app purchase unlock section */
+"Unlock" = "アンロック";
+
+/* Status row title shown when the user has purchased full access */
+"Full Access Unlocked" = "フルアクセスがアンロック済み";
+
+/* Subtitle for legacy users who paid before the IAP system was introduced */
+"Legacy paid user — restored from previous purchase" = "以前の購入者 — 過去の購入から復元済み";
+
+/* Subtitle for users who have purchased full access */
+"Unlimited repositories enabled" = "リポジトリ無制限が有効";
+
+/* Row label showing how the user obtained access (legacy vs. purchase) */
+"Access Type" = "アクセスの種類";
+
+/* Access type value for users who paid before the IAP system */
+"Legacy paid user" = "以前の購入者";
+
+/* Access type value for users who made an in-app purchase */
+"One-time purchase" = "買い切り";
+
+/* Status row title for users who have not yet purchased */
+"1 free repository included" = "無料リポジトリ1つ付き";
+
+/* Subtitle encouraging the user to unlock unlimited repositories */
+"Unlock unlimited repositories with a one-time purchase." = "買い切りでリポジトリを無制限にアンロックしましょう。";
+
+/* Info text shown when no custom default save location has been set */
+"New repositories will be saved to the app's default location." = "新しいリポジトリはアプリのデフォルトの場所に保存されます。";
+
+/* Button to select a default save folder for new repositories */
+"Choose Default Location" = "デフォルトの場所を選択";
+
+/* Action row title to send feedback via email */
+"Send Feedback" = "フィードバックを送信";
+
+/* Subtitle for the Send Feedback action row */
+"Questions, ideas, or issues" = "ご質問、アイデア、問題など";
+
+/* Action row title to open a GitHub issue */
+"Report a Bug" = "バグを報告";
+
+/* Subtitle for the Report a Bug action row */
+"Open an issue on GitHub" = "GitHub で Issue を作成";
+
+/* Section header for app version and general information */
+"About" = "アプリについて";
+
+/* Alert title when confirming removal of the default save location */
+"Remove Default Location?" = "デフォルトの場所を削除しますか？";
+
+/* Alert message explaining what happens after removing the custom default location */
+"New repositories will be saved to the app's default location instead." = "新しいリポジトリはアプリのデフォルトの場所に保存されるようになります。";
+
+/* Alert title for the debug receipt verification result (DEBUG only) */
+"Receipt Verification" = "レシート検証";
+
+/* Unlock button title with the product price. %@ is the formatted price string. */
+"Unlock Unlimited — %@" = "無制限にアンロック — %@";
+
+/* DEBUG-only action row title for testing receipt verification */
+"Debug: Verify Receipt" = "デバッグ: レシート検証";
+
+/* DEBUG-only subtitle describing the receipt verification test */
+"Test worker ↔ Apple end-to-end" = "ワーカー ↔ Apple エンドツーエンドテスト";
+
+/* Loading state text shown while a debug action is running */
+"Running…" = "実行中…";
+
+/* Navigation title for the Git control sheet */
+"Git" = "Git";
+
+/* Card title showing the current state of the git repository */
+"Repository Status" = "リポジトリの状態";
+
+/* Row label showing the number of uncommitted local changes */
+"Local Changes" = "ローカルの変更";
+
+/* Displayed when there are zero local changes */
+"None" = "なし";
+
+/* Subtitle for the pull action in the Git control sheet */
+"Fetch and apply remote changes" = "リモートの変更を取得して適用";
+
+/* Subtitle for the commit and push action in the Git control sheet */
+"Commit local changes and push to remote" = "ローカルの変更をコミットしてリモートにプッシュ";
+
+/* Placeholder for the commit message text field */
+"Commit message…" = "コミットメッセージ…";
+
+/* Push button label when there is exactly one local change */
+"Push 1 change" = "1件の変更をプッシュ";
+
+/* Push button label showing the number of local changes. %lld is the count (2 or more). */
+"Push %lld changes" = "%lld件の変更をプッシュ";
+
+/* Accessibility label for the close button on the paywall sheet */
+"Dismiss" = "閉じる";
+
+/* Hero title on the paywall screen */
+"Unlock Sync.md" = "Sync.md をアンロック";
+
+/* Hero subtitle on the paywall, explaining why it is shown */
+"You've reached the 1 free repository limit" = "無料リポジトリの上限（1つ）に達しました";
+
+/* Paywall feature row: unlimited repository count */
+"Unlimited repositories" = "リポジトリ無制限";
+
+/* Paywall feature row: sync unlimited vaults */
+"Sync any number of vaults" = "保管庫をいくつでも同期";
+
+/* Paywall feature row: all future updates included */
+"All future features included" = "今後の機能もすべて含まれます";
+
+/* Paywall feature row: no recurring charge */
+"One-time payment — no subscription" = "買い切り — サブスクリプションなし";
+
+/* Accessibility label for the restore purchase button on the paywall */
+"Restore previous purchase" = "以前の購入を復元";
+
+/* Purchase button title showing the product price. %@ is the formatted price. */
+"Unlock for %@" = "%@でアンロック";
+
+/* Empty state title shown when the user has no repositories */
+"No Repositories" = "リポジトリがありません";
+
+/* Empty state subtitle encouraging the user to add a repository */
+"Add a GitHub repository to start\nsyncing your markdown files." = "GitHub リポジトリを追加して\nMarkdownファイルの同期を始めましょう。";
+
+/* Status text on a repo card that has been added but not yet cloned */
+"Not yet cloned" = "未クローン";
+
+/* Confirmation dialog title for signing out */
+"Sign Out?" = "サインアウトしますか？";
+
+/* Sign-out confirmation dialog message */
+"This will sign you out of GitHub. Your local repositories will be kept." = "GitHub からサインアウトします。ローカルのリポジトリは保持されます。";
+
+/* Banner label shown when the app is running in demo mode */
+"Demo Mode" = "デモモード";
+
+/* Button to exit demo mode */
+"Exit" = "終了";
+
+/* Search bar prompt when filtering the list of GitHub repositories */
+"Filter repositories" = "リポジトリを検索";
+
+/* Navigation title for the repository picker sheet */
+"Select Repository" = "リポジトリを選択";
+
+/* Row label for the repository remote URL */
+"URL" = "URL";
+
+/* Transient confirmation text shown after copying the repository URL */
+"Copied!" = "コピーしました！";
+
+/* Placeholder for the branch name text field, showing the default branch name */
+"main" = "main";
+
+/* Section header for git author name and email fields */
+"Git Author" = "Git 作成者";
+
+/* Section header for the vault storage location information */
+"Storage" = "ストレージ";
+
+/* Display path for a vault stored in the app's default location. %@ is the folder name. */
+"On My iPhone › Sync.md › %@" = "このiPhone内 › Sync.md › %@";
+
+/* Section header for sync metadata such as last sync date, commit SHA, and file count */
+"Sync Info" = "同期情報";
+
+/* Row label for the current HEAD commit SHA */
+"Commit SHA" = "コミット SHA";
+
+/* Row label for the number of tracked files in the vault */
+"Files" = "ファイル";
+
+/* Destructive button to remove a repository and delete its local files */
+"Remove Repository" = "リポジトリを削除";
+
+/* Alert title when confirming removal of a repository */
+"Remove Repository?" = "リポジトリを削除しますか？";
+
+/* Alert message warning that removing a repository is permanent */
+"This will delete all local files for this repository. This cannot be undone." = "このリポジトリのローカルファイルがすべて削除されます。この操作は取り消せません。";
+
+/* App name shown in the onboarding hero section */
+"Sync.md" = "Sync.md";
+
+/* App tagline shown on the onboarding screen */
+"Markdown notes synced with Git" = "Git で同期する Markdown ノート";
+
+/* Primary sign-in button using GitHub OAuth */
+"Sign in with GitHub" = "GitHub でサインイン";
+
+/* Secondary sign-in option using a GitHub Personal Access Token */
+"Use a Personal Access Token" = "Personal Access Token を使用";
+
+/* Button to launch the app in demo mode without signing in */
+"Try Demo" = "デモを試す";
+
+/* Placeholder text for the Personal Access Token input field */
+"ghp_..." = "ghp_...";
+
+/* Link text that opens the GitHub token creation page */
+"Create a PAT on GitHub" = "GitHub で PAT を作成";
+
+/* Loading state text shown while PAT sign-in is in progress */
+"Signing in…" = "サインイン中…";
+
+/* Subtitle for the default save location onboarding step */
+"Choose where new repositories\nare saved on your device" = "新しいリポジトリの\n保存先を選択してください";
+
+/* Info hint shown when no default save location is chosen during onboarding */
+"Without a default, repos save to\nFiles › On My iPhone › Sync.md" = "デフォルトが未設定の場合、リポジトリは\nファイル › このiPhone内 › Sync.md に保存されます";
+
+/* Button to proceed after selecting a save location during onboarding */
+"Continue" = "続ける";
+
+/* Button to skip setting a default save location during onboarding */
+"Skip for Now" = "今はスキップ";
+
+/* Card title linking to the vault folder in the Files app */
+"Files Location" = "ファイルの場所";
+
+/* Title shown while a repository is being cloned */
+"Cloning Repository" = "リポジトリをクローン中";
+
+/* State title shown when a repository has been added but not yet cloned */
+"Not Cloned" = "未クローン";
+
+/* Subtitle shown when a repository has not been cloned yet */
+"This repository hasn't been cloned yet.\nTap below to download it." = "このリポジトリはまだクローンされていません。\n下のボタンをタップしてダウンロードしてください。";
+
+/* Button to start cloning a repository that has not been downloaded yet */
+"Clone Repository" = "リポジトリをクローン";
+
+/* Error state title when the repository cannot be found in the app state */
+"Repository Not Found" = "リポジトリが見つかりません";
+
+/* Callback result banner title on success. %@ is the capitalized action name, e.g. Pull. */
+"%@ Complete" = "%@ 完了";
+
+/* Callback result banner title on failure. %@ is the capitalized action name, e.g. Pull. */
+"%@ Failed" = "%@ 失敗";
+
+/* Error message when a repository ID does not match any stored repo */
+"Repository not found" = "リポジトリが見つかりません";
+
+/* Sync progress message at the start of a clone operation */
+"Preparing to clone..." = "クローンを準備中...";
+
+/* Sync progress message while a repository is being cloned */
+"Cloning repository..." = "リポジトリをクローン中...";
+
+/* Sync progress message after a successful clone. %lld is the number of files. */
+"Clone complete! (%lld files)" = "クローン完了！（%lldファイル）";
+
+/* Sync progress message at the start of a pull operation */
+"Checking for updates..." = "更新を確認中...";
+
+/* Sync progress message when a pull finds no new changes */
+"Already up to date!" = "すでに最新です！";
+
+/* Sync progress message after a successful pull */
+"Pull complete!" = "プル完了！";
+
+/* Sync progress message at the start of a push operation */
+"Preparing changes..." = "変更を準備中...";
+
+/* Sync progress message while committing and pushing changes */
+"Committing and pushing..." = "コミットしてプッシュ中...";
+
+/* Sync progress message after a successful push */
+"Push complete!" = "プッシュ完了！";
+
+/* Sync progress message while fetching the user's GitHub profile after sign-in */
+"Fetching profile..." = "プロフィールを取得中...";
+
+/* Error message when PAT sign-in fails. %@ is the underlying error description. */
+"Invalid token: %@" = "無効なトークン: %@";
+
+/* Error when a stored security-scoped bookmark can no longer be resolved */
+"Could not resolve folder bookmark." = "フォルダのブックマークを解決できませんでした。";
+
+/* Error when adding a local repo whose folder has no .git directory */
+"No .git directory found. Please select a folder that contains a git repository." = ".git ディレクトリが見つかりません。Git リポジトリを含むフォルダを選択してください。";
+
+/* Error when reading git metadata from a local repository fails. %@ is the error detail. */
+"Failed to read repository info: %@" = "リポジトリ情報の読み取りに失敗しました: %@";
+
+/* Default commit message used when the user does not provide one */
+"Update from Sync.md" = "Sync.md からの更新";
+
+/* Error when a git operation is attempted on a repository that has not been cloned */
+"Repository not cloned yet. Clone it first." = "リポジトリはまだクローンされていません。先にクローンしてください。";
+
+/* Error when the repository's remote URL is malformed or missing */
+"Invalid remote URL." = "無効なリモート URL です。";
+
+/* Error when cloning a repository fails. %@ is the libgit2 error detail. */
+"Clone failed: %@" = "クローンに失敗しました: %@";
+
+/* Error when fetching remote changes fails. %@ is the libgit2 error detail. */
+"Fetch failed: %@" = "フェッチに失敗しました: %@";
+
+/* Error when pushing commits fails. %@ is the libgit2 error detail. */
+"Push failed: %@" = "プッシュに失敗しました: %@";
+
+/* Error when creating a commit fails. %@ is the libgit2 error detail. */
+"Commit failed: %@" = "コミットに失敗しました: %@";
+
+/* Error when attempting to commit but the working tree is clean */
+"No changes to commit." = "コミットする変更がありません。";
+
+/* Error when the local git repository is in a corrupted state. %@ is the detail. */
+"Repository corrupted: %@. Try removing and re-cloning." = "リポジトリが破損しています: %@。削除して再クローンしてください。";
+
+/* Generic libgit2 error wrapper. %@ is the libgit2 error message. */
+"Git error: %@" = "Git エラー: %@";

@@ -1,0 +1,518 @@
+/* Generic cancel button */
+"Cancel" = "Kumoa";
+
+/* Generic OK / dismiss button */
+"OK" = "OK";
+
+/* Generic done / close button */
+"Done" = "Valmis";
+
+/* Generic save button */
+"Save" = "Tallenna";
+
+/* Generic back navigation button */
+"Back" = "Takaisin";
+
+/* Generic error alert title */
+"Error" = "Virhe";
+
+/* Fallback when no specific error message is available */
+"Unknown error" = "Tuntematon virhe";
+
+/* Divider label between two alternative actions */
+"or" = "tai";
+
+/* Displayed when a sync or date has never occurred */
+"Never" = "Ei koskaan";
+
+/* Form field label for a person's name */
+"Name" = "Nimi";
+
+/* Form field label for an email address */
+"Email" = "Sähköposti";
+
+/* Git branch field or row label */
+"Branch" = "Haara";
+
+/* Section header label for a git repository */
+"Repository" = "Tietovarasto";
+
+/* Navigation title and context menu item for the repo settings screen */
+"Settings" = "Asetukset";
+
+/* Row label showing a file system path */
+"Path" = "Polku";
+
+/* Row label showing a file location */
+"Location" = "Sijainti";
+
+/* Row label for a folder name */
+"Folder" = "Kansio";
+
+/* Row label for the app version number */
+"Version" = "Versio";
+
+/* Row label showing the count of repositories */
+"Repositories" = "Tietovarastot";
+
+/* Subtitle shown below a selected item to indicate it is tappable */
+"Tap to change" = "Napauta vaihtaaksesi";
+
+/* Placeholder text for author name field */
+"Your Name" = "Nimesi";
+
+/* Placeholder text for email address field */
+"you@example.com" = "sinä@esimerkki.com";
+
+/* Git pull action title */
+"Pull" = "Nouda";
+
+/* Subtitle for the pull action button */
+"Fetch remote changes" = "Nouda etämuutokset";
+
+/* Git commit and push action title */
+"Commit & Push" = "Tallenna ja lähetä";
+
+/* Subtitle for the commit and push action button */
+"Push local changes to remote" = "Lähetä paikalliset muutokset etäpalvelimelle";
+
+/* Navigation title and button label for adding a new repository */
+"Add Repository" = "Lisää tietovarasto";
+
+/* Toolbar button to sign in */
+"Sign In" = "Kirjaudu sisään";
+
+/* Menu item to sign out of GitHub */
+"Sign Out" = "Kirjaudu ulos";
+
+/* Button to restore a previous in-app purchase */
+"Restore Purchase" = "Palauta ostos";
+
+/* Fallback unlock button title when product price is unavailable */
+"Unlock Unlimited" = "Avaa rajaton käyttö";
+
+/* Section title and onboarding step title for setting the default save folder */
+"Default Save Location" = "Oletustallennussijainti";
+
+/* Button to open a folder picker and choose a save location */
+"Choose Location" = "Valitse sijainti";
+
+/* Button to change the currently selected save location */
+"Change Location" = "Vaihda sijainti";
+
+/* Label for the GitHub Personal Access Token input field */
+"Personal Access Token" = "Personal Access Token";
+
+/* Section title for user feedback options */
+"Feedback" = "Palaute";
+
+/* Generic remove or delete button */
+"Remove" = "Poista";
+
+/* Generic change or edit button */
+"Change" = "Vaihda";
+
+/* Row label showing the date and time of the last successful sync */
+"Last Sync" = "Viimeisin synkronointi";
+
+/* Git commit SHA row label */
+"Commit" = "Commit";
+
+/* Button title to pick a repository from the user's GitHub account */
+"Pick from GitHub" = "Valitse GitHub-tililtä";
+
+/* Subtitle for the Pick from GitHub button */
+"Select from your repositories" = "Valitse tietovarastoistasi";
+
+/* Button title to open a local git repository from the device */
+"Open Existing Repository" = "Avaa olemassa oleva tietovarasto";
+
+/* Subtitle for the Open Existing Repository button */
+"Select a git repo on this device" = "Valitse Git-tietovarasto tältä laitteelta";
+
+/* Validation error shown when the entered repository URL is not a valid GitHub URL */
+"Invalid GitHub URL" = "Virheellinen GitHub-URL";
+
+/* Button to reveal a text field for typing a repository URL */
+"Enter URL manually" = "Syötä URL manuaalisesti";
+
+/* Label for the repository URL input field */
+"Repository URL" = "Tietovaraston URL";
+
+/* Placeholder text for the repository URL field */
+"https://github.com/user/repo" = "https://github.com/user/repo";
+
+/* Label for the git commit author name field */
+"Author Name" = "Tekijän nimi";
+
+/* Label for the git commit author email field */
+"Author Email" = "Tekijän sähköposti";
+
+/* Section header for the destination folder when cloning a repository */
+"Clone To" = "Kloonaa kohteeseen";
+
+/* Placeholder for the folder name text field in the clone destination section */
+"Folder name" = "Kansion nimi";
+
+/* Info text showing the default clone destination path. %@ is the folder name. */
+"Files › On My iPhone › Sync.md › %@" = "Tiedostot › iPhonessa › Sync.md › %@";
+
+/* Button to change the currently selected clone location */
+"Change Location…" = "Vaihda sijainti…";
+
+/* Button to choose a custom clone destination folder */
+"Choose Different Location…" = "Valitse toinen sijainti…";
+
+/* Button to add a remote repository and immediately start cloning it */
+"Add & Clone Repository" = "Lisää ja kloonaa tietovarasto";
+
+/* Alert title shown when the user tries to submit without filling required fields */
+"Missing Required Fields" = "Pakollisia kenttiä puuttuu";
+
+/* Generic validation error message when required fields are empty */
+"Please fill in the required fields." = "Täytä pakolliset kentät.";
+
+/* Validation message for a single missing field. %@ is the field name. */
+"Please fill in %@." = "Täytä kenttä %@.";
+
+/* Validation message for multiple missing fields. %@ is a comma-separated list of field names. */
+"Please fill in these fields: %@." = "Täytä seuraavat kentät: %@.";
+
+/* Error when the app cannot obtain security-scoped access to a chosen folder */
+"Could not access the selected folder." = "Valittua kansiota ei voitu avata.";
+
+/* Error when the chosen folder does not contain a git repository */
+"No .git directory found in the selected folder." = ".git-hakemistoa ei löytynyt valitusta kansiosta.";
+
+/* Error when creating a security-scoped bookmark for the chosen folder fails */
+"Could not create a bookmark for the selected folder." = "Kirjanmerkin luominen valitulle kansiolle epäonnistui.";
+
+/* Navigation title for the application-wide settings screen and menu item label */
+"App Settings" = "Sovelluksen asetukset";
+
+/* Section header for GitHub account information */
+"Account" = "Tili";
+
+/* Row label for the GitHub username */
+"Username" = "Käyttäjänimi";
+
+/* Section header for the in-app purchase unlock section */
+"Unlock" = "Avaa";
+
+/* Status row title shown when the user has purchased full access */
+"Full Access Unlocked" = "Täysi käyttöoikeus avattu";
+
+/* Subtitle for legacy users who paid before the IAP system was introduced */
+"Legacy paid user — restored from previous purchase" = "Aiempi maksullinen käyttäjä — palautettu edellisestä ostoksesta";
+
+/* Subtitle for users who have purchased full access */
+"Unlimited repositories enabled" = "Rajaton määrä tietovarastoja käytössä";
+
+/* Row label showing how the user obtained access (legacy vs. purchase) */
+"Access Type" = "Käyttöoikeustyyppi";
+
+/* Access type value for users who paid before the IAP system */
+"Legacy paid user" = "Aiempi maksullinen käyttäjä";
+
+/* Access type value for users who made an in-app purchase */
+"One-time purchase" = "Kertaostos";
+
+/* Status row title for users who have not yet purchased */
+"1 free repository included" = "1 ilmainen tietovarasto sisältyy";
+
+/* Subtitle encouraging the user to unlock unlimited repositories */
+"Unlock unlimited repositories with a one-time purchase." = "Avaa rajaton määrä tietovarastoja kertaostoksella.";
+
+/* Info text shown when no custom default save location has been set */
+"New repositories will be saved to the app's default location." = "Uudet tietovarastot tallennetaan sovelluksen oletussijaintiin.";
+
+/* Button to select a default save folder for new repositories */
+"Choose Default Location" = "Valitse oletussijainti";
+
+/* Action row title to send feedback via email */
+"Send Feedback" = "Lähetä palautetta";
+
+/* Subtitle for the Send Feedback action row */
+"Questions, ideas, or issues" = "Kysymyksiä, ideoita tai ongelmia";
+
+/* Action row title to open a GitHub issue */
+"Report a Bug" = "Ilmoita virheestä";
+
+/* Subtitle for the Report a Bug action row */
+"Open an issue on GitHub" = "Avaa raportti GitHub-palvelussa";
+
+/* Section header for app version and general information */
+"About" = "Tietoja";
+
+/* Alert title when confirming removal of the default save location */
+"Remove Default Location?" = "Poista oletussijainti?";
+
+/* Alert message explaining what happens after removing the custom default location */
+"New repositories will be saved to the app's default location instead." = "Uudet tietovarastot tallennetaan sen sijaan sovelluksen oletussijaintiin.";
+
+/* Alert title for the debug receipt verification result (DEBUG only) */
+"Receipt Verification" = "Kuitin vahvistus";
+
+/* Unlock button title with the product price. %@ is the formatted price string. */
+"Unlock Unlimited — %@" = "Avaa rajaton käyttö — %@";
+
+/* DEBUG-only action row title for testing receipt verification */
+"Debug: Verify Receipt" = "Debug: Vahvista kuitti";
+
+/* DEBUG-only subtitle describing the receipt verification test */
+"Test worker ↔ Apple end-to-end" = "Testaa worker ↔ Apple päästä päähän";
+
+/* Loading state text shown while a debug action is running */
+"Running…" = "Suoritetaan…";
+
+/* Navigation title for the Git control sheet */
+"Git" = "Git";
+
+/* Card title showing the current state of the git repository */
+"Repository Status" = "Tietovaraston tila";
+
+/* Row label showing the number of uncommitted local changes */
+"Local Changes" = "Paikalliset muutokset";
+
+/* Displayed when there are zero local changes */
+"None" = "Ei mitään";
+
+/* Subtitle for the pull action in the Git control sheet */
+"Fetch and apply remote changes" = "Nouda ja ota käyttöön etämuutokset";
+
+/* Subtitle for the commit and push action in the Git control sheet */
+"Commit local changes and push to remote" = "Tallenna paikalliset muutokset ja lähetä etäpalvelimelle";
+
+/* Placeholder for the commit message text field */
+"Commit message…" = "Commit-viesti…";
+
+/* Push button label when there is exactly one local change */
+"Push 1 change" = "Lähetä 1 muutos";
+
+/* Push button label showing the number of local changes. %lld is the count (2 or more). */
+"Push %lld changes" = "Lähetä %lld muutosta";
+
+/* Accessibility label for the close button on the paywall sheet */
+"Dismiss" = "Sulje";
+
+/* Hero title on the paywall screen */
+"Unlock Sync.md" = "Avaa Sync.md";
+
+/* Hero subtitle on the paywall, explaining why it is shown */
+"You've reached the 1 free repository limit" = "Olet saavuttanut 1 ilmaisen tietovaraston rajan";
+
+/* Paywall feature row: unlimited repository count */
+"Unlimited repositories" = "Rajaton määrä tietovarastoja";
+
+/* Paywall feature row: sync unlimited vaults */
+"Sync any number of vaults" = "Synkronoi rajaton määrä holveja";
+
+/* Paywall feature row: all future updates included */
+"All future features included" = "Kaikki tulevat ominaisuudet sisältyvät";
+
+/* Paywall feature row: no recurring charge */
+"One-time payment — no subscription" = "Kertamaksu — ei tilausta";
+
+/* Accessibility label for the restore purchase button on the paywall */
+"Restore previous purchase" = "Palauta aiempi ostos";
+
+/* Purchase button title showing the product price. %@ is the formatted price. */
+"Unlock for %@" = "Avaa hintaan %@";
+
+/* Empty state title shown when the user has no repositories */
+"No Repositories" = "Ei tietovarastoja";
+
+/* Empty state subtitle encouraging the user to add a repository */
+"Add a GitHub repository to start\nsyncing your markdown files." = "Lisää GitHub-tietovarasto aloittaaksesi\nmarkdown-tiedostojesi synkronoinnin.";
+
+/* Status text on a repo card that has been added but not yet cloned */
+"Not yet cloned" = "Ei vielä kloonattu";
+
+/* Confirmation dialog title for signing out */
+"Sign Out?" = "Kirjaudutaanko ulos?";
+
+/* Sign-out confirmation dialog message */
+"This will sign you out of GitHub. Your local repositories will be kept." = "Tämä kirjaa sinut ulos GitHub-palvelusta. Paikalliset tietovarastosi säilytetään.";
+
+/* Banner label shown when the app is running in demo mode */
+"Demo Mode" = "Demotila";
+
+/* Button to exit demo mode */
+"Exit" = "Poistu";
+
+/* Search bar prompt when filtering the list of GitHub repositories */
+"Filter repositories" = "Suodata tietovarastoja";
+
+/* Navigation title for the repository picker sheet */
+"Select Repository" = "Valitse tietovarasto";
+
+/* Row label for the repository remote URL */
+"URL" = "URL";
+
+/* Transient confirmation text shown after copying the repository URL */
+"Copied!" = "Kopioitu!";
+
+/* Placeholder for the branch name text field, showing the default branch name */
+"main" = "main";
+
+/* Section header for git author name and email fields */
+"Git Author" = "Git-tekijä";
+
+/* Section header for the vault storage location information */
+"Storage" = "Tallennustila";
+
+/* Display path for a vault stored in the app's default location. %@ is the folder name. */
+"On My iPhone › Sync.md › %@" = "iPhonessa › Sync.md › %@";
+
+/* Section header for sync metadata such as last sync date, commit SHA, and file count */
+"Sync Info" = "Synkronointitiedot";
+
+/* Row label for the current HEAD commit SHA */
+"Commit SHA" = "Commit SHA";
+
+/* Row label for the number of tracked files in the vault */
+"Files" = "Tiedostot";
+
+/* Destructive button to remove a repository and delete its local files */
+"Remove Repository" = "Poista tietovarasto";
+
+/* Alert title when confirming removal of a repository */
+"Remove Repository?" = "Poistetaanko tietovarasto?";
+
+/* Alert message warning that removing a repository is permanent */
+"This will delete all local files for this repository. This cannot be undone." = "Tämä poistaa kaikki tämän tietovaraston paikalliset tiedostot. Tätä ei voi kumota.";
+
+/* App name shown in the onboarding hero section */
+"Sync.md" = "Sync.md";
+
+/* App tagline shown on the onboarding screen */
+"Markdown notes synced with Git" = "Markdown-muistiinpanot synkronoituna Git-palveluun";
+
+/* Primary sign-in button using GitHub OAuth */
+"Sign in with GitHub" = "Kirjaudu GitHub-tilillä";
+
+/* Secondary sign-in option using a GitHub Personal Access Token */
+"Use a Personal Access Token" = "Käytä Personal Access Token -tunnistetta";
+
+/* Button to launch the app in demo mode without signing in */
+"Try Demo" = "Kokeile demoa";
+
+/* Placeholder text for the Personal Access Token input field */
+"ghp_..." = "ghp_...";
+
+/* Link text that opens the GitHub token creation page */
+"Create a PAT on GitHub" = "Luo PAT GitHub-palvelussa";
+
+/* Loading state text shown while PAT sign-in is in progress */
+"Signing in…" = "Kirjaudutaan…";
+
+/* Subtitle for the default save location onboarding step */
+"Choose where new repositories\nare saved on your device" = "Valitse mihin uudet tietovarastot\ntallennetaan laitteellasi";
+
+/* Info hint shown when no default save location is chosen during onboarding */
+"Without a default, repos save to\nFiles › On My iPhone › Sync.md" = "Ilman oletussijaintia tietovarastot tallennetaan kohteeseen\nTiedostot › iPhonessa › Sync.md";
+
+/* Button to proceed after selecting a save location during onboarding */
+"Continue" = "Jatka";
+
+/* Button to skip setting a default save location during onboarding */
+"Skip for Now" = "Ohita toistaiseksi";
+
+/* Card title linking to the vault folder in the Files app */
+"Files Location" = "Tiedostojen sijainti";
+
+/* Title shown while a repository is being cloned */
+"Cloning Repository" = "Kloonataan tietovarastoa";
+
+/* State title shown when a repository has been added but not yet cloned */
+"Not Cloned" = "Ei kloonattu";
+
+/* Subtitle shown when a repository has not been cloned yet */
+"This repository hasn't been cloned yet.\nTap below to download it." = "Tätä tietovarastoa ei ole vielä kloonattu.\nLataa se napauttamalla alla.";
+
+/* Button to start cloning a repository that has not been downloaded yet */
+"Clone Repository" = "Kloonaa tietovarasto";
+
+/* Error state title when the repository cannot be found in the app state */
+"Repository Not Found" = "Tietovarastoa ei löytynyt";
+
+/* Callback result banner title on success. %@ is the capitalized action name, e.g. Pull. */
+"%@ Complete" = "%@ valmis";
+
+/* Callback result banner title on failure. %@ is the capitalized action name, e.g. Pull. */
+"%@ Failed" = "%@ epäonnistui";
+
+/* Error message when a repository ID does not match any stored repo */
+"Repository not found" = "Tietovarastoa ei löytynyt";
+
+/* Sync progress message at the start of a clone operation */
+"Preparing to clone..." = "Valmistellaan kloonausta...";
+
+/* Sync progress message while a repository is being cloned */
+"Cloning repository..." = "Kloonataan tietovarastoa...";
+
+/* Sync progress message after a successful clone. %lld is the number of files. */
+"Clone complete! (%lld files)" = "Kloonaus valmis! (%lld tiedostoa)";
+
+/* Sync progress message at the start of a pull operation */
+"Checking for updates..." = "Tarkistetaan päivityksiä...";
+
+/* Sync progress message when a pull finds no new changes */
+"Already up to date!" = "Jo ajan tasalla!";
+
+/* Sync progress message after a successful pull */
+"Pull complete!" = "Nouto valmis!";
+
+/* Sync progress message at the start of a push operation */
+"Preparing changes..." = "Valmistellaan muutoksia...";
+
+/* Sync progress message while committing and pushing changes */
+"Committing and pushing..." = "Tallennetaan ja lähetetään...";
+
+/* Sync progress message after a successful push */
+"Push complete!" = "Lähetys valmis!";
+
+/* Sync progress message while fetching the user's GitHub profile after sign-in */
+"Fetching profile..." = "Haetaan profiilia...";
+
+/* Error message when PAT sign-in fails. %@ is the underlying error description. */
+"Invalid token: %@" = "Virheellinen tunniste: %@";
+
+/* Error when a stored security-scoped bookmark can no longer be resolved */
+"Could not resolve folder bookmark." = "Kansion kirjanmerkkiä ei voitu selvittää.";
+
+/* Error when adding a local repo whose folder has no .git directory */
+"No .git directory found. Please select a folder that contains a git repository." = ".git-hakemistoa ei löytynyt. Valitse kansio, joka sisältää Git-tietovaraston.";
+
+/* Error when reading git metadata from a local repository fails. %@ is the error detail. */
+"Failed to read repository info: %@" = "Tietovaraston tietojen lukeminen epäonnistui: %@";
+
+/* Default commit message used when the user does not provide one */
+"Update from Sync.md" = "Päivitys Sync.md-sovelluksesta";
+
+/* Error when a git operation is attempted on a repository that has not been cloned */
+"Repository not cloned yet. Clone it first." = "Tietovarastoa ei ole vielä kloonattu. Kloonaa se ensin.";
+
+/* Error when the repository's remote URL is malformed or missing */
+"Invalid remote URL." = "Virheellinen etä-URL.";
+
+/* Error when cloning a repository fails. %@ is the libgit2 error detail. */
+"Clone failed: %@" = "Kloonaus epäonnistui: %@";
+
+/* Error when fetching remote changes fails. %@ is the libgit2 error detail. */
+"Fetch failed: %@" = "Nouto epäonnistui: %@";
+
+/* Error when pushing commits fails. %@ is the libgit2 error detail. */
+"Push failed: %@" = "Lähetys epäonnistui: %@";
+
+/* Error when creating a commit fails. %@ is the libgit2 error detail. */
+"Commit failed: %@" = "Commit epäonnistui: %@";
+
+/* Error when attempting to commit but the working tree is clean */
+"No changes to commit." = "Ei tallennettavia muutoksia.";
+
+/* Error when the local git repository is in a corrupted state. %@ is the detail. */
+"Repository corrupted: %@. Try removing and re-cloning." = "Tietovarasto vioittunut: %@. Kokeile poistaa ja kloonata uudelleen.";
+
+/* Generic libgit2 error wrapper. %@ is the libgit2 error message. */
+"Git error: %@" = "Git-virhe: %@";
