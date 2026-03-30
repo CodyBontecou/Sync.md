@@ -1,4 +1,4 @@
-• App is now free to download — 1 repository included at no charge
-• Existing paid users automatically receive unlimited repository access
-• Unlock unlimited repositories with a one-time $9.99 purchase
-• Fixed legacy purchase restoration for users who paid for previous versions
+• Added internationalization support across the app
+• Improved localization for UI text and system formatting
+• Polished translated strings throughout onboarding and settings
+• General bug fixes and stability improvements

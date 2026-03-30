@@ -10,6 +10,17 @@ final class AppState {
 
     var repos: [RepoConfig] = []
     var changeCounts: [UUID: Int] = [:]
+    var statusEntriesByRepo: [UUID: [GitStatusEntry]] = [:]
+    var syncStateByRepo: [UUID: RepoSyncState] = [:]
+    var pullOutcomeByRepo: [UUID: PullOutcomeState] = [:]
+    var diffByRepo: [UUID: UnifiedDiffResult] = [:]
+    var branchesByRepo: [UUID: BranchInventory] = [:]
+    var conflictSessionByRepo: [UUID: ConflictSession] = [:]
+    var commitHistoryByRepo: [UUID: [GitCommitSummary]] = [:]
+    var commitHistoryHasMoreByRepo: [UUID: Bool] = [:]
+    var commitDetailByRepo: [UUID: [String: GitCommitDetail]] = [:]
+    var stashesByRepo: [UUID: [GitStashEntry]] = [:]
+    var tagsByRepo: [UUID: [GitTag]] = [:]
 
     // MARK: - Sync State
 
@@ -66,10 +77,20 @@ final class AppState {
         set { KeychainService.save(key: "github_pat", value: newValue) }
     }
 
+    // MARK: - Dependencies
+
+    private let gitRepositoryFactory: (URL) -> any GitRepositoryProtocol
+
     // MARK: - Init
 
-    init() {
-        loadState()
+    init(
+        gitRepositoryFactory: @escaping (URL) -> any GitRepositoryProtocol = { LocalGitService(localURL: $0) },
+        loadPersistedState: Bool = true
+    ) {
+        self.gitRepositoryFactory = gitRepositoryFactory
+        if loadPersistedState {
+            loadState()
+        }
     }
 
     // MARK: - Persistence
@@ -361,11 +382,20 @@ final class AppState {
         var didChange = false
         for (index, repo) in repos.enumerated() where repo.isCloned {
             let vaultDir = vaultURL(for: repo.id)
-            let gitService = LocalGitService(localURL: vaultDir)
+            let gitService = gitRepositoryFactory(vaultDir)
 
             if !gitService.hasGitDirectory {
                 repos[index].gitState = .empty
                 changeCounts[repo.id] = 0
+                statusEntriesByRepo[repo.id] = []
+                syncStateByRepo[repo.id] = .unknown
+                diffByRepo[repo.id] = .empty
+                branchesByRepo[repo.id] = .empty
+                conflictSessionByRepo[repo.id] = .none
+                commitHistoryByRepo[repo.id] = []
+                commitHistoryHasMoreByRepo[repo.id] = false
+                commitDetailByRepo[repo.id] = [:]
+                stashesByRepo[repo.id] = []
                 didChange = true
             }
         }
@@ -380,7 +410,7 @@ final class AppState {
         guard let repo = repo(id: repoID), repo.isCloned else { return }
         if isDemoMode { return }
         let vaultDir = vaultURL(for: repoID)
-        let gitService = LocalGitService(localURL: vaultDir)
+        let gitService = gitRepositoryFactory(vaultDir)
 
         guard gitService.hasGitDirectory else {
             // .git directory was removed — reset cloned state
@@ -389,6 +419,15 @@ final class AppState {
                 saveRepos()
             }
             changeCounts[repoID] = 0
+            statusEntriesByRepo[repoID] = []
+            syncStateByRepo[repoID] = .unknown
+            diffByRepo[repoID] = .empty
+            branchesByRepo[repoID] = .empty
+            conflictSessionByRepo[repoID] = .none
+            commitHistoryByRepo[repoID] = []
+            commitHistoryHasMoreByRepo[repoID] = false
+            commitDetailByRepo[repoID] = [:]
+            stashesByRepo[repoID] = []
             return
         }
 
@@ -396,9 +435,667 @@ final class AppState {
             do {
                 let info = try await gitService.repoInfo()
                 changeCounts[repoID] = info.changeCount
+                statusEntriesByRepo[repoID] = info.statusEntries
+                syncStateByRepo[repoID] = info.syncState
+                diffByRepo[repoID] = .empty
             } catch {
                 changeCounts[repoID] = 0
+                statusEntriesByRepo[repoID] = []
+                syncStateByRepo[repoID] = .unknown
+                diffByRepo[repoID] = .empty
+                branchesByRepo[repoID] = .empty
+                conflictSessionByRepo[repoID] = .none
+                commitHistoryByRepo[repoID] = []
+                commitHistoryHasMoreByRepo[repoID] = false
+                commitDetailByRepo[repoID] = [:]
+                stashesByRepo[repoID] = []
             }
+        }
+    }
+
+    func loadUnifiedDiff(repoID: UUID, path: String? = nil) async {
+        guard let repo = repo(id: repoID), repo.isCloned else {
+            diffByRepo[repoID] = .empty
+            return
+        }
+        if isDemoMode {
+            diffByRepo[repoID] = .empty
+            return
+        }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            diffByRepo[repoID] = .empty
+            return
+        }
+
+        do {
+            diffByRepo[repoID] = try await gitService.unifiedDiff(path: path)
+        } catch {
+            diffByRepo[repoID] = .empty
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func loadBranches(repoID: UUID) async {
+        guard let repo = repo(id: repoID), repo.isCloned else {
+            branchesByRepo[repoID] = .empty
+            return
+        }
+        if isDemoMode {
+            branchesByRepo[repoID] = .empty
+            return
+        }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            branchesByRepo[repoID] = .empty
+            return
+        }
+
+        do {
+            branchesByRepo[repoID] = try await gitService.listBranches()
+        } catch {
+            branchesByRepo[repoID] = .empty
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func loadConflictSession(repoID: UUID) async {
+        guard let repo = repo(id: repoID), repo.isCloned else {
+            conflictSessionByRepo[repoID] = .none
+            return
+        }
+        if isDemoMode {
+            conflictSessionByRepo[repoID] = .none
+            return
+        }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            conflictSessionByRepo[repoID] = .none
+            return
+        }
+
+        do {
+            conflictSessionByRepo[repoID] = try await gitService.conflictSession()
+        } catch {
+            conflictSessionByRepo[repoID] = .none
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func resolveConflictFile(repoID: UUID, path: String, strategy: ConflictResolutionStrategy) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.resolveConflict(path: path, strategy: strategy)
+            detectChanges(repoID: repoID)
+            await loadConflictSession(repoID: repoID)
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func loadStashes(repoID: UUID) async {
+        guard let repo = repo(id: repoID), repo.isCloned else {
+            stashesByRepo[repoID] = []
+            return
+        }
+        if isDemoMode {
+            stashesByRepo[repoID] = []
+            return
+        }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            stashesByRepo[repoID] = []
+            return
+        }
+
+        do {
+            stashesByRepo[repoID] = try await gitService.listStashes()
+        } catch {
+            stashesByRepo[repoID] = []
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func saveStash(repoID: UUID, message: String = "", includeUntracked: Bool = true) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            _ = try await gitService.saveStash(
+                message: message,
+                authorName: repo.authorName,
+                authorEmail: repo.authorEmail,
+                includeUntracked: includeUntracked
+            )
+            detectChanges(repoID: repoID)
+            await loadStashes(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func applyStash(repoID: UUID, index: Int, reinstateIndex: Bool = false) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            _ = try await gitService.applyStash(index: index, reinstateIndex: reinstateIndex)
+            detectChanges(repoID: repoID)
+            await loadConflictSession(repoID: repoID)
+            await loadStashes(repoID: repoID)
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func popStash(repoID: UUID, index: Int, reinstateIndex: Bool = false) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            _ = try await gitService.popStash(index: index, reinstateIndex: reinstateIndex)
+            detectChanges(repoID: repoID)
+            await loadConflictSession(repoID: repoID)
+            await loadStashes(repoID: repoID)
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func dropStash(repoID: UUID, index: Int) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.dropStash(index: index)
+            await loadStashes(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func loadTags(repoID: UUID) async {
+        guard let repo = repo(id: repoID), repo.isCloned else {
+            tagsByRepo[repoID] = []
+            return
+        }
+        if isDemoMode {
+            tagsByRepo[repoID] = []
+            return
+        }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            tagsByRepo[repoID] = []
+            return
+        }
+
+        do {
+            tagsByRepo[repoID] = try await gitService.listTags()
+        } catch {
+            tagsByRepo[repoID] = []
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func createTag(repoID: UUID, name: String, targetOID: String? = nil, message: String? = nil) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            _ = try await gitService.createTag(
+                name: name,
+                targetOID: targetOID,
+                message: message,
+                authorName: repo.authorName,
+                authorEmail: repo.authorEmail
+            )
+            await loadTags(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func deleteTag(repoID: UUID, name: String) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.deleteTag(name: name)
+            await loadTags(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func pushTag(repoID: UUID, name: String) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.pushTag(name: name, pat: pat)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func loadCommitHistory(repoID: UUID, pageSize: Int = 30, reset: Bool = false) async {
+        guard let repo = repo(id: repoID), repo.isCloned else {
+            commitHistoryByRepo[repoID] = []
+            commitHistoryHasMoreByRepo[repoID] = false
+            return
+        }
+        if isDemoMode {
+            commitHistoryByRepo[repoID] = []
+            commitHistoryHasMoreByRepo[repoID] = false
+            return
+        }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            commitHistoryByRepo[repoID] = []
+            commitHistoryHasMoreByRepo[repoID] = false
+            return
+        }
+
+        let existing = reset ? [] : (commitHistoryByRepo[repoID] ?? [])
+        let skip = existing.count
+
+        do {
+            let page = try await gitService.commitHistory(limit: pageSize, skip: skip)
+            let merged = reset ? page : (existing + page)
+            commitHistoryByRepo[repoID] = merged
+            commitHistoryHasMoreByRepo[repoID] = page.count == pageSize
+            if reset {
+                commitDetailByRepo[repoID] = [:]
+            }
+        } catch {
+            if reset {
+                commitHistoryByRepo[repoID] = []
+                commitHistoryHasMoreByRepo[repoID] = false
+                commitDetailByRepo[repoID] = [:]
+            }
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func loadCommitDetail(repoID: UUID, oid: String) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let trimmedOID = oid.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedOID.isEmpty else { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else { return }
+
+        do {
+            let detail = try await gitService.commitDetail(oid: trimmedOID)
+            var existing = commitDetailByRepo[repoID] ?? [:]
+            existing[trimmedOID] = detail
+            commitDetailByRepo[repoID] = existing
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func createBranch(repoID: UUID, name: String) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.createBranch(name: name)
+            await loadBranches(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func switchBranch(repoID: UUID, name: String) async {
+        guard let idx = repoIndex(id: repoID), repos[idx].isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        isSyncing = true
+        syncingRepoID = repoID
+        syncProgress = String(localized: "Switching branch...")
+
+        do {
+            try await gitService.switchBranch(name: name)
+            let info = try await gitService.repoInfo()
+
+            repos[idx].gitState.branch = info.branch
+            repos[idx].gitState.commitSHA = info.commitSHA
+            saveRepos()
+            clearCommitHistoryCache(for: repoID)
+
+            detectChanges(repoID: repoID)
+            await loadBranches(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+
+        isSyncing = false
+        syncingRepoID = nil
+    }
+
+    func deleteBranch(repoID: UUID, name: String) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.deleteBranch(name: name)
+            await loadBranches(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func mergeBranch(repoID: UUID, from branchName: String) async {
+        guard let idx = repoIndex(id: repoID), repos[idx].isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        isSyncing = true
+        syncingRepoID = repoID
+        syncProgress = String(localized: "Merging branch...")
+
+        do {
+            let result = try await gitService.mergeBranch(name: branchName)
+            repos[idx].gitState.commitSHA = result.newCommitSHA
+            repos[idx].gitState.lastSyncDate = Date()
+            saveRepos()
+            clearCommitHistoryCache(for: repoID)
+
+            detectChanges(repoID: repoID)
+            await loadBranches(repoID: repoID)
+            await loadConflictSession(repoID: repoID)
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+
+        isSyncing = false
+        syncingRepoID = nil
+    }
+
+    func revertCommit(repoID: UUID, oid: String, message: String = "") async {
+        guard let idx = repoIndex(id: repoID), repos[idx].isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        isSyncing = true
+        syncingRepoID = repoID
+        syncProgress = String(localized: "Reverting commit...")
+
+        do {
+            let repo = repos[idx]
+            let result = try await gitService.revertCommit(
+                oid: oid,
+                message: message,
+                authorName: repo.authorName,
+                authorEmail: repo.authorEmail
+            )
+
+            switch result.kind {
+            case .reverted:
+                if let newCommitSHA = result.newCommitSHA {
+                    repos[idx].gitState.commitSHA = newCommitSHA
+                    repos[idx].gitState.lastSyncDate = Date()
+                    saveRepos()
+                    clearCommitHistoryCache(for: repoID)
+                }
+                syncProgress = String(localized: "Revert complete")
+            case .conflicts:
+                syncProgress = String(localized: "Revert has conflicts")
+            }
+
+            detectChanges(repoID: repoID)
+            await loadConflictSession(repoID: repoID)
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+
+        isSyncing = false
+        syncingRepoID = nil
+    }
+
+    func completeMerge(repoID: UUID, message: String = "") async {
+        guard let idx = repoIndex(id: repoID), repos[idx].isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        isSyncing = true
+        syncingRepoID = repoID
+        syncProgress = String(localized: "Finalizing merge...")
+
+        do {
+            let repo = repos[idx]
+            let commitMessage = message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? String(localized: "Merge branch")
+                : message
+
+            let result = try await gitService.completeMerge(
+                message: commitMessage,
+                authorName: repo.authorName,
+                authorEmail: repo.authorEmail
+            )
+
+            repos[idx].gitState.commitSHA = result.newCommitSHA
+            repos[idx].gitState.lastSyncDate = Date()
+            saveRepos()
+            clearCommitHistoryCache(for: repoID)
+
+            detectChanges(repoID: repoID)
+            await loadConflictSession(repoID: repoID)
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+
+        isSyncing = false
+        syncingRepoID = nil
+    }
+
+    func abortMerge(repoID: UUID) async {
+        guard let _ = repoIndex(id: repoID), repo(id: repoID)?.isCloned == true else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        isSyncing = true
+        syncingRepoID = repoID
+        syncProgress = String(localized: "Aborting merge...")
+
+        do {
+            try await gitService.abortMerge()
+            clearCommitHistoryCache(for: repoID)
+            detectChanges(repoID: repoID)
+            await loadConflictSession(repoID: repoID)
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+
+        isSyncing = false
+        syncingRepoID = nil
+    }
+
+    func stageFile(repoID: UUID, path: String) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.stage(path: path)
+            detectChanges(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    func unstageFile(repoID: UUID, path: String) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.unstage(path: path)
+            detectChanges(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
         }
     }
 
@@ -444,7 +1141,7 @@ final class AppState {
                 cloneURL += ".git"
             }
 
-            let gitService = LocalGitService(localURL: vaultDir)
+            let gitService = gitRepositoryFactory(vaultDir)
 
             syncProgress = String(localized: "Cloning repository...")
             let result = try await gitService.clone(remoteURL: cloneURL, pat: pat)
@@ -464,6 +1161,7 @@ final class AppState {
 
             repos[idx] = repo
             saveRepos()
+            clearCommitHistoryCache(for: repoID)
             detectChanges(repoID: repoID)
             syncProgress = String(localized: "Clone complete! (\(result.fileCount) files)")
 
@@ -497,30 +1195,109 @@ final class AppState {
             return
         }
 
+        pullOutcomeByRepo.removeValue(forKey: repoID)
+
         do {
             var repo = repos[idx]
             let vaultDir = vaultURL(for: repoID)
-            let gitService = LocalGitService(localURL: vaultDir)
+            let gitService = gitRepositoryFactory(vaultDir)
 
             guard gitService.hasGitDirectory else {
                 throw LocalGitError.notCloned
             }
 
-            let result = try await gitService.pull(pat: pat)
+            let plan = try await gitService.pullPlan(pat: pat)
 
-            if !result.updated {
+            switch plan.action {
+            case .upToDate:
                 syncProgress = String(localized: "Already up to date!")
-            } else {
-                repo.gitState.commitSHA = result.newCommitSHA
-                repo.gitState.lastSyncDate = Date()
+                setPullOutcome(
+                    repoID: repoID,
+                    kind: .upToDate,
+                    message: String(localized: "Already up to date")
+                )
 
-                repos[idx] = repo
-                saveRepos()
-                detectChanges(repoID: repoID)
-                syncProgress = String(localized: "Pull complete!")
+            case .blockedByLocalChanges:
+                syncProgress = String(localized: "Pull blocked by local changes")
+                setPullOutcome(
+                    repoID: repoID,
+                    kind: .blockedByLocalChanges,
+                    message: String(localized: "Local edits detected. Commit, stash, or discard changes before pulling.")
+                )
+
+            case .diverged:
+                syncProgress = String(localized: "Pull requires merge")
+                setPullOutcome(
+                    repoID: repoID,
+                    kind: .diverged,
+                    message: String(localized: "Local and remote have diverged. Merge support is required to continue.")
+                )
+
+            case .remoteBranchMissing:
+                syncProgress = String(localized: "Remote branch missing")
+                setPullOutcome(
+                    repoID: repoID,
+                    kind: .remoteBranchMissing,
+                    message: String(localized: "Remote branch '\(plan.branch)' was not found.")
+                )
+
+            case .fastForward:
+                syncProgress = String(localized: "Applying remote updates...")
+                let result = try await gitService.pull(pat: pat)
+
+                if !result.updated {
+                    syncProgress = String(localized: "Already up to date!")
+                    setPullOutcome(
+                        repoID: repoID,
+                        kind: .upToDate,
+                        message: String(localized: "Already up to date")
+                    )
+                } else {
+                    repo.gitState.commitSHA = result.newCommitSHA
+                    repo.gitState.lastSyncDate = Date()
+
+                    repos[idx] = repo
+                    saveRepos()
+                    clearCommitHistoryCache(for: repoID)
+                    detectChanges(repoID: repoID)
+                    syncProgress = String(localized: "Pull complete!")
+                    setPullOutcome(
+                        repoID: repoID,
+                        kind: .fastForwarded,
+                        message: String(localized: "Pulled latest changes (fast-forward)")
+                    )
+                }
             }
 
+        } catch let error as LocalGitError {
+            switch error {
+            case .pullBlockedByLocalChanges:
+                syncProgress = String(localized: "Pull blocked by local changes")
+                setPullOutcome(
+                    repoID: repoID,
+                    kind: .blockedByLocalChanges,
+                    message: String(localized: "Local edits detected. Commit, stash, or discard changes before pulling.")
+                )
+            case .pullDiverged:
+                syncProgress = String(localized: "Pull requires merge")
+                setPullOutcome(
+                    repoID: repoID,
+                    kind: .diverged,
+                    message: String(localized: "Local and remote have diverged. Merge support is required to continue.")
+                )
+            case .pullRemoteBranchMissing(let branch):
+                syncProgress = String(localized: "Remote branch missing")
+                setPullOutcome(
+                    repoID: repoID,
+                    kind: .remoteBranchMissing,
+                    message: String(localized: "Remote branch '\(branch)' was not found.")
+                )
+            default:
+                setPullOutcome(repoID: repoID, kind: .failed, message: error.localizedDescription)
+                showError(message: error.localizedDescription)
+            }
         } catch {
+            setPullOutcome(repoID: repoID, kind: .failed, message: error.localizedDescription)
             showError(message: error.localizedDescription)
         }
 
@@ -556,7 +1333,7 @@ final class AppState {
         do {
             var repo = repos[idx]
             let vaultDir = vaultURL(for: repoID)
-            let gitService = LocalGitService(localURL: vaultDir)
+            let gitService = gitRepositoryFactory(vaultDir)
 
             guard gitService.hasGitDirectory else {
                 throw LocalGitError.notCloned
@@ -577,6 +1354,7 @@ final class AppState {
 
             repos[idx] = repo
             saveRepos()
+            clearCommitHistoryCache(for: repoID)
             detectChanges(repoID: repoID)
             syncProgress = String(localized: "Push complete!")
 
@@ -623,7 +1401,7 @@ final class AppState {
             return
         }
 
-        let gitService = LocalGitService(localURL: resolvedURL)
+        let gitService = gitRepositoryFactory(resolvedURL)
 
         guard gitService.hasGitDirectory else {
             resolvedURL.stopAccessingSecurityScopedResource()
@@ -699,6 +1477,17 @@ final class AppState {
         try? FileManager.default.removeItem(at: vaultDir)
         clearCustomLocation(for: id)
         changeCounts.removeValue(forKey: id)
+        statusEntriesByRepo.removeValue(forKey: id)
+        syncStateByRepo.removeValue(forKey: id)
+        pullOutcomeByRepo.removeValue(forKey: id)
+        diffByRepo.removeValue(forKey: id)
+        branchesByRepo.removeValue(forKey: id)
+        conflictSessionByRepo.removeValue(forKey: id)
+        commitHistoryByRepo.removeValue(forKey: id)
+        commitHistoryHasMoreByRepo.removeValue(forKey: id)
+        commitDetailByRepo.removeValue(forKey: id)
+        stashesByRepo.removeValue(forKey: id)
+        tagsByRepo.removeValue(forKey: id)
         repos.removeAll { $0.id == id }
         saveRepos()
     }
@@ -838,6 +1627,18 @@ final class AppState {
         saveGlobalSettings()
     }
 
+    // MARK: - Pull Outcome State
+
+    private func setPullOutcome(repoID: UUID, kind: PullOutcomeKind, message: String) {
+        pullOutcomeByRepo[repoID] = PullOutcomeState(kind: kind, message: message, date: Date())
+    }
+
+    private func clearCommitHistoryCache(for repoID: UUID) {
+        commitHistoryByRepo.removeValue(forKey: repoID)
+        commitHistoryHasMoreByRepo.removeValue(forKey: repoID)
+        commitDetailByRepo.removeValue(forKey: repoID)
+    }
+
     // MARK: - Error Handling
 
     private func showError(message: String) {
@@ -894,6 +1695,17 @@ final class AppState {
         }
         repos = []
         changeCounts = [:]
+        statusEntriesByRepo = [:]
+        syncStateByRepo = [:]
+        pullOutcomeByRepo = [:]
+        diffByRepo = [:]
+        branchesByRepo = [:]
+        conflictSessionByRepo = [:]
+        commitHistoryByRepo = [:]
+        commitHistoryHasMoreByRepo = [:]
+        commitDetailByRepo = [:]
+        stashesByRepo = [:]
+        tagsByRepo = [:]
         saveRepos()
     }
 

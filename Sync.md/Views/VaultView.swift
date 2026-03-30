@@ -10,6 +10,8 @@ struct VaultView: View {
 
     private var repo: RepoConfig? { state.repo(id: repoID) }
     private var changeCount: Int { state.changeCounts[repoID] ?? 0 }
+    private var statusEntries: [GitStatusEntry] { state.statusEntriesByRepo[repoID] ?? [] }
+    private var pullOutcome: PullOutcomeState? { state.pullOutcomeByRepo[repoID] }
     private var isThisRepoSyncing: Bool { state.isSyncing && state.syncingRepoID == repoID }
 
     /// Non-nil when a callback operation just finished for this repo.
@@ -87,8 +89,11 @@ struct VaultView: View {
                 statusHeroCard(repo)
                     .staggeredAppear(index: 0)
 
-                syncActionsSection
+                repoHealthCard
                     .staggeredAppear(index: 1)
+
+                syncActionsSection
+                    .staggeredAppear(index: 2)
 
                 if isThisRepoSyncing {
                     syncProgressCard
@@ -107,7 +112,7 @@ struct VaultView: View {
                 }
 
                 filesLocationCard
-                    .staggeredAppear(index: 2)
+                    .staggeredAppear(index: 3)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -149,6 +154,13 @@ struct VaultView: View {
                     }
                 }
                 Spacer()
+
+                Text(syncStateLabel)
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundStyle(syncStateColor)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(syncStateColor.opacity(0.12), in: Capsule())
             }
 
             Divider().opacity(0.5)
@@ -191,6 +203,26 @@ struct VaultView: View {
         return formatter.localizedString(for: repo.gitState.lastSyncDate, relativeTo: Date())
     }
 
+    private var syncStateLabel: String {
+        switch state.syncStateByRepo[repoID] ?? .unknown {
+        case .upToDate: return "Up to date"
+        case .ahead: return "Local ahead"
+        case .behind: return "Behind remote"
+        case .diverged: return "Diverged"
+        case .unknown: return "Sync unknown"
+        }
+    }
+
+    private var syncStateColor: Color {
+        switch state.syncStateByRepo[repoID] ?? .unknown {
+        case .upToDate: return .green
+        case .ahead: return .orange
+        case .behind: return SyncTheme.blue
+        case .diverged: return .red
+        case .unknown: return .secondary
+        }
+    }
+
     private func metadataItem(icon: String, value: String, color: Color, monospaced: Bool = false) -> some View {
         HStack(spacing: 5) {
             Image(systemName: icon)
@@ -202,6 +234,96 @@ struct VaultView: View {
                     : .system(size: 13, weight: .medium, design: .rounded)
                 )
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Repo Health
+
+    private var repoHealthCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Repo Health")
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+
+                Spacer()
+
+                Text(syncStateLabel)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(syncStateColor)
+            }
+
+            HStack(spacing: 8) {
+                statusPill(title: "Changed", value: statusEntries.count, color: .secondary)
+                statusPill(title: "Conflicts", value: conflictedFileCount, color: .red)
+                statusPill(title: "Untracked", value: untrackedFileCount, color: SyncTheme.blue)
+            }
+
+            if let outcome = pullOutcome {
+                HStack(spacing: 8) {
+                    Image(systemName: pullOutcomeIcon(outcome.kind))
+                        .foregroundStyle(pullOutcomeColor(outcome.kind))
+                    Text(outcome.message)
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+
+                if outcome.kind == .blockedByLocalChanges {
+                    Button {
+                        showCommitSheet = true
+                    } label: {
+                        Text("Open Commit & Push")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(SyncTheme.accent)
+                }
+            }
+        }
+        .glassCard(cornerRadius: 18, padding: 14)
+    }
+
+    private var conflictedFileCount: Int {
+        statusEntries.filter(\.isConflicted).count
+    }
+
+    private var untrackedFileCount: Int {
+        statusEntries.filter { $0.workTreeStatus == .untracked }.count
+    }
+
+    private func statusPill(title: String, value: Int, color: Color) -> some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text("\(title) \(value)")
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(.ultraThinMaterial, in: Capsule())
+    }
+
+    private func pullOutcomeIcon(_ kind: PullOutcomeKind) -> String {
+        switch kind {
+        case .upToDate: return "checkmark.circle.fill"
+        case .fastForwarded: return "arrow.down.circle.fill"
+        case .blockedByLocalChanges: return "exclamationmark.triangle.fill"
+        case .diverged: return "arrow.triangle.branch"
+        case .remoteBranchMissing: return "questionmark.circle.fill"
+        case .failed: return "xmark.circle.fill"
+        }
+    }
+
+    private func pullOutcomeColor(_ kind: PullOutcomeKind) -> Color {
+        switch kind {
+        case .upToDate: return .green
+        case .fastForwarded: return SyncTheme.blue
+        case .blockedByLocalChanges: return .orange
+        case .diverged: return .red
+        case .remoteBranchMissing: return .orange
+        case .failed: return .red
         }
     }
 

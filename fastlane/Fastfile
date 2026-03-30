@@ -1,8 +1,8 @@
 default_platform(:ios)
 
 platform :ios do
-  release_notes_text = "• App is now free to download — 1 repository included at no charge\n• Existing paid users automatically receive unlimited repository access\n• Unlock unlimited repositories with a one-time $9.99 purchase\n• Fixed legacy purchase restoration for users who paid for previous versions"
-  app_version = "1.7"
+  release_notes_text = "• Added internationalization support across the app\n• Improved localization for UI text and system formatting\n• Polished translated strings throughout onboarding and settings\n• General bug fixes and stability improvements"
+  app_version = "1.8"
 
   submission_information = {
     add_id_info_uses_idfa: false,

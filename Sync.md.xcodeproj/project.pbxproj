@@ -7,13 +7,39 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1273715551CDF043029317F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CB8CE527D5D632A5D9E9D3D /* Foundation.framework */; };
+		336367C9178D693793FC2E54 /* SyncMDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF8C7BFA87748C739EB8101 /* SyncMDTests.swift */; };
 		62C953FE2F397E44001F79DF /* Clibgit2 in Frameworks */ = {isa = PBXBuildFile; productRef = 62C951C12F3A0001001F79DF /* Clibgit2 */; };
+		7A1C53CFCAF12009E81A0EE4 /* SyncMDUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14BC444D5A4EC7FC963A5422 /* SyncMDUITests.swift */; };
+		9B1CC33021E2FBF384971478 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CB8CE527D5D632A5D9E9D3D /* Foundation.framework */; };
 		AA1001002FAA000100AA0002 /* SyncMd.storekit in Resources */ = {isa = PBXBuildFile; fileRef = AA1001002FAA000100AA0001 /* SyncMd.storekit */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		4003195DE9D156F0339F1C6A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 62C9518E2F393029001F79DF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 62C951952F393029001F79DF;
+			remoteInfo = Sync.md;
+		};
+		7D0CA8344FE0B8A3897B86C0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 62C9518E2F393029001F79DF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 62C951952F393029001F79DF;
+			remoteInfo = Sync.md;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		0443B75C1B0FB847251F8B3F /* SyncMDTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyncMDTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		14BC444D5A4EC7FC963A5422 /* SyncMDUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncMDUITests.swift; sourceTree = "<group>"; };
+		4CB8CE527D5D632A5D9E9D3D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		62C951962F393029001F79DF /* Sync.md.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sync.md.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA1001002FAA000100AA0001 /* SyncMd.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = SyncMd.storekit; sourceTree = "<group>"; };
+		DFF8C7BFA87748C739EB8101 /* SyncMDTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncMDTests.swift; sourceTree = "<group>"; };
+		E70D88DABEB05A34746D5412 /* SyncMDUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SyncMDUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -38,6 +64,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		47E5881AADD3B45EFF16DB8A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1273715551CDF043029317F6 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62C951932F393029001F79DF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -46,15 +80,52 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		808E12A4FAFBB76292567483 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B1CC33021E2FBF384971478 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0ECE099157F397A2ECB950E7 /* SyncMDTests */ = {
+			isa = PBXGroup;
+			children = (
+				DFF8C7BFA87748C739EB8101 /* SyncMDTests.swift */,
+			);
+			name = SyncMDTests;
+			path = SyncMDTests;
+			sourceTree = "<group>";
+		};
+		145A7C3DF8FA6A30FFE9AA69 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				4CB8CE527D5D632A5D9E9D3D /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		3736E446A6ABF1E8CD36D223 /* SyncMDUITests */ = {
+			isa = PBXGroup;
+			children = (
+				14BC444D5A4EC7FC963A5422 /* SyncMDUITests.swift */,
+			);
+			name = SyncMDUITests;
+			path = SyncMDUITests;
+			sourceTree = "<group>";
+		};
 		62C9518D2F393029001F79DF = {
 			isa = PBXGroup;
 			children = (
 				62C951982F393029001F79DF /* Sync.md */,
 				62C951972F393029001F79DF /* Products */,
 				AA1001002FAA000100AA0001 /* SyncMd.storekit */,
+				62CC2E749F5430344090D51D /* Frameworks */,
+				0ECE099157F397A2ECB950E7 /* SyncMDTests */,
+				3736E446A6ABF1E8CD36D223 /* SyncMDUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -62,13 +133,59 @@
 			isa = PBXGroup;
 			children = (
 				62C951962F393029001F79DF /* Sync.md.app */,
+				0443B75C1B0FB847251F8B3F /* SyncMDTests.xctest */,
+				E70D88DABEB05A34746D5412 /* SyncMDUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		62CC2E749F5430344090D51D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				145A7C3DF8FA6A30FFE9AA69 /* iOS */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		14987975A668149FDBCABA01 /* SyncMDTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 71E078742D94CEAE4441E433 /* Build configuration list for PBXNativeTarget "SyncMDTests" */;
+			buildPhases = (
+				4EB42094EF3039DC0A2AE480 /* Sources */,
+				808E12A4FAFBB76292567483 /* Frameworks */,
+				3A34A64C29CDE0E7C41FF060 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				01BCC7517154B8544C544729 /* PBXTargetDependency */,
+			);
+			name = SyncMDTests;
+			productName = SyncMDTests;
+			productReference = 0443B75C1B0FB847251F8B3F /* SyncMDTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		473E34D37D224A766EA8EB79 /* SyncMDUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2BD5D360D51A042AB16B484C /* Build configuration list for PBXNativeTarget "SyncMDUITests" */;
+			buildPhases = (
+				32743D6FF19684B02553B935 /* Sources */,
+				47E5881AADD3B45EFF16DB8A /* Frameworks */,
+				22F516F94793B22E53E68E82 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D3C31DA78555C183A5CF6920 /* PBXTargetDependency */,
+			);
+			name = SyncMDUITests;
+			productName = SyncMDUITests;
+			productReference = E70D88DABEB05A34746D5412 /* SyncMDUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		62C951952F393029001F79DF /* Sync.md */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 62C951A12F39302A001F79DF /* Build configuration list for PBXNativeTarget "Sync.md" */;
@@ -102,6 +219,14 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					14987975A668149FDBCABA01 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 62C951952F393029001F79DF;
+					};
+					473E34D37D224A766EA8EB79 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = 62C951952F393029001F79DF;
+					};
 					62C951952F393029001F79DF = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -113,15 +238,15 @@
 			knownRegions = (
 				en,
 				Base,
-				zh-Hant,
-				zh-Hans,
+				"zh-Hant",
+				"zh-Hans",
 				vi,
 				uk,
 				tr,
 				th,
 				sv,
 				ru,
-				pt-BR,
+				"pt-BR",
 				pl,
 				nl,
 				nb,
@@ -142,7 +267,7 @@
 			mainGroup = 62C9518D2F393029001F79DF;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				62C951C02F3A0001001F79DF /* XCLocalSwiftPackageReference "Packages/Clibgit2" */,
+				62C951C02F3A0001001F79DF /* XCLocalSwiftPackageReference "Clibgit2" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 62C951972F393029001F79DF /* Products */;
@@ -150,11 +275,27 @@
 			projectRoot = "";
 			targets = (
 				62C951952F393029001F79DF /* Sync.md */,
+				14987975A668149FDBCABA01 /* SyncMDTests */,
+				473E34D37D224A766EA8EB79 /* SyncMDUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		22F516F94793B22E53E68E82 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3A34A64C29CDE0E7C41FF060 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62C951942F393029001F79DF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -166,6 +307,22 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		32743D6FF19684B02553B935 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A1C53CFCAF12009E81A0EE4 /* SyncMDUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4EB42094EF3039DC0A2AE480 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				336367C9178D693793FC2E54 /* SyncMDTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62C951922F393029001F79DF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -175,7 +332,58 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		01BCC7517154B8544C544729 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Sync.md;
+			target = 62C951952F393029001F79DF /* Sync.md */;
+			targetProxy = 4003195DE9D156F0339F1C6A /* PBXContainerItemProxy */;
+		};
+		D3C31DA78555C183A5CF6920 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Sync.md;
+			target = 62C951952F393029001F79DF /* Sync.md */;
+			targetProxy = 7D0CA8344FE0B8A3897B86C0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		407F23335BA8BB42F5B12FF6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Sync-mdUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Sync.md";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		543A48814706DDEF6F3513C5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Sync-mdTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sync.md.app/Sync.md";
+				TEST_TARGET_NAME = "Sync.md";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		62C9519F2F39302A001F79DF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -303,7 +511,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202603291000;
+				CURRENT_PROJECT_VERSION = 202603291713;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -317,7 +525,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Sync-md";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -336,7 +544,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202603291000;
+				CURRENT_PROJECT_VERSION = 202603291713;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -350,7 +558,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Sync-md";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -363,9 +571,52 @@
 			};
 			name = Release;
 		};
+		C7481529886E864B717DB849 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Sync-mdTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sync.md.app/Sync.md";
+				TEST_TARGET_NAME = "Sync.md";
+			};
+			name = Debug;
+		};
+		F39655D4797D4B5EEE34DE95 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Sync-mdUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Sync.md";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2BD5D360D51A042AB16B484C /* Build configuration list for PBXNativeTarget "SyncMDUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				407F23335BA8BB42F5B12FF6 /* Release */,
+				F39655D4797D4B5EEE34DE95 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		62C951912F393029001F79DF /* Build configuration list for PBXProject "Sync.md" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -384,10 +635,19 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		71E078742D94CEAE4441E433 /* Build configuration list for PBXNativeTarget "SyncMDTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				543A48814706DDEF6F3513C5 /* Release */,
+				C7481529886E864B717DB849 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		62C951C02F3A0001001F79DF /* XCLocalSwiftPackageReference "Packages/Clibgit2" */ = {
+		62C951C02F3A0001001F79DF /* XCLocalSwiftPackageReference "Clibgit2" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/Clibgit2;
 		};
