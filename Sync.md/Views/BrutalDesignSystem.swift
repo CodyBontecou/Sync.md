@@ -19,9 +19,9 @@ extension Color {
     /// Primary text (adaptive)
     static let brutalText = Color.primary
     /// Secondary text — mid gray
-    static let brutalTextMid = Color(light: Color(white: 0.38), dark: Color(white: 0.65))
+    static let brutalTextMid = Color(light: Color(white: 0.32), dark: Color(white: 0.82))
     /// Tertiary text — faint gray
-    static let brutalTextFaint = Color(light: Color(white: 0.62), dark: Color(white: 0.45))
+    static let brutalTextFaint = Color(light: Color(white: 0.50), dark: Color(white: 0.68))
     /// Blue accent — used sparingly
     static let brutalAccent = Color(hex: 0x007AFF)
     /// Error red
@@ -53,10 +53,10 @@ enum BType {
     case titleLg     // 20pt bold
     case titleMd     // 17pt semibold
     case body        // 16pt regular
-    case bodySm      // 14pt regular
-    case mono        // 13pt medium monospaced
-    case monoSm      // 11pt medium monospaced
-    case monoLg      // 15pt medium monospaced
+    case bodySm      // 15pt regular
+    case mono        // 15pt medium monospaced
+    case monoSm      // 13pt medium monospaced
+    case monoLg      // 17pt medium monospaced
     case monoHero    // 42pt black monospaced
 
     var font: Font {
@@ -68,10 +68,10 @@ enum BType {
         case .titleLg:   return .system(size: 20, weight: .bold)
         case .titleMd:   return .system(size: 17, weight: .semibold)
         case .body:      return .system(size: 16, weight: .regular)
-        case .bodySm:    return .system(size: 14, weight: .regular)
-        case .mono:      return .system(size: 13, weight: .medium, design: .monospaced)
-        case .monoSm:    return .system(size: 11, weight: .medium, design: .monospaced)
-        case .monoLg:    return .system(size: 15, weight: .medium, design: .monospaced)
+        case .bodySm:    return .system(size: 15, weight: .regular)
+        case .mono:      return .system(size: 15, weight: .medium, design: .monospaced)
+        case .monoSm:    return .system(size: 13, weight: .medium, design: .monospaced)
+        case .monoLg:    return .system(size: 17, weight: .medium, design: .monospaced)
         case .monoHero:  return .system(size: 42, weight: .black, design: .monospaced)
         }
     }
@@ -89,21 +89,15 @@ extension View {
 struct BCard<Content: View>: View {
     let content: Content
     var padding: CGFloat = 16
-    var shadowX: CGFloat = 3
-    var shadowY: CGFloat = 3
     var bg: Color = .brutalBg
 
     init(
         padding: CGFloat = 16,
-        shadowX: CGFloat = 3,
-        shadowY: CGFloat = 3,
         bg: Color = .brutalBg,
         @ViewBuilder content: () -> Content
     ) {
         self.content = content()
         self.padding = padding
-        self.shadowX = shadowX
-        self.shadowY = shadowY
         self.bg = bg
     }
 
@@ -112,8 +106,7 @@ struct BCard<Content: View>: View {
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(bg)
-            .overlay(Rectangle().stroke(Color.brutalBorder, lineWidth: 1))
-            .shadow(color: .primary.opacity(0.10), radius: 0, x: shadowX, y: shadowY)
+            .overlay(Rectangle().strokeBorder(Color.brutalBorder, lineWidth: 1))
     }
 }
 
@@ -130,7 +123,7 @@ struct BPrimaryButton: View {
         Button(action: action) {
             ZStack {
                 Rectangle()
-                    .fill(isDisabled ? Color.brutalTextFaint : Color.primary)
+                    .fill(Color.primary.opacity(isDisabled ? 0.3 : 1.0))
                     .frame(height: 52)
 
                 if isLoading {
@@ -141,11 +134,11 @@ struct BPrimaryButton: View {
                     HStack(spacing: 8) {
                         if let icon {
                             Image(systemName: icon)
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 16, weight: .bold))
                                 .foregroundStyle(Color(.systemBackground))
                         }
                         Text(title.uppercased())
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color(.systemBackground))
                             .tracking(2)
                     }
@@ -174,7 +167,7 @@ struct BSecondaryButton: View {
                     .frame(height: 52)
                     .overlay(
                         Rectangle()
-                            .stroke(isDisabled ? Color.brutalBorderSoft : Color.brutalBorder, lineWidth: 1)
+                            .strokeBorder(Color.brutalBorder, lineWidth: 1)
                     )
 
                 if isLoading {
@@ -185,12 +178,12 @@ struct BSecondaryButton: View {
                     HStack(spacing: 8) {
                         if let icon {
                             Image(systemName: icon)
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(isDisabled ? Color.brutalTextFaint : Color.brutalText)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(isDisabled ? Color.brutalText : Color.brutalText)
                         }
                         Text(title.uppercased())
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
-                            .foregroundStyle(isDisabled ? Color.brutalTextFaint : Color.brutalText)
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .foregroundStyle(isDisabled ? Color.brutalText : Color.brutalText)
                             .tracking(2)
                     }
                 }
@@ -205,7 +198,7 @@ struct BSecondaryButton: View {
 
 struct BGhostButton: View {
     let title: String
-    var color: Color = .brutalTextMid
+    var color: Color = .brutalText
     var icon: String? = nil
     let action: () -> Void
 
@@ -214,10 +207,10 @@ struct BGhostButton: View {
             HStack(spacing: 6) {
                 if let icon {
                     Image(systemName: icon)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
                 }
                 Text(title.uppercased())
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
                     .tracking(1)
             }
             .foregroundStyle(color)
@@ -239,7 +232,7 @@ struct BDestructiveButton: View {
                 Rectangle()
                     .fill(Color.brutalError.opacity(0.08))
                     .frame(height: 52)
-                    .overlay(Rectangle().stroke(Color.brutalError.opacity(0.5), lineWidth: 1))
+                    .overlay(Rectangle().strokeBorder(Color.brutalError.opacity(0.5), lineWidth: 1))
 
                 if isLoading {
                     ProgressView()
@@ -247,7 +240,7 @@ struct BDestructiveButton: View {
                         .scaleEffect(0.85)
                 } else {
                     Text(title.uppercased())
-                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
                         .foregroundStyle(Color.brutalError)
                         .tracking(2)
                 }
@@ -274,8 +267,8 @@ struct BTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                .foregroundStyle(isFocused ? Color.brutalText : Color.brutalTextMid)
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                .foregroundStyle(isFocused ? Color.brutalText : Color.brutalText)
                 .tracking(2)
 
             Group {
@@ -296,7 +289,7 @@ struct BTextField: View {
             .background(Color.brutalSurface)
             .overlay(
                 Rectangle()
-                    .stroke(isFocused ? Color.brutalBorder : Color.brutalBorderSoft, lineWidth: isFocused ? 2 : 1)
+                    .strokeBorder(Color.brutalBorder, lineWidth: isFocused ? 2 : 1)
             )
         }
     }
@@ -316,15 +309,15 @@ struct BSectionHeader: View {
                     .frame(width: 3, height: 13)
 
                 Text(title.uppercased())
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color.brutalText)
                     .tracking(2)
             }
 
             if let sub = subtitle {
                 Text(sub)
-                    .font(.system(size: 12, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextFaint)
+                    .font(.system(size: 14, design: .monospaced))
+                    .foregroundStyle(Color.brutalText)
                     .padding(.leading, 11)
             }
         }
@@ -340,22 +333,22 @@ struct BDivider: View {
         if let label {
             HStack(spacing: 12) {
                 Rectangle()
-                    .fill(Color.brutalBorderSoft)
+                    .fill(Color.brutalBorder)
                     .frame(height: 1)
 
                 Text(label.uppercased())
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextFaint)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.brutalText)
                     .tracking(2)
                     .fixedSize()
 
                 Rectangle()
-                    .fill(Color.brutalBorderSoft)
+                    .fill(Color.brutalBorder)
                     .frame(height: 1)
             }
         } else {
             Rectangle()
-                .fill(Color.brutalBorderSoft)
+                .fill(Color.brutalBorder)
                 .frame(height: 1)
         }
     }
@@ -382,7 +375,7 @@ struct BBadge: View {
 
         var fg: Color {
             switch self {
-            case .default: return Color(light: Color(white: 0.38), dark: Color(white: 0.65))
+            case .default: return Color(light: Color(white: 0.32), dark: Color(white: 0.82))
             case .accent:  return Color(hex: 0x007AFF)
             case .success: return Color(hex: 0x1A7A1A)
             case .warning: return Color(hex: 0xB25000)
@@ -403,13 +396,13 @@ struct BBadge: View {
 
     var body: some View {
         Text(text.uppercased())
-            .font(.system(size: 10, weight: .bold, design: .monospaced))
+            .font(.system(size: 12, weight: .bold, design: .monospaced))
             .foregroundStyle(style.fg)
             .tracking(1)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
             .background(style.bg)
-            .overlay(Rectangle().stroke(style.border, lineWidth: 1))
+            .overlay(Rectangle().strokeBorder(style.border, lineWidth: 1))
     }
 }
 
@@ -418,14 +411,14 @@ struct BBadge: View {
 struct BMonoRow: View {
     let key: String
     let value: String
-    var valueFont: Font = .system(size: 13, weight: .medium, design: .monospaced)
-    var valueColor: Color = .brutalTextMid
+    var valueFont: Font = .system(size: 15, weight: .medium, design: .monospaced)
+    var valueColor: Color = .brutalText
 
     var body: some View {
         HStack {
             Text(key.uppercased())
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundStyle(Color.brutalTextFaint)
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.brutalText)
                 .tracking(1)
             Spacer()
             Text(value)
@@ -444,7 +437,7 @@ struct BProgressBar: View {
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                Rectangle().fill(Color.brutalBorderSoft)
+                Rectangle().fill(Color.primary.opacity(0.12))
                 Rectangle()
                     .fill(Color.brutalText)
                     .frame(width: geo.size.width * CGFloat(max(0, min(1, progress))))
@@ -467,19 +460,19 @@ struct BEmptyState: View {
         VStack(spacing: 0) {
             Text("—")
                 .font(.system(size: 72, weight: .black))
-                .foregroundStyle(Color.brutalBorderSoft)
+                .foregroundStyle(Color.brutalText)
                 .padding(.bottom, 16)
 
             Text(title.uppercased())
-                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                .font(.system(size: 18, weight: .bold, design: .monospaced))
                 .foregroundStyle(Color.brutalText)
                 .tracking(2)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 8)
 
             Text(subtitle)
-                .font(.system(size: 13, design: .monospaced))
-                .foregroundStyle(Color.brutalTextMid)
+                .font(.system(size: 15, design: .monospaced))
+                .foregroundStyle(Color.brutalText)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 28)
 
@@ -501,8 +494,8 @@ struct BLoading: View {
 
     var body: some View {
         Text((text + String(repeating: ".", count: dotCount)).uppercased())
-            .font(.system(size: 12, weight: .medium, design: .monospaced))
-            .foregroundStyle(Color.brutalTextMid)
+            .font(.system(size: 14, weight: .medium, design: .monospaced))
+            .foregroundStyle(Color.brutalText)
             .tracking(2)
             .onReceive(timer) { _ in dotCount = (dotCount + 1) % 4 }
     }
@@ -525,13 +518,13 @@ struct BCardRow: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(destructive ? Color.brutalError : Color.brutalText)
 
                     if let sub = subtitle {
                         Text(sub)
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(Color.brutalTextFaint)
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundStyle(Color.brutalText)
                     }
                 }
 
@@ -543,14 +536,14 @@ struct BCardRow: View {
 
                 if let val = value {
                     Text(val)
-                        .font(.system(size: 13, design: .monospaced))
-                        .foregroundStyle(Color.brutalTextMid)
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(Color.brutalText)
                 }
 
                 if showArrow {
                     Text("→")
-                        .font(.system(size: 13, design: .monospaced))
-                        .foregroundStyle(Color.brutalTextFaint)
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(Color.brutalText)
                 }
             }
             .padding(.vertical, 13)
@@ -579,12 +572,12 @@ struct BActionRow: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(Color.brutalText)
                     if let sub = subtitle {
                         Text(sub)
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(Color.brutalTextMid)
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundStyle(Color.brutalText)
                     }
                 }
 
@@ -594,8 +587,8 @@ struct BActionRow: View {
                     BBadge(text: "\(count)", style: badgeStyle)
                 } else {
                     Text("→")
-                        .font(.system(size: 13, design: .monospaced))
-                        .foregroundStyle(Color.brutalTextFaint)
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(Color.brutalText)
                 }
             }
             .padding(.vertical, 14)
@@ -628,8 +621,8 @@ struct BSpineHeader: View {
                         .frame(width: 20, height: 1)
 
                     Text(sub.uppercased())
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Color.brutalTextMid)
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.brutalText)
                         .tracking(2)
                 }
             }

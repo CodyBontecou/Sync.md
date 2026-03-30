@@ -28,8 +28,8 @@ struct SettingsView: View {
                             VStack(spacing: 0) {
                                 settingsFieldRow(label: "URL") {
                                     Text(showCopiedToast ? "Copied!" : (repo?.repoURL ?? ""))
-                                        .font(.system(size: 12, design: .monospaced))
-                                        .foregroundStyle(showCopiedToast ? Color.brutalSuccess : Color.brutalTextMid)
+                                        .font(.system(size: 14, design: .monospaced))
+                                        .foregroundStyle(showCopiedToast ? Color.brutalSuccess : Color.brutalText)
                                         .lineLimit(1)
                                         .truncationMode(.middle)
                                         .onTapGesture {
@@ -85,16 +85,16 @@ struct SettingsView: View {
                                 if state.isUsingCustomLocation(for: repoID) {
                                     settingsFieldRow(label: "Location") {
                                         Text(state.vaultURL(for: repoID).lastPathComponent)
-                                            .font(.system(size: 12, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextMid)
+                                            .font(.system(size: 14, design: .monospaced))
+                                            .foregroundStyle(Color.brutalText)
                                     }
 
                                     BDivider().padding(.horizontal, 16)
 
                                     settingsFieldRow(label: "Path") {
                                         Text(state.vaultDisplayPath(for: repoID))
-                                            .font(.system(size: 11, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextMid)
+                                            .font(.system(size: 13, design: .monospaced))
+                                            .foregroundStyle(Color.brutalText)
                                             .lineLimit(1)
                                             .truncationMode(.middle)
                                     }
@@ -102,15 +102,15 @@ struct SettingsView: View {
                                     settingsFieldRow(label: "Folder") {
                                         Text(vaultName)
                                             .font(.system(size: 14, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextMid)
+                                            .foregroundStyle(Color.brutalText)
                                     }
 
                                     BDivider().padding(.horizontal, 16)
 
                                     settingsFieldRow(label: "Path") {
                                         Text("On My iPhone › Sync.md › \(vaultName)")
-                                            .font(.system(size: 11, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextMid)
+                                            .font(.system(size: 13, design: .monospaced))
+                                            .foregroundStyle(Color.brutalText)
                                             .lineLimit(1)
                                     }
                                 }
@@ -126,7 +126,7 @@ struct SettingsView: View {
                                              ? "Never"
                                              : relativeDate(repo.gitState.lastSyncDate))
                                             .font(.system(size: 13, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextMid)
+                                            .foregroundStyle(Color.brutalText)
                                     }
 
                                     BDivider().padding(.horizontal, 16)
@@ -134,7 +134,7 @@ struct SettingsView: View {
                                     settingsFieldRow(label: "Commit SHA") {
                                         Text(String(repo.gitState.commitSHA.prefix(7)))
                                             .font(.system(size: 13, weight: .medium, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextMid)
+                                            .foregroundStyle(Color.brutalText)
                                     }
 
                                     BDivider().padding(.horizontal, 16)
@@ -142,7 +142,7 @@ struct SettingsView: View {
                                     settingsFieldRow(label: "Files") {
                                         Text("\(repo.gitState.blobSHAs.count)")
                                             .font(.system(size: 13, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextMid)
+                                            .foregroundStyle(Color.brutalText)
                                     }
                                 }
                             }
@@ -173,8 +173,8 @@ struct SettingsView: View {
                         dismiss()
                     } label: {
                         Text("CANCEL")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(Color.brutalTextMid)
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.brutalText)
                             .tracking(1)
                     }
                     .buttonStyle(.plain)
@@ -185,7 +185,7 @@ struct SettingsView: View {
                         dismiss()
                     } label: {
                         Text("SAVE")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color(.systemBackground))
                             .tracking(1)
                             .padding(.horizontal, 10)
@@ -232,8 +232,8 @@ struct SettingsView: View {
     private func settingsFieldRow<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
         HStack {
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundStyle(Color.brutalTextFaint)
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.brutalText)
                 .tracking(1)
             Spacer()
             content()
@@ -245,8 +245,8 @@ struct SettingsView: View {
     private func settingsInputRow<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
         HStack {
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundStyle(Color.brutalTextFaint)
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.brutalText)
                 .tracking(1)
             Spacer()
             content()

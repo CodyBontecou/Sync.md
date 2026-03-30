@@ -73,7 +73,7 @@ struct RepoListView: View {
                             }
                         } label: {
                             GitHubAvatarView(avatarURL: state.gitHubAvatarURL, size: 28)
-                                .overlay(Rectangle().stroke(Color.brutalBorder, lineWidth: 1))
+                                .overlay(Rectangle().strokeBorder(Color.brutalBorder, lineWidth: 1))
                         }
                         .menuStyle(.borderlessButton)
                     } else {
@@ -81,12 +81,12 @@ struct RepoListView: View {
                             Task { await state.signInWithGitHub() }
                         } label: {
                             Text("SIGN IN")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .font(.system(size: 13, weight: .bold, design: .monospaced))
                                 .foregroundStyle(Color.brutalAccent)
                                 .tracking(1)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
-                                .overlay(Rectangle().stroke(Color.brutalAccent.opacity(0.5), lineWidth: 1))
+                                .overlay(Rectangle().strokeBorder(Color.brutalAccent.opacity(0.5), lineWidth: 1))
                         }
                         .buttonStyle(.plain)
                     }
@@ -164,7 +164,7 @@ struct RepoListView: View {
     private func repoCard(_ repo: RepoConfig) -> some View {
         let isThisRepoSyncing = state.isSyncing && state.syncingRepoID == repo.id
 
-        return BCard(padding: 0, shadowX: 3, shadowY: 3) {
+        return BCard(padding: 0) {
             VStack(spacing: 0) {
                 // Header
                 HStack(spacing: 12) {
@@ -176,8 +176,8 @@ struct RepoListView: View {
 
                         if let owner = repo.ownerName {
                             Text(owner.uppercased())
-                                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                .foregroundStyle(Color.brutalTextMid)
+                                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                .foregroundStyle(Color.brutalText)
                                 .tracking(1)
                         }
                     }
@@ -192,23 +192,18 @@ struct RepoListView: View {
 
                     Text("→")
                         .font(.system(size: 14, design: .monospaced))
-                        .foregroundStyle(Color.brutalTextFaint)
+                        .foregroundStyle(Color.brutalText)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 12)
 
-                // Status strip
-                Rectangle()
-                    .fill(Color.brutalBorderSoft)
-                    .frame(height: 1)
-
                 if isThisRepoSyncing {
                     HStack(spacing: 8) {
                         BBadge(text: "syncing", style: .accent)
                         Text(state.syncProgress)
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(Color.brutalTextMid)
+                            .font(.system(size: 13, design: .monospaced))
+                            .foregroundStyle(Color.brutalText)
                             .lineLimit(1)
                         Spacer()
                     }
@@ -244,10 +239,10 @@ struct RepoListView: View {
             HStack(spacing: 10) {
                 Text("+")
                     .font(.system(size: 20, weight: .black, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextMid)
+                    .foregroundStyle(Color.brutalText)
                 Text("ADD REPOSITORY")
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextMid)
+                    .foregroundStyle(Color.brutalText)
                     .tracking(2)
                 Spacer()
             }
@@ -255,8 +250,7 @@ struct RepoListView: View {
             .padding(.horizontal, 16)
             .overlay(
                 Rectangle()
-                    .stroke(style: StrokeStyle(lineWidth: 1, dash: [8, 5]))
-                    .foregroundStyle(Color.brutalBorderSoft)
+                    .strokeBorder(Color.brutalBorder, style: StrokeStyle(lineWidth: 1, dash: [8, 5]))
             )
         }
         .buttonStyle(.plain)
@@ -265,7 +259,7 @@ struct RepoListView: View {
     // MARK: - Demo Banner
 
     private var demoBanner: some View {
-        BCard(padding: 12, shadowX: 2, shadowY: 2, bg: .brutalSurface) {
+        BCard(padding: 12, bg: .brutalSurface) {
             HStack(spacing: 10) {
                 BBadge(text: "DEMO MODE", style: .warning)
 
@@ -275,12 +269,12 @@ struct RepoListView: View {
                     state.deactivateDemoMode()
                 } label: {
                     Text("EXIT")
-                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                         .tracking(1)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
-                        .overlay(Rectangle().stroke(Color.brutalBorder, lineWidth: 1))
+                        .overlay(Rectangle().strokeBorder(Color.brutalBorder, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
             }
@@ -292,14 +286,14 @@ struct RepoListView: View {
     private func metaChip(icon: String, text: String, mono: Bool = false) -> some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(Color.brutalTextFaint)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.brutalText)
             Text(text)
                 .font(mono
-                    ? .system(size: 11, weight: .medium, design: .monospaced)
-                    : .system(size: 11, weight: .medium)
+                    ? .system(size: 13, weight: .medium, design: .monospaced)
+                    : .system(size: 13, weight: .medium)
                 )
-                .foregroundStyle(Color.brutalTextMid)
+                .foregroundStyle(Color.brutalText)
         }
     }
 

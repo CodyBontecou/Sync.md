@@ -98,8 +98,8 @@ struct SetupView: View {
                     .fill(Color.brutalBorder)
                     .frame(width: 20, height: 1)
                 Text("ANY REPO, SYNCED TO YOUR IPHONE")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextMid)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.brutalText)
                     .tracking(1.5)
             }
         }
@@ -160,10 +160,10 @@ struct SetupView: View {
                     Text("←")
                         .font(.system(size: 14, design: .monospaced))
                     Text("BACK")
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.system(size: 13, weight: .medium, design: .monospaced))
                         .tracking(1)
                 }
-                .foregroundStyle(Color.brutalTextMid)
+                .foregroundStyle(Color.brutalText)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 24)
@@ -184,23 +184,22 @@ struct SetupView: View {
                     Button { showPAT.toggle() } label: {
                         Image(systemName: showPAT ? "eye.slash" : "eye")
                             .font(.system(size: 14))
-                            .foregroundStyle(Color.brutalTextMid)
+                            .foregroundStyle(Color.brutalText)
                     }
                     .buttonStyle(.plain)
                     .padding(.leading, 8)
                 }
                 .padding(13)
                 .background(Color.brutalSurface)
-                .overlay(Rectangle().stroke(Color.brutalBorderSoft, lineWidth: 1))
 
                 Text("PERSONAL ACCESS TOKEN")
-                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextFaint)
+                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(Color.brutalText)
                     .tracking(2)
 
                 Link(destination: URL(string: "https://github.com/settings/tokens/new?scopes=repo,user:email&description=Sync.md")!) {
                     Text("CREATE A PAT ON GITHUB →")
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
                         .foregroundStyle(Color.brutalAccent)
                         .tracking(1)
                 }
@@ -267,8 +266,8 @@ struct SetupView: View {
                     .padding(.bottom, 8)
 
                 Text("CHOOSE WHERE NEW REPOSITORIES ARE SAVED")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextMid)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.brutalText)
                     .tracking(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -288,8 +287,8 @@ struct SetupView: View {
                                 .font(.system(size: 14, weight: .semibold, design: .monospaced))
                                 .foregroundStyle(Color.brutalText)
                             Text(url.path)
-                                .font(.system(size: 11, design: .monospaced))
-                                .foregroundStyle(Color.brutalTextFaint)
+                                .font(.system(size: 13, design: .monospaced))
+                                .foregroundStyle(Color.brutalText)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
@@ -300,10 +299,9 @@ struct SetupView: View {
                             withAnimation(.easeInOut(duration: 0.2)) { selectedFolderURL = nil }
                         } label: {
                             Image(systemName: "xmark")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(Color.brutalTextMid)
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(Color.brutalText)
                                 .padding(6)
-                                .overlay(Rectangle().stroke(Color.brutalBorderSoft, lineWidth: 1))
                         }
                         .buttonStyle(.plain)
                     }
@@ -316,10 +314,10 @@ struct SetupView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "info.circle")
                         .font(.system(size: 12))
-                        .foregroundStyle(Color.brutalTextFaint)
+                        .foregroundStyle(Color.brutalText)
                     Text("Without a default, repos save to Files › On My iPhone › Sync.md")
-                        .font(.system(size: 12, design: .monospaced))
-                        .foregroundStyle(Color.brutalTextFaint)
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundStyle(Color.brutalText)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)

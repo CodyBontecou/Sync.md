@@ -33,8 +33,8 @@ struct PaywallView: View {
                         featureRow(icon: "🔓", text: "One-time payment — no subscription")
                     }
                     .background(Color.brutalBg)
-                    .overlay(Rectangle().stroke(Color.brutalBorder, lineWidth: 1))
-                    .shadow(color: .primary.opacity(0.10), radius: 0, x: 3, y: 3)
+                    .overlay(Rectangle().strokeBorder(Color.brutalBorder, lineWidth: 1))
+                    
                     .padding(.horizontal, 24)
                     .padding(.bottom, 28)
 
@@ -49,10 +49,9 @@ struct PaywallView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.brutalTextMid)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color.brutalText)
                     .frame(width: 30, height: 30)
-                    .overlay(Rectangle().stroke(Color.brutalBorderSoft, lineWidth: 1))
             }
             .buttonStyle(.plain)
             .padding(.top, 18)
@@ -95,8 +94,8 @@ struct PaywallView: View {
                     .fill(Color.brutalBorder)
                     .frame(width: 20, height: 1)
                 Text("YOU'VE REACHED THE 1 FREE REPOSITORY LIMIT")
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextMid)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.brutalText)
                     .tracking(1)
             }
         }
@@ -129,8 +128,8 @@ struct PaywallView: View {
                     HStack(spacing: 8) {
                         BBadge(text: "ERROR", style: error.contains("cody@isolated.tech") ? .default : .error)
                         Text(error)
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(error.contains("cody@isolated.tech") ? Color.brutalTextMid : Color.brutalError)
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundStyle(error.contains("cody@isolated.tech") ? Color.brutalText : Color.brutalError)
                             .multilineTextAlignment(.leading)
                     }
                 }

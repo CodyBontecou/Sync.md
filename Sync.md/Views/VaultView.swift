@@ -56,9 +56,8 @@ struct VaultView: View {
                 } label: {
                     Image(systemName: "gearshape")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.brutalTextMid)
+                        .foregroundStyle(Color.brutalText)
                         .frame(width: 32, height: 32)
-                        .overlay(Rectangle().stroke(Color.brutalBorderSoft, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
             }
@@ -122,8 +121,8 @@ struct VaultView: View {
 
                         if let owner = repo.ownerName {
                             Text(owner.uppercased())
-                                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                .foregroundStyle(Color.brutalTextMid)
+                                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                .foregroundStyle(Color.brutalText)
                                 .tracking(1)
                         }
                     }
@@ -136,7 +135,6 @@ struct VaultView: View {
                 .padding(.top, 16)
                 .padding(.bottom, 12)
 
-                Rectangle().fill(Color.brutalBorderSoft).frame(height: 1)
 
                 HStack(spacing: 0) {
                     metaChip(icon: "arrow.triangle.branch", text: repo.gitState.branch, mono: true)
@@ -182,14 +180,14 @@ struct VaultView: View {
     private func metaChip(icon: String, text: String, mono: Bool = false) -> some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(Color.brutalTextFaint)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.brutalText)
             Text(text)
                 .font(mono
-                    ? .system(size: 11, weight: .medium, design: .monospaced)
-                    : .system(size: 11, weight: .medium)
+                    ? .system(size: 13, weight: .medium, design: .monospaced)
+                    : .system(size: 13, weight: .medium)
                 )
-                .foregroundStyle(Color.brutalTextMid)
+                .foregroundStyle(Color.brutalText)
         }
     }
 
@@ -206,7 +204,6 @@ struct VaultView: View {
                 .padding(.top, 14)
                 .padding(.bottom, 10)
 
-                Rectangle().fill(Color.brutalBorderSoft).frame(height: 1)
 
                 HStack(spacing: 12) {
                     healthPill(label: "Changed", count: statusEntries.count)
@@ -217,7 +214,6 @@ struct VaultView: View {
                 .padding(.vertical, 12)
 
                 if let outcome = pullOutcome {
-                    Rectangle().fill(Color.brutalBorderSoft).frame(height: 1)
 
                     HStack(spacing: 10) {
                         Image(systemName: pullOutcomeIcon(outcome.kind))
@@ -225,7 +221,7 @@ struct VaultView: View {
                             .foregroundStyle(pullOutcomeColor(outcome.kind))
                         Text(outcome.message)
                             .font(.system(size: 13, design: .monospaced))
-                            .foregroundStyle(Color.brutalTextMid)
+                            .foregroundStyle(Color.brutalText)
                         Spacer()
 
                         if outcome.kind == .blockedByLocalChanges {
@@ -233,12 +229,12 @@ struct VaultView: View {
                                 showCommitSheet = true
                             } label: {
                                 Text("OPEN GIT")
-                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
                                     .foregroundStyle(Color.brutalAccent)
                                     .tracking(1)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 5)
-                                    .overlay(Rectangle().stroke(Color.brutalAccent.opacity(0.4), lineWidth: 1))
+                                    .overlay(Rectangle().strokeBorder(Color.brutalAccent.opacity(0.4), lineWidth: 1))
                             }
                             .buttonStyle(.plain)
                         }
@@ -259,8 +255,8 @@ struct VaultView: View {
                 .font(.system(size: 18, weight: .black, design: .monospaced))
                 .foregroundStyle(style.fg)
             Text(label.uppercased())
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
-                .foregroundStyle(Color.brutalTextFaint)
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.brutalText)
                 .tracking(1)
         }
     }
@@ -336,8 +332,8 @@ struct VaultView: View {
                     .controlSize(.small)
                     .tint(Color.brutalAccent)
                 Text(state.syncProgress.uppercased())
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextMid)
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.brutalText)
                     .tracking(1)
                 Spacer()
             }
@@ -360,7 +356,7 @@ struct VaultView: View {
 
                     Text(result.message)
                         .font(.system(size: 12, design: .monospaced))
-                        .foregroundStyle(Color.brutalTextMid)
+                        .foregroundStyle(Color.brutalText)
                         .lineLimit(2)
                 }
 
@@ -369,7 +365,7 @@ struct VaultView: View {
                 if result.isSuccess {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.system(size: 14))
-                        .foregroundStyle(Color.brutalTextFaint)
+                        .foregroundStyle(Color.brutalText)
                 }
             }
         }
@@ -410,7 +406,7 @@ struct VaultView: View {
 
             Text(state.syncProgress)
                 .font(.system(size: 13, design: .monospaced))
-                .foregroundStyle(Color.brutalTextMid)
+                .foregroundStyle(Color.brutalText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 

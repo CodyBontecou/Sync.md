@@ -50,8 +50,8 @@ struct AppSettingsView: View {
                                             Text(purchaseManager.isLegacyUser
                                                  ? "Legacy paid user — restored from previous purchase"
                                                  : "Unlimited repositories enabled")
-                                                .font(.system(size: 11, design: .monospaced))
-                                                .foregroundStyle(Color.brutalTextMid)
+                                                .font(.system(size: 13, design: .monospaced))
+                                                .foregroundStyle(Color.brutalText)
                                         }
                                         Spacer()
                                     }
@@ -67,7 +67,7 @@ struct AppSettingsView: View {
                                         BBadge(text: "FREE", style: .default)
                                         Text("1 free repository included")
                                             .font(.system(size: 13, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextMid)
+                                            .foregroundStyle(Color.brutalText)
                                         Spacer()
                                     }
                                     .padding(.horizontal, 16)
@@ -98,8 +98,8 @@ struct AppSettingsView: View {
                                     HStack(spacing: 8) {
                                         BBadge(text: "ERROR", style: error.contains("cody@isolated.tech") ? .default : .error)
                                         Text(error)
-                                            .font(.system(size: 11, design: .monospaced))
-                                            .foregroundStyle(error.contains("cody@isolated.tech") ? Color.brutalTextMid : Color.brutalError)
+                                            .font(.system(size: 13, design: .monospaced))
+                                            .foregroundStyle(error.contains("cody@isolated.tech") ? Color.brutalText : Color.brutalError)
                                             .multilineTextAlignment(.leading)
                                     }
                                     .padding(.horizontal, 16)
@@ -125,7 +125,7 @@ struct AppSettingsView: View {
                                         Spacer()
                                         Text("→")
                                             .font(.system(size: 13, design: .monospaced))
-                                            .foregroundStyle(Color.brutalTextFaint)
+                                            .foregroundStyle(Color.brutalText)
                                     }
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 13)
@@ -146,8 +146,8 @@ struct AppSettingsView: View {
                                                 .font(.system(size: 13, weight: .semibold, design: .monospaced))
                                                 .foregroundStyle(Color.brutalText)
                                             Text(url.path)
-                                                .font(.system(size: 10, design: .monospaced))
-                                                .foregroundStyle(Color.brutalTextFaint)
+                                                .font(.system(size: 14, design: .monospaced))
+                                                .foregroundStyle(Color.brutalText)
                                                 .lineLimit(1)
                                                 .truncationMode(.middle)
                                         }
@@ -163,7 +163,7 @@ struct AppSettingsView: View {
                                             showFolderPicker = true
                                         } label: {
                                             Text("CHANGE")
-                                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                                .font(.system(size: 14, weight: .bold, design: .monospaced))
                                                 .foregroundStyle(Color.brutalAccent)
                                                 .tracking(1)
                                         }
@@ -175,7 +175,7 @@ struct AppSettingsView: View {
                                             showClearConfirm = true
                                         } label: {
                                             Text("REMOVE")
-                                                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                                .font(.system(size: 14, weight: .bold, design: .monospaced))
                                                 .foregroundStyle(Color.brutalError)
                                                 .tracking(1)
                                         }
@@ -188,10 +188,10 @@ struct AppSettingsView: View {
                                         HStack(spacing: 6) {
                                             Image(systemName: "info.circle")
                                                 .font(.system(size: 11))
-                                                .foregroundStyle(Color.brutalTextFaint)
+                                                .foregroundStyle(Color.brutalText)
                                             Text("New repositories will be saved to the app's default location.")
-                                                .font(.system(size: 12, design: .monospaced))
-                                                .foregroundStyle(Color.brutalTextMid)
+                                                .font(.system(size: 14, design: .monospaced))
+                                                .foregroundStyle(Color.brutalText)
                                         }
                                         .padding(.horizontal, 16)
                                         .padding(.top, 14)
@@ -204,7 +204,7 @@ struct AppSettingsView: View {
                                             HStack(spacing: 6) {
                                                 Text("📂")
                                                 Text("CHOOSE DEFAULT LOCATION")
-                                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                                    .font(.system(size: 14, weight: .bold, design: .monospaced))
                                                     .foregroundStyle(Color.brutalAccent)
                                                     .tracking(1)
                                             }
@@ -266,7 +266,7 @@ struct AppSettingsView: View {
                         dismiss()
                     } label: {
                         Text("DONE")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color(.systemBackground))
                             .tracking(1)
                             .padding(.horizontal, 10)
@@ -329,13 +329,13 @@ struct AppSettingsView: View {
     private func dataRow(label: String, value: String) -> some View {
         HStack {
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundStyle(Color.brutalTextFaint)
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.brutalText)
                 .tracking(1)
             Spacer()
             Text(value)
                 .font(.system(size: 13, design: .monospaced))
-                .foregroundStyle(Color.brutalTextMid)
+                .foregroundStyle(Color.brutalText)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
@@ -353,15 +353,15 @@ struct AppSettingsView: View {
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(Color.brutalText)
                     Text(subtitle)
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(Color.brutalTextMid)
+                        .font(.system(size: 13, design: .monospaced))
+                        .foregroundStyle(Color.brutalText)
                 }
 
                 Spacer()
 
                 Text("→")
                     .font(.system(size: 13, design: .monospaced))
-                    .foregroundStyle(Color.brutalTextFaint)
+                    .foregroundStyle(Color.brutalText)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)

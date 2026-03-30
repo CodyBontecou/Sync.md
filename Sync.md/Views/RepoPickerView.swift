@@ -52,8 +52,8 @@ struct RepoPickerView: View {
                             .frame(height: 1)
                     }
                     .padding(.horizontal, 20)
-                    .shadow(color: .primary.opacity(0.10), radius: 0, x: 3, y: 3)
-                    .overlay(Rectangle().stroke(Color.brutalBorder, lineWidth: 1).padding(.horizontal, 20))
+                    
+                    .overlay(Rectangle().strokeBorder(Color.brutalBorder, lineWidth: 1).padding(.horizontal, 20))
                 }
                 .scrollIndicators(.hidden)
                 .overlay {
@@ -76,8 +76,8 @@ struct RepoPickerView: View {
                         dismiss()
                     } label: {
                         Text("CANCEL")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundStyle(Color.brutalTextMid)
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.brutalText)
                             .tracking(1)
                     }
                     .buttonStyle(.plain)
@@ -104,27 +104,27 @@ struct RepoPickerView: View {
                 if let desc = repo.description, !desc.isEmpty {
                     Text(desc)
                         .font(.system(size: 12))
-                        .foregroundStyle(Color.brutalTextMid)
+                        .foregroundStyle(Color.brutalText)
                         .lineLimit(2)
                 }
 
                 HStack(spacing: 12) {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.triangle.branch")
-                            .font(.system(size: 9, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                         Text(repo.defaultBranch)
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.system(size: 14, design: .monospaced))
                     }
-                    .foregroundStyle(Color.brutalTextFaint)
+                    .foregroundStyle(Color.brutalText)
 
                     if let updated = repo.relativeDate {
                         HStack(spacing: 4) {
                             Image(systemName: "clock")
-                                .font(.system(size: 9, weight: .semibold))
+                                .font(.system(size: 12, weight: .semibold))
                             Text(updated)
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.system(size: 14, design: .monospaced))
                         }
-                        .foregroundStyle(Color.brutalTextFaint)
+                        .foregroundStyle(Color.brutalText)
                     }
                 }
             }
@@ -133,7 +133,7 @@ struct RepoPickerView: View {
 
             Text("→")
                 .font(.system(size: 13, design: .monospaced))
-                .foregroundStyle(Color.brutalTextFaint)
+                .foregroundStyle(Color.brutalText)
                 .padding(.top, 3)
         }
         .padding(.horizontal, 20)
