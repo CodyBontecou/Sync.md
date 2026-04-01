@@ -1,8 +1,8 @@
 default_platform(:ios)
 
 platform :ios do
-  release_notes_text = "• View changed files inline — see exactly what's modified before committing\n• Tap any file to open a full diff view with color-coded additions and deletions\n• Revert individual files or all changes at once with a single tap\n• Improved navigation and overall polish"
-  app_version = "1.8"
+  release_notes_text = "• Previously cloned repositories now appear on the main screen — tap any to re-clone instantly\n• Free repository slot is now reliably preserved across reinstalls\n• Bug fixes and performance improvements"
+  app_version = "1.9.2"
 
   submission_information = {
     add_id_info_uses_idfa: false,
@@ -54,7 +54,7 @@ platform :ios do
       skip_screenshots: false,
       skip_metadata: false,
       force: true,
-      submit_for_review: false,
+      submit_for_review: true,
       automatic_release: false,
       app_version: app_version,
       release_notes: {
