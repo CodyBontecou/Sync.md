@@ -1224,12 +1224,6 @@ final class AppState {
             syncProgress = String(localized: "Clone complete! (\(result.fileCount) files)")
             DebugLogger.shared.info("clone", "Clone complete", detail: "\(result.fileCount) files, branch: \(result.branch)")
 
-            // Request an App Store review after the first successful clone
-            let reviewKey = "hasRequestedReview"
-            if !UserDefaults.standard.bool(forKey: reviewKey) {
-                UserDefaults.standard.set(true, forKey: reviewKey)
-                shouldRequestReview = true
-            }
 
         } catch {
             showError(message: error.localizedDescription, category: "clone")
@@ -1336,6 +1330,7 @@ final class AppState {
                         kind: .fastForwarded,
                         message: String(localized: "Pulled latest changes (fast-forward)")
                     )
+                    requestReviewIfNeeded()
                 }
             }
 
@@ -1432,6 +1427,7 @@ final class AppState {
             detectChanges(repoID: repoID)
             syncProgress = String(localized: "Push complete!")
             DebugLogger.shared.info("push", "Push complete", detail: "SHA: \(result.commitSHA)")
+            requestReviewIfNeeded()
 
         } catch {
             showError(message: error.localizedDescription, category: "push")
@@ -1440,6 +1436,16 @@ final class AppState {
         try? await Task.sleep(for: .seconds(1))
         isSyncing = false
         syncingRepoID = nil
+    }
+
+    // MARK: - Review Prompt
+
+    private func requestReviewIfNeeded() {
+        let reviewKey = "hasRequestedReview"
+        if !UserDefaults.standard.bool(forKey: reviewKey) {
+            UserDefaults.standard.set(true, forKey: reviewKey)
+            shouldRequestReview = true
+        }
     }
 
     // MARK: - Repo Management
