@@ -148,6 +148,28 @@ struct SettingsView: View {
                             }
                         }
 
+                        // Debug Log
+                        settingsSection(title: "Debug") {
+                            NavigationLink {
+                                DebugLogView()
+                            } label: {
+                                HStack {
+                                    Text("VIEW DEBUG LOG")
+                                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(Color.brutalText)
+                                        .tracking(1)
+                                    Spacer()
+                                    logCountBadge
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundStyle(Color.brutalTextFaint)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 13)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
                         // Remove
                         BDestructiveButton(title: "Remove Repository") {
                             showRemoveConfirm = true
@@ -254,6 +276,20 @@ struct SettingsView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
+    }
+
+    @ViewBuilder
+    private var logCountBadge: some View {
+        let errorCount = DebugLogger.shared.entries.filter { $0.level == .error }.count
+        if errorCount > 0 {
+            Text("\(errorCount)")
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundStyle(Color.brutalError)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.brutalError.opacity(0.12))
+                .overlay(Rectangle().strokeBorder(Color.brutalError.opacity(0.3), lineWidth: 1))
+        }
     }
 
     // MARK: - Helpers

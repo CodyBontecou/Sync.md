@@ -1343,18 +1343,40 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             defer { if let index { git_index_free(index) } }
             try git2Check(git_repository_index(&index, repo), context: "Get index")
 
-            // Determine if the file is untracked (no index entry) → just delete it
+            // Check whether the file is tracked (has an index entry or exists in HEAD)
             let existsInIndex = path.withCString { cPath in
                 git_index_get_bypath(index, cPath, 0) != nil
             }
 
-            if !existsInIndex {
-                // Untracked file — remove from disk
-                try? FileManager.default.removeItem(atPath: fullPath)
+            // Also check if file exists in HEAD tree (covers staged-new files)
+            var headRef: OpaquePointer?
+            defer { if let headRef { git_reference_free(headRef) } }
+            let hasHead = git_repository_head(&headRef, repo) == 0
+
+            var existsInHead = false
+            if hasHead, let oid = git_reference_target(headRef) {
+                var commit: OpaquePointer?
+                defer { if let commit { git_commit_free(commit) } }
+                var oidCopy = oid.pointee
+                if git_commit_lookup(&commit, repo, &oidCopy) == 0 {
+                    var tree: OpaquePointer?
+                    defer { if let tree { git_tree_free(tree) } }
+                    if git_commit_tree(&tree, commit) == 0 {
+                        var entry: OpaquePointer?
+                        existsInHead = path.withCString { cPath in
+                            git_tree_entry_bypath(&entry, tree, cPath) == 0
+                        }
+                        if let entry { git_tree_entry_free(entry) }
+                    }
+                }
+            }
+
+            if !existsInIndex && !existsInHead {
+                // Purely untracked file — remove from disk
+                try FileManager.default.removeItem(atPath: fullPath)
                 return
             }
 
-            // Tracked file — restore working tree to HEAD via checkout
             let cString = strdup(path)!
             let storage = UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>.allocate(capacity: 1)
             defer {
@@ -1365,15 +1387,44 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             var pathspec = git_strarray()
             makeStrarray(cString, into: &pathspec, storage: storage)
 
-            var opts = git_checkout_options()
-            git_checkout_options_init(&opts, UInt32(GIT_CHECKOUT_OPTIONS_VERSION))
-            opts.checkout_strategy = UInt32(GIT_CHECKOUT_FORCE.rawValue)
-            opts.paths = pathspec
+            // Unstage: reset index entry to HEAD so staged changes are cleared
+            if hasHead {
+                var headObject: OpaquePointer?
+                defer { if let headObject { git_object_free(headObject) } }
+                if let headOID = git_reference_target(headRef) {
+                    try git2Check(
+                        git_object_lookup(&headObject, repo, headOID, GIT_OBJECT_ANY),
+                        context: "Lookup HEAD for reset"
+                    )
+                }
+                try git2Check(
+                    git_reset_default(repo, headObject, &pathspec),
+                    context: "Unstage \(path)"
+                )
+            } else {
+                // No HEAD (unborn branch) — remove from index directly
+                try git2Check(
+                    git_index_remove_bypath(index, cString),
+                    context: "Remove from index \(path)"
+                )
+                try git2Check(git_index_write(index), context: "Write index")
+            }
 
-            try git2Check(
-                git_checkout_head(repo, &opts),
-                context: "Discard changes in \(path)"
-            )
+            // Restore working tree to HEAD
+            if existsInHead {
+                var opts = git_checkout_options()
+                git_checkout_options_init(&opts, UInt32(GIT_CHECKOUT_OPTIONS_VERSION))
+                opts.checkout_strategy = UInt32(GIT_CHECKOUT_FORCE.rawValue)
+                opts.paths = pathspec
+
+                try git2Check(
+                    git_checkout_head(repo, &opts),
+                    context: "Discard changes in \(path)"
+                )
+            } else {
+                // File doesn't exist in HEAD (was newly added) — remove from disk
+                try? FileManager.default.removeItem(atPath: fullPath)
+            }
         }.value
     }
 

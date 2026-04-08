@@ -959,6 +959,7 @@ final class AppState {
 
         do {
             let repo = repos[idx]
+            DebugLogger.shared.info("revert", "Reverting commit", detail: "OID: \(oid)")
             let result = try await gitService.revertCommit(
                 oid: oid,
                 message: message,
@@ -975,15 +976,17 @@ final class AppState {
                     clearCommitHistoryCache(for: repoID)
                 }
                 syncProgress = String(localized: "Revert complete")
+                DebugLogger.shared.info("revert", "Commit revert complete", detail: "new SHA: \(result.newCommitSHA ?? "nil")")
             case .conflicts:
                 syncProgress = String(localized: "Revert has conflicts")
+                DebugLogger.shared.warning("revert", "Commit revert produced conflicts", detail: "OID: \(oid)")
             }
 
             detectChanges(repoID: repoID)
             await loadConflictSession(repoID: repoID)
         } catch {
             await loadConflictSession(repoID: repoID)
-            showError(message: error.localizedDescription)
+            showError(message: error.localizedDescription, category: "revert")
         }
 
         isSyncing = false
@@ -1112,15 +1115,17 @@ final class AppState {
         let gitService = gitRepositoryFactory(vaultDir)
 
         guard gitService.hasGitDirectory else {
-            showError(message: LocalGitError.notCloned.localizedDescription)
+            showError(message: LocalGitError.notCloned.localizedDescription, category: "revert")
             return
         }
 
         do {
+            DebugLogger.shared.info("revert", "Reverting all file changes")
             try await gitService.discardAllChanges()
             detectChanges(repoID: repoID)
+            DebugLogger.shared.info("revert", "Revert all complete")
         } catch {
-            showError(message: error.localizedDescription)
+            showError(message: error.localizedDescription, category: "revert")
         }
     }
 
@@ -1132,15 +1137,17 @@ final class AppState {
         let gitService = gitRepositoryFactory(vaultDir)
 
         guard gitService.hasGitDirectory else {
-            showError(message: LocalGitError.notCloned.localizedDescription)
+            showError(message: LocalGitError.notCloned.localizedDescription, category: "revert")
             return
         }
 
         do {
+            DebugLogger.shared.info("revert", "Reverting file changes", detail: path)
             try await gitService.discardChanges(path: path)
             detectChanges(repoID: repoID)
+            DebugLogger.shared.info("revert", "File revert complete", detail: path)
         } catch {
-            showError(message: error.localizedDescription)
+            showError(message: error.localizedDescription, category: "revert")
         }
     }
 
@@ -1189,6 +1196,7 @@ final class AppState {
             let gitService = gitRepositoryFactory(vaultDir)
 
             syncProgress = String(localized: "Cloning repository...")
+            DebugLogger.shared.info("clone", "Starting clone", detail: cloneURL)
             let result = try await gitService.clone(remoteURL: cloneURL, pat: pat)
 
             // Update branch from what was actually checked out
@@ -1209,6 +1217,7 @@ final class AppState {
             clearCommitHistoryCache(for: repoID)
             detectChanges(repoID: repoID)
             syncProgress = String(localized: "Clone complete! (\(result.fileCount) files)")
+            DebugLogger.shared.info("clone", "Clone complete", detail: "\(result.fileCount) files, branch: \(result.branch)")
 
             // Request an App Store review after the first successful clone
             let reviewKey = "hasRequestedReview"
@@ -1218,7 +1227,7 @@ final class AppState {
             }
 
         } catch {
-            showError(message: error.localizedDescription)
+            showError(message: error.localizedDescription, category: "clone")
         }
 
         try? await Task.sleep(for: .seconds(1))
@@ -1258,11 +1267,13 @@ final class AppState {
                 throw LocalGitError.notCloned
             }
 
+            DebugLogger.shared.info("pull", "Starting pull", detail: "branch: \(repo.branch)")
             let plan = try await gitService.pullPlan(pat: pat)
 
             switch plan.action {
             case .upToDate:
                 syncProgress = String(localized: "Already up to date!")
+                DebugLogger.shared.info("pull", "Already up to date")
                 setPullOutcome(
                     repoID: repoID,
                     kind: .upToDate,
@@ -1271,6 +1282,7 @@ final class AppState {
 
             case .blockedByLocalChanges:
                 syncProgress = String(localized: "Pull blocked by local changes")
+                DebugLogger.shared.warning("pull", "Blocked by local changes")
                 setPullOutcome(
                     repoID: repoID,
                     kind: .blockedByLocalChanges,
@@ -1313,6 +1325,7 @@ final class AppState {
                     clearCommitHistoryCache(for: repoID)
                     detectChanges(repoID: repoID)
                     syncProgress = String(localized: "Pull complete!")
+                    DebugLogger.shared.info("pull", "Pull complete (fast-forward)", detail: "new SHA: \(result.newCommitSHA)")
                     setPullOutcome(
                         repoID: repoID,
                         kind: .fastForwarded,
@@ -1325,6 +1338,7 @@ final class AppState {
             switch error {
             case .pullBlockedByLocalChanges:
                 syncProgress = String(localized: "Pull blocked by local changes")
+                DebugLogger.shared.warning("pull", "Blocked by local changes")
                 setPullOutcome(
                     repoID: repoID,
                     kind: .blockedByLocalChanges,
@@ -1332,6 +1346,7 @@ final class AppState {
                 )
             case .pullDiverged:
                 syncProgress = String(localized: "Pull requires merge")
+                DebugLogger.shared.warning("pull", "Diverged — merge required")
                 setPullOutcome(
                     repoID: repoID,
                     kind: .diverged,
@@ -1339,6 +1354,7 @@ final class AppState {
                 )
             case .pullRemoteBranchMissing(let branch):
                 syncProgress = String(localized: "Remote branch missing")
+                DebugLogger.shared.warning("pull", "Remote branch missing", detail: branch)
                 setPullOutcome(
                     repoID: repoID,
                     kind: .remoteBranchMissing,
@@ -1346,11 +1362,11 @@ final class AppState {
                 )
             default:
                 setPullOutcome(repoID: repoID, kind: .failed, message: error.localizedDescription)
-                showError(message: error.localizedDescription)
+                showError(message: error.localizedDescription, category: "pull")
             }
         } catch {
             setPullOutcome(repoID: repoID, kind: .failed, message: error.localizedDescription)
-            showError(message: error.localizedDescription)
+            showError(message: error.localizedDescription, category: "pull")
         }
 
         try? await Task.sleep(for: .seconds(1))
@@ -1394,6 +1410,7 @@ final class AppState {
             let commitMsg = message.isEmpty ? String(localized: "Update from Sync.md") : message
 
             syncProgress = String(localized: "Committing and pushing...")
+            DebugLogger.shared.info("push", "Starting commit & push", detail: "message: \(commitMsg)")
             let result = try await gitService.commitAndPush(
                 message: commitMsg,
                 authorName: repo.authorName,
@@ -1409,9 +1426,10 @@ final class AppState {
             clearCommitHistoryCache(for: repoID)
             detectChanges(repoID: repoID)
             syncProgress = String(localized: "Push complete!")
+            DebugLogger.shared.info("push", "Push complete", detail: "SHA: \(result.commitSHA)")
 
         } catch {
-            showError(message: error.localizedDescription)
+            showError(message: error.localizedDescription, category: "push")
         }
 
         try? await Task.sleep(for: .seconds(1))
@@ -1693,9 +1711,10 @@ final class AppState {
 
     // MARK: - Error Handling
 
-    private func showError(message: String) {
+    private func showError(message: String, category: String = "general") {
         lastError = message
         showError = true
+        DebugLogger.shared.error(category, message)
     }
 
     // MARK: - Demo Mode
