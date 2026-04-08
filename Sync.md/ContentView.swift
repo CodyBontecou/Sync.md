@@ -8,8 +8,9 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            // Show main app if: (1) signed in AND completed onboarding, OR (2) has repos already (existing user)
-            if (state.isSignedIn && state.hasCompletedOnboarding) || !state.repos.isEmpty {
+            if !state.hasSeenOnboarding && state.repos.isEmpty {
+                OnboardingView()
+            } else if (state.isSignedIn && state.hasCompletedOnboarding) || !state.repos.isEmpty {
                 RepoListView()
             } else {
                 SetupView()

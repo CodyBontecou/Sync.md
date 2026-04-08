@@ -56,6 +56,9 @@ final class AppState {
     /// Whether onboarding (including the save-location step) has been completed.
     var hasCompletedOnboarding: Bool = false
 
+    /// Whether the user has seen the feature onboarding slides.
+    var hasSeenOnboarding: Bool = false
+
     // MARK: - Demo Mode
 
     var isDemoMode: Bool = false
@@ -115,6 +118,7 @@ final class AppState {
         defaultAuthorName = defaults.string(forKey: "authorName") ?? ""
         defaultAuthorEmail = defaults.string(forKey: "authorEmail") ?? ""
         hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
+        hasSeenOnboarding = defaults.bool(forKey: "hasSeenOnboarding")
         isSignedIn = !pat.isEmpty
 
         // Load default save location bookmark
@@ -195,6 +199,7 @@ final class AppState {
         defaults.set(defaultAuthorName, forKey: "authorName")
         defaults.set(defaultAuthorEmail, forKey: "authorEmail")
         defaults.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+        defaults.set(hasSeenOnboarding, forKey: "hasSeenOnboarding")
 
         if let bookmarkData = defaultSaveLocationBookmarkData {
             defaults.set(bookmarkData, forKey: "defaultSaveLocationBookmark")
