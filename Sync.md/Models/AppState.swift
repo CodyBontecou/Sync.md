@@ -354,6 +354,52 @@ final class AppState {
         }
     }
 
+    func moveVaultLocation(for repoID: UUID, to newParentURL: URL, bookmark: Data) throws {
+        guard let idx = repoIndex(id: repoID) else {
+            throw MoveVaultError.repoNotFound
+        }
+
+        let repo = repos[idx]
+        let currentURL = vaultURL(for: repoID)
+        let destinationURL = newParentURL.appendingPathComponent(repo.vaultFolderName, isDirectory: true)
+
+        guard !FileManager.default.fileExists(atPath: destinationURL.path) else {
+            throw MoveVaultError.destinationExists
+        }
+
+        try FileManager.default.moveItem(at: currentURL, to: destinationURL)
+
+        // Clear old bookmark and set new one
+        clearCustomLocation(for: repoID)
+
+        guard newParentURL.startAccessingSecurityScopedResource() else {
+            throw MoveVaultError.bookmarkFailed
+        }
+
+        repos[idx].customVaultBookmarkData = bookmark
+        repos[idx].customLocationIsParent = true
+        saveRepos()
+
+        resolvedCustomURLs[repoID] = newParentURL
+        accessingSecurityScope.insert(repoID)
+
+        detectChanges(repoID: repoID)
+    }
+
+    enum MoveVaultError: LocalizedError {
+        case repoNotFound
+        case destinationExists
+        case bookmarkFailed
+
+        var errorDescription: String? {
+            switch self {
+            case .repoNotFound: String(localized: "Repository not found")
+            case .destinationExists: String(localized: "A folder with the same name already exists at the chosen location")
+            case .bookmarkFailed: String(localized: "Could not access the selected folder")
+            }
+        }
+    }
+
     private func resolveVaultBookmark(for repoID: UUID) {
         guard let repo = repo(id: repoID),
               let bookmarkData = repo.customVaultBookmarkData else { return }
@@ -1234,10 +1280,11 @@ final class AppState {
         syncingRepoID = nil
     }
 
-    func pull(repoID: UUID) async {
+    @discardableResult
+    func pull(repoID: UUID) async -> Bool {
         guard let idx = repoIndex(id: repoID) else {
             showError(message: String(localized: "Repository not found"))
-            return
+            return false
         }
 
         isSyncing = true
@@ -1252,7 +1299,7 @@ final class AppState {
             try? await Task.sleep(for: .seconds(1))
             isSyncing = false
             syncingRepoID = nil
-            return
+            return true
         }
 
         pullOutcomeByRepo.removeValue(forKey: repoID)
@@ -1334,6 +1381,11 @@ final class AppState {
                 }
             }
 
+            try? await Task.sleep(for: .seconds(1))
+            isSyncing = false
+            syncingRepoID = nil
+            return true
+
         } catch let error as LocalGitError {
             switch error {
             case .pullBlockedByLocalChanges:
@@ -1372,12 +1424,14 @@ final class AppState {
         try? await Task.sleep(for: .seconds(1))
         isSyncing = false
         syncingRepoID = nil
+        return false
     }
 
-    func push(repoID: UUID, message: String) async {
+    @discardableResult
+    func push(repoID: UUID, message: String) async -> Bool {
         guard let idx = repoIndex(id: repoID) else {
             showError(message: String(localized: "Repository not found"))
-            return
+            return false
         }
 
         isSyncing = true
@@ -1395,7 +1449,7 @@ final class AppState {
             try? await Task.sleep(for: .seconds(1))
             isSyncing = false
             syncingRepoID = nil
-            return
+            return true
         }
 
         do {
@@ -1429,6 +1483,11 @@ final class AppState {
             DebugLogger.shared.info("push", "Push complete", detail: "SHA: \(result.commitSHA)")
             requestReviewIfNeeded()
 
+            try? await Task.sleep(for: .seconds(1))
+            isSyncing = false
+            syncingRepoID = nil
+            return true
+
         } catch {
             showError(message: error.localizedDescription, category: "push")
         }
@@ -1436,6 +1495,7 @@ final class AppState {
         try? await Task.sleep(for: .seconds(1))
         isSyncing = false
         syncingRepoID = nil
+        return false
     }
 
     // MARK: - Review Prompt
@@ -1704,7 +1764,6 @@ final class AppState {
         defaultAuthorEmail = ""
         gitHubRepos = []
         hasCompletedOnboarding = false
-        clearDefaultSaveLocation()
         saveGlobalSettings()
     }
 

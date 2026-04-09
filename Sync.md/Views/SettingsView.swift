@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Environment(AppState.self) private var state
@@ -13,6 +14,9 @@ struct SettingsView: View {
     @State private var showRemoveConfirm = false
     @State private var showFolderPicker = false
     @State private var showCopiedToast = false
+    @State private var showMoveLocationPicker = false
+    @State private var moveError: String? = nil
+    @State private var showMoveError = false
 
     private var repo: RepoConfig? { state.repo(id: repoID) }
 
@@ -114,6 +118,26 @@ struct SettingsView: View {
                                             .lineLimit(1)
                                     }
                                 }
+
+                                BDivider().padding(.horizontal, 16)
+
+                                Button {
+                                    showMoveLocationPicker = true
+                                } label: {
+                                    HStack {
+                                        Text("MOVE VAULT")
+                                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                            .foregroundStyle(Color.brutalAccent)
+                                            .tracking(1)
+                                        Spacer()
+                                        Image(systemName: "folder.badge.plus")
+                                            .font(.system(size: 13))
+                                            .foregroundStyle(Color.brutalAccent)
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 13)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
 
@@ -234,6 +258,48 @@ struct SettingsView: View {
             } message: {
                 Text("This will delete all local files for this repository. This cannot be undone.")
             }
+            .fileImporter(
+                isPresented: $showMoveLocationPicker,
+                allowedContentTypes: [.folder],
+                allowsMultipleSelection: false
+            ) { result in
+                if case .success(let urls) = result, let url = urls.first {
+                    moveVault(to: url)
+                }
+            }
+            .alert("Move Failed", isPresented: $showMoveError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(moveError ?? String(localized: "Unknown error"))
+            }
+        }
+    }
+
+    private func moveVault(to url: URL) {
+        guard url.startAccessingSecurityScopedResource() else {
+            moveError = String(localized: "Could not access the selected folder")
+            showMoveError = true
+            return
+        }
+
+        guard let bookmark = try? url.bookmarkData(
+            options: [],
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        ) else {
+            url.stopAccessingSecurityScopedResource()
+            moveError = String(localized: "Could not save folder access")
+            showMoveError = true
+            return
+        }
+
+        url.stopAccessingSecurityScopedResource()
+
+        do {
+            try state.moveVaultLocation(for: repoID, to: url, bookmark: bookmark)
+        } catch {
+            moveError = error.localizedDescription
+            showMoveError = true
         }
     }
 

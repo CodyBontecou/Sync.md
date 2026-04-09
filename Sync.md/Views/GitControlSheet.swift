@@ -90,6 +90,14 @@ struct GitControlSheet: View {
                     .buttonStyle(.plain)
                 }
             }
+            .alert("Error", isPresented: Binding(
+                get: { state.showError },
+                set: { state.showError = $0 }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(state.lastError ?? String(localized: "Unknown error"))
+            }
             .sheet(isPresented: $showDiffSheet) {
                 NavigationStack {
                     Group {
@@ -727,8 +735,8 @@ struct GitControlSheet: View {
     private var pullCard: some View {
         Button {
             Task {
-                await state.pull(repoID: repoID)
-                dismiss()
+                let ok = await state.pull(repoID: repoID)
+                if ok { dismiss() }
             }
         } label: {
             BCard(padding: 0) {
@@ -784,9 +792,11 @@ struct GitControlSheet: View {
 
                 Button {
                     Task {
-                        await state.push(repoID: repoID, message: commitMessage)
-                        commitMessage = ""
-                        dismiss()
+                        let ok = await state.push(repoID: repoID, message: commitMessage)
+                        if ok {
+                            commitMessage = ""
+                            dismiss()
+                        }
                     }
                 } label: {
                     HStack(spacing: 8) {
