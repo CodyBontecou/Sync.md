@@ -561,41 +561,40 @@ struct BActionRow: View {
     var subtitle: String? = nil
     var badge: Int? = nil
     var badgeStyle: BBadge.BBadgeStyle = .accent
-    var action: (() -> Void)? = nil
 
+    // BActionRow is a pure label — callers wrap it in an outer Button.
+    // It used to contain its own Button, which swallowed taps when nested
+    // inside an outer Button (SwiftUI nested-button hit-testing conflict).
     var body: some View {
-        Button(action: { action?() }) {
-            HStack(spacing: 14) {
-                Text(icon)
-                    .font(.system(size: 20))
-                    .frame(width: 32)
+        HStack(spacing: 14) {
+            Text(icon)
+                .font(.system(size: 20))
+                .frame(width: 32)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color.brutalText)
-                    if let sub = subtitle {
-                        Text(sub)
-                            .font(.system(size: 14, design: .monospaced))
-                            .foregroundStyle(Color.brutalText)
-                    }
-                }
-
-                Spacer()
-
-                if let count = badge, count > 0 {
-                    BBadge(text: "\(count)", style: badgeStyle)
-                } else {
-                    Text("→")
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.brutalText)
+                if let sub = subtitle {
+                    Text(sub)
                         .font(.system(size: 14, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                 }
             }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 16)
-            .contentShape(Rectangle())
+
+            Spacer()
+
+            if let count = badge, count > 0 {
+                BBadge(text: "\(count)", style: badgeStyle)
+            } else {
+                Text("→")
+                    .font(.system(size: 14, design: .monospaced))
+                    .foregroundStyle(Color.brutalText)
+            }
         }
-        .buttonStyle(.plain)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 16)
+        .contentShape(Rectangle())
     }
 }
 

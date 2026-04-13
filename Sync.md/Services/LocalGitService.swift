@@ -1802,6 +1802,19 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             defer { if let repo { git_repository_free(repo) } }
             try git2Check(git_repository_open(&repo, repoPath), context: "Open repo")
 
+            // Resolve the local tag OID up front so we have something to
+            // compare the remote ref advertisement against during verification.
+            var localTagRef: OpaquePointer?
+            defer { if let localTagRef { git_reference_free(localTagRef) } }
+            try git2Check(
+                git_reference_lookup(&localTagRef, repo, "refs/tags/\(name)"),
+                context: "Lookup local tag \(name)"
+            )
+            guard let localTagOidPtr = git_reference_target(localTagRef) else {
+                throw LocalGitError.pushFailed("Could not resolve local tag \(name) for verification.")
+            }
+            var localTagOid = localTagOidPtr.pointee
+
             var pushRemote: OpaquePointer?
             defer { if let pushRemote { git_remote_free(pushRemote) } }
             let remoteCode = git_remote_lookup(&pushRemote, repo, "origin")
@@ -1839,6 +1852,52 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                     .map { "\($0.refname): \($0.reason)" }
                     .joined(separator: "; ")
                 throw LocalGitError.pushFailed(detail)
+            }
+
+            // Same silent-success path as commitAndPush: git_remote_push can
+            // return 0 with no rejected refs even when nothing landed on the
+            // server. Tags don't have a remote-tracking namespace, so we
+            // reconnect (fetch direction) and read the live ref advertisement
+            // from origin to confirm the tag is actually there. The credential
+            // one-shot guard from the push has to be reset before reconnecting,
+            // otherwise pushCredentialCallback will refuse to authenticate.
+            ctx.didAttempt = false
+            git_remote_disconnect(pushRemote)
+            try git2Check(
+                git_remote_connect(pushRemote, GIT_DIRECTION_FETCH, &pushOpts.callbacks, nil, nil),
+                context: "Reconnect to verify tag \(name)"
+            )
+            defer { git_remote_disconnect(pushRemote) }
+
+            var remoteHeads: UnsafeMutablePointer<UnsafePointer<git_remote_head>?>?
+            var headCount: Int = 0
+            try git2Check(
+                git_remote_ls(&remoteHeads, &headCount, pushRemote),
+                context: "List remote refs to verify tag \(name)"
+            )
+
+            let targetName = "refs/tags/\(name)"
+            var matched = false
+            for i in 0..<headCount {
+                guard let headPtr = remoteHeads?[i],
+                      let namePtr = headPtr.pointee.name else { continue }
+                if String(cString: namePtr) == targetName {
+                    var advertisedOid = headPtr.pointee.oid
+                    if git_oid_equal(&advertisedOid, &localTagOid) == 0 {
+                        let remoteHex = oidToHex(&advertisedOid)
+                        let localHex = oidToHex(&localTagOid)
+                        throw LocalGitError.pushFailed(
+                            "Push reported success but origin has tag \(name) at \(remoteHex.prefix(7)), expected \(localHex.prefix(7))."
+                        )
+                    }
+                    matched = true
+                    break
+                }
+            }
+            if !matched {
+                throw LocalGitError.pushFailed(
+                    "Push reported success but origin does not advertise tag \(name). Check PAT scope and that origin URL points at the right repository."
+                )
             }
         }.value
     }
@@ -1986,6 +2045,30 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                     .map { "\($0.refname): \($0.reason)" }
                     .joined(separator: "; ")
                 throw LocalGitError.pushFailed(detail)
+            }
+
+            // git_remote_push can also return 0 with an empty rejectedRefs list
+            // when libgit2 decides there was nothing to send (e.g. the local
+            // branch didn't actually advance past origin/<branch>, the smart-HTTP
+            // exchange returned no ack lines, or the server quietly dropped the
+            // update). Re-fetch and verify refs/remotes/origin/<branch> actually
+            // points at our new commit; if not, surface the failure so the user
+            // sees a real error instead of a fake "Push complete".
+            try Self.fetchOrigin(repo: repo, pat: pat)
+            let remoteTrackingRefName = "refs/remotes/origin/\(branchName)"
+            var verifyRef: OpaquePointer?
+            defer { if let verifyRef { git_reference_free(verifyRef) } }
+            let verifyCode = git_reference_lookup(&verifyRef, repo, remoteTrackingRefName)
+            guard verifyCode == 0, let verifyOidPtr = git_reference_target(verifyRef) else {
+                throw LocalGitError.pushFailed(
+                    "Push reported success but origin does not advertise refs/heads/\(branchName). Check that origin URL, branch name, and PAT scope are correct."
+                )
+            }
+            if git_oid_equal(verifyOidPtr, &commitOid) == 0 {
+                let remoteHex = oidToHex(verifyOidPtr)
+                throw LocalGitError.pushFailed(
+                    "Push reported success but origin/\(branchName) is at \(remoteHex.prefix(7)), expected \(commitSHA.prefix(7)). The remote silently rejected the update — check branch protection rules, PAT scope, and that origin URL points at the right repository."
+                )
             }
 
             return LocalPushResult(commitSHA: commitSHA)
