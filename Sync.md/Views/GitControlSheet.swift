@@ -7,9 +7,7 @@ struct GitControlSheet: View {
     let repoID: UUID
 
     @State private var commitMessage = ""
-    @State private var selectedDiffPath: String? = nil
-    @State private var showDiffSheet = false
-    @State private var isLoadingDiff = false
+    @State private var diffDestination: DiffDestination? = nil
     @State private var newBranchName = ""
     @State private var mergeCommitMessage = ""
     @State private var stashMessage = ""
@@ -29,17 +27,6 @@ struct GitControlSheet: View {
     private var hasConflictSession: Bool { conflictSession.isActive }
     private var stashes: [GitStashEntry] { state.stashesByRepo[repoID] ?? [] }
     private var tags: [GitTag] { state.tagsByRepo[repoID] ?? [] }
-
-    private var selectedDiffText: String {
-        guard let selectedDiffPath,
-              let result = state.diffByRepo[repoID] else { return "" }
-        if let file = result.files.first(where: {
-            $0.path == selectedDiffPath || $0.newPath == selectedDiffPath || $0.oldPath == selectedDiffPath
-        }) {
-            return file.patch.isEmpty ? result.rawPatch : file.patch
-        }
-        return result.rawPatch
-    }
 
     var body: some View {
         NavigationStack {
@@ -98,37 +85,8 @@ struct GitControlSheet: View {
             } message: {
                 Text(state.lastError ?? String(localized: "Unknown error"))
             }
-            .sheet(isPresented: $showDiffSheet) {
-                NavigationStack {
-                    Group {
-                        if isLoadingDiff {
-                            VStack(spacing: 16) {
-                                BLoading(text: String(localized: "Loading diff"))
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.brutalBg)
-                        } else if selectedDiffText.isEmpty {
-                            ContentUnavailableView(String(localized: "No Diff Available"), systemImage: "doc.text")
-                        } else {
-                            ScrollView {
-                                Text(selectedDiffText)
-                                    .font(.system(size: 14, design: .monospaced))
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(16)
-                                    .textSelection(.enabled)
-                            }
-                            .background(Color.brutalBg)
-                        }
-                    }
-                    .navigationTitle(selectedDiffPath ?? "Diff")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showDiffSheet = false }
-                        }
-                    }
-                }
-                .presentationDetents([.medium, .large])
+            .navigationDestination(item: $diffDestination) { dest in
+                FileDiffView(repoID: dest.repoID, path: dest.path)
             }
             .task {
                 #if DEBUG
@@ -845,13 +803,7 @@ struct GitControlSheet: View {
     // MARK: - Helpers
 
     private func openDiff(for path: String) {
-        selectedDiffPath = path
-        showDiffSheet = true
-        isLoadingDiff = true
-        Task {
-            await state.loadUnifiedDiff(repoID: repoID, path: path)
-            isLoadingDiff = false
-        }
+        diffDestination = DiffDestination(repoID: repoID, path: path)
     }
 
     private func smallActionButton(_ title: String, isDestructive: Bool = false, action: @escaping () -> Void) -> some View {
