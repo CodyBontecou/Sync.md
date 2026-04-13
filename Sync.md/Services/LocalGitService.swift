@@ -202,6 +202,63 @@ nonisolated private func credentialCallback(
     return GIT_EUSER.rawValue
 }
 
+// MARK: - Push Callbacks
+
+/// Context for push operations — combines credentials with per-ref rejection tracking.
+///
+/// `git_remote_push` returns 0 on network success even when the remote rejects
+/// individual refs (non-fast-forward, protected branch, pre-receive hook). The
+/// only way to detect those rejections is via the `push_update_reference`
+/// callback, which is called once per ref with a non-nil `status` string when
+/// that ref was rejected.
+private final class PushContext {
+    let username: String
+    let password: String
+    var didAttempt = false
+    var rejectedRefs: [(refname: String, reason: String)] = []
+
+    init(username: String, password: String) {
+        self.username = username
+        self.password = password
+    }
+}
+
+nonisolated private func pushCredentialCallback(
+    cred: UnsafeMutablePointer<UnsafeMutablePointer<git_credential>?>?,
+    url: UnsafePointer<CChar>?,
+    usernameFromURL: UnsafePointer<CChar>?,
+    allowedTypes: UInt32,
+    payload: UnsafeMutableRawPointer?
+) -> Int32 {
+    guard let payload else { return GIT_EUSER.rawValue }
+    let ctx = Unmanaged<PushContext>.fromOpaque(payload).takeUnretainedValue()
+
+    if ctx.didAttempt { return GIT_EUSER.rawValue }
+    ctx.didAttempt = true
+
+    if allowedTypes & GIT_CREDENTIAL_USERPASS_PLAINTEXT.rawValue != 0 {
+        return git_credential_userpass_plaintext_new(cred, ctx.username, ctx.password)
+    }
+    return GIT_EUSER.rawValue
+}
+
+nonisolated private func pushUpdateReferenceCallback(
+    refname: UnsafePointer<CChar>?,
+    status: UnsafePointer<CChar>?,
+    payload: UnsafeMutableRawPointer?
+) -> Int32 {
+    guard let payload else { return 0 }
+    let ctx = Unmanaged<PushContext>.fromOpaque(payload).takeUnretainedValue()
+
+    // A non-nil status means the remote rejected this ref update.
+    if let status {
+        let refnameString = refname.map { String(cString: $0) } ?? "(unknown)"
+        let reason = String(cString: status)
+        ctx.rejectedRefs.append((refname: refnameString, reason: reason))
+    }
+    return 0
+}
+
 private final class DiffPrintCollector {
     var output: String = ""
 }
@@ -1438,12 +1495,48 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             defer { if let repo { git_repository_free(repo) } }
             try git2Check(git_repository_open(&repo, repoPath), context: "Open repo")
 
+            var headRef: OpaquePointer?
+            defer { if let headRef { git_reference_free(headRef) } }
+            let headCode = git_repository_head(&headRef, repo)
+
+            // Unborn branch (no HEAD yet): nothing to revert to. Clear the
+            // index and remove any remaining untracked files.
+            if headCode == GIT_EUNBORNBRANCH.rawValue || headCode == GIT_ENOTFOUND.rawValue {
+                var index: OpaquePointer?
+                defer { if let index { git_index_free(index) } }
+                try git2Check(git_repository_index(&index, repo), context: "Get index")
+                try git2Check(git_index_clear(index), context: "Clear index")
+                try git2Check(git_index_write(index), context: "Write index")
+                return
+            }
+            try git2Check(headCode, context: "Read HEAD for discard all")
+
+            guard let headOid = git_reference_target(headRef) else {
+                throw LocalGitError.repositoryCorrupted("Could not resolve HEAD for discard all")
+            }
+
+            var headCommit: OpaquePointer?
+            defer { if let headCommit { git_commit_free(headCommit) } }
+            var headOidCopy = headOid.pointee
+            try git2Check(
+                git_commit_lookup(&headCommit, repo, &headOidCopy),
+                context: "Lookup HEAD commit for discard all"
+            )
+
             var opts = git_checkout_options()
             git_checkout_options_init(&opts, UInt32(GIT_CHECKOUT_OPTIONS_VERSION))
             opts.checkout_strategy = UInt32(GIT_CHECKOUT_FORCE.rawValue) |
                                      UInt32(GIT_CHECKOUT_REMOVE_UNTRACKED.rawValue)
 
-            try git2Check(git_checkout_head(repo, &opts), context: "Discard all changes")
+            // HARD reset resets the index to HEAD's tree in addition to
+            // overwriting the working tree. `git_checkout_head` alone leaves
+            // stale index state behind when both the index and the worktree
+            // are dirty, so the file-level revert path already works around
+            // this by unstaging explicitly before the checkout.
+            try git2Check(
+                git_reset(repo, headCommit, GIT_RESET_HARD, &opts),
+                context: "Hard reset to HEAD"
+            )
         }.value
     }
 
@@ -1719,11 +1812,12 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             var pushOpts = git_push_options()
             git_push_options_init(&pushOpts, UInt32(GIT_PUSH_OPTIONS_VERSION))
 
-            let ctx = CredentialContext(username: "x-access-token", password: pat)
+            let ctx = PushContext(username: "x-access-token", password: pat)
             let ctxPtr = Unmanaged.passRetained(ctx).toOpaque()
-            defer { Unmanaged<CredentialContext>.fromOpaque(ctxPtr).release() }
+            defer { Unmanaged<PushContext>.fromOpaque(ctxPtr).release() }
 
-            pushOpts.callbacks.credentials = credentialCallback
+            pushOpts.callbacks.credentials = pushCredentialCallback
+            pushOpts.callbacks.push_update_reference = pushUpdateReferenceCallback
             pushOpts.callbacks.payload = ctxPtr
 
             // refs/tags/<name>:refs/tags/<name>
@@ -1739,6 +1833,13 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 git_remote_push(pushRemote, &refspecs, &pushOpts),
                 context: "Push tag \(name)"
             )
+
+            if !ctx.rejectedRefs.isEmpty {
+                let detail = ctx.rejectedRefs
+                    .map { "\($0.refname): \($0.reason)" }
+                    .joined(separator: "; ")
+                throw LocalGitError.pushFailed(detail)
+            }
         }.value
     }
 
@@ -1849,11 +1950,12 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             var pushOpts = git_push_options()
             git_push_options_init(&pushOpts, UInt32(GIT_PUSH_OPTIONS_VERSION))
 
-            let pushCtx = CredentialContext(username: "x-access-token", password: pat)
+            let pushCtx = PushContext(username: "x-access-token", password: pat)
             let pushCtxPtr = Unmanaged.passRetained(pushCtx).toOpaque()
-            defer { Unmanaged<CredentialContext>.fromOpaque(pushCtxPtr).release() }
+            defer { Unmanaged<PushContext>.fromOpaque(pushCtxPtr).release() }
 
-            pushOpts.callbacks.credentials = credentialCallback
+            pushOpts.callbacks.credentials = pushCredentialCallback
+            pushOpts.callbacks.push_update_reference = pushUpdateReferenceCallback
             pushOpts.callbacks.payload = pushCtxPtr
 
             // Build push refspec for current branch
@@ -1875,6 +1977,16 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 git_remote_push(pushRemote, &refspecs, &pushOpts),
                 context: "Push to origin"
             )
+
+            // git_remote_push returns 0 when the network upload completes, even
+            // if the remote rejected the ref update. Check the per-ref status
+            // captured by pushUpdateReferenceCallback and surface it as an error.
+            if !pushCtx.rejectedRefs.isEmpty {
+                let detail = pushCtx.rejectedRefs
+                    .map { "\($0.refname): \($0.reason)" }
+                    .joined(separator: "; ")
+                throw LocalGitError.pushFailed(detail)
+            }
 
             return LocalPushResult(commitSHA: commitSHA)
         }.value
