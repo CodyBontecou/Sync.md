@@ -219,16 +219,12 @@ struct FileDiffView: View {
                     .fill(Color.brutalBorder)
                     .frame(height: 1)
 
-                // Diff lines in a horizontal+vertical scroll
-                ScrollView(.horizontal) {
-                    LazyVStack(alignment: .leading, spacing: 0) {
-                        ForEach(diffLines) { line in
-                            lineRow(line)
-                        }
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    ForEach(diffLines) { line in
+                        lineRow(line)
                     }
-                    .padding(.bottom, 48)
                 }
-                .scrollIndicators(.hidden)
+                .padding(.bottom, 48)
             }
         }
         .scrollIndicators(.hidden)

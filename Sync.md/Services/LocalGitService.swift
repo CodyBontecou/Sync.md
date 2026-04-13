@@ -272,6 +272,16 @@ nonisolated private func diffPrintCallback(
     guard let payload, let line else { return 0 }
     let collector = Unmanaged<DiffPrintCollector>.fromOpaque(payload).takeUnretainedValue()
 
+    // libgit2 strips the +/-/space origin from content; prepend it so the
+    // emitted text is a well-formed unified diff that parsers can classify.
+    let origin = UInt8(bitPattern: line.pointee.origin)
+    switch origin {
+    case UInt8(ascii: "F"), UInt8(ascii: "H"), UInt8(ascii: "B"):
+        break
+    default:
+        collector.output.append(Character(Unicode.Scalar(origin)))
+    }
+
     let length = Int(line.pointee.content_len)
     if let content = line.pointee.content, length > 0 {
         let data = Data(bytes: content, count: length)
