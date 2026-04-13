@@ -31,3 +31,6 @@ node_modules/
 *.dSYM.zip
 *.app.dSYM/
 fastlane/.env
+
+# Marketing screenshots
+marketing/

@@ -39,7 +39,7 @@ struct VaultView: View {
                 }
             } else {
                 ContentUnavailableView(
-                    "Repository Not Found",
+                    String(localized: "Repository Not Found"),
                     systemImage: "exclamationmark.triangle.fill"
                 )
             }
@@ -74,10 +74,10 @@ struct VaultView: View {
         .overlay {
             if showRevertAllConfirm {
                 RevertConfirmModal(
-                    title: "Revert All Changes",
+                    title: String(localized: "Revert All Changes"),
                     filename: nil,
                     files: sortedStatusEntries.map(\.path),
-                    confirmLabel: "Revert All",
+                    confirmLabel: String(localized: "Revert All"),
                     onConfirm: {
                         showRevertAllConfirm = false
                         Task { await state.discardAllFileChanges(repoID: repoID) }
@@ -88,10 +88,10 @@ struct VaultView: View {
             }
             if showRevertFileModal, let path = revertFilePath {
                 RevertConfirmModal(
-                    title: "Revert Changes",
+                    title: String(localized: "Revert Changes"),
                     filename: URL(fileURLWithPath: path).lastPathComponent,
                     files: [],
-                    confirmLabel: "Revert",
+                    confirmLabel: String(localized: "Revert"),
                     onConfirm: {
                         showRevertFileModal = false
                         let p = path
@@ -113,9 +113,22 @@ struct VaultView: View {
         } message: {
             Text(state.lastError ?? String(localized: "Unknown error"))
         }
+        #if DEBUG
+        .onReceive(NotificationCenter.default.publisher(for: MarketingCapture.showGitSheetNotification)) { _ in
+            showCommitSheet = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: MarketingCapture.showSettingsNotification)) { _ in
+            showSettings = true
+        }
+        #endif
         .interactiveDismissDisabled(state.callbackNavigateToRepoID != nil)
         .navigationBarBackButtonHidden(state.callbackNavigateToRepoID != nil)
-        .onAppear { state.detectChanges(repoID: repoID) }
+        .onAppear {
+            #if DEBUG
+            guard !MarketingCapture.isActive else { return }
+            #endif
+            state.detectChanges(repoID: repoID)
+        }
         .onChange(of: state.repos) {
             if state.repo(id: repoID) == nil { dismiss() }
         }
@@ -206,11 +219,11 @@ struct VaultView: View {
 
     private var syncStateLabel: String {
         switch state.syncStateByRepo[repoID] ?? .unknown {
-        case .upToDate: return "Up to date"
-        case .ahead:    return "Local ahead"
-        case .behind:   return "Behind remote"
-        case .diverged: return "Diverged"
-        case .unknown:  return "Unknown"
+        case .upToDate: return String(localized: "Up to date")
+        case .ahead:    return String(localized: "Local ahead")
+        case .behind:   return String(localized: "Behind remote")
+        case .diverged: return String(localized: "Diverged")
+        case .unknown:  return String(localized: "Unknown")
         }
     }
 
@@ -244,7 +257,7 @@ struct VaultView: View {
         BCard(padding: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    BSectionHeader(title: "Repo Health")
+                    BSectionHeader(title: String(localized: "Repo Health"))
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -253,9 +266,9 @@ struct VaultView: View {
 
 
                 HStack(spacing: 12) {
-                    healthPill(label: "Changed", count: statusEntries.count)
-                    healthPill(label: "Conflicts", count: conflictedFileCount, style: conflictedFileCount > 0 ? .error : .default)
-                    healthPill(label: "Untracked", count: untrackedFileCount, style: untrackedFileCount > 0 ? .accent : .default)
+                    healthPill(label: String(localized: "Changed"), count: statusEntries.count)
+                    healthPill(label: String(localized: "Conflicts"), count: conflictedFileCount, style: conflictedFileCount > 0 ? .error : .default)
+                    healthPill(label: String(localized: "Untracked"), count: untrackedFileCount, style: untrackedFileCount > 0 ? .accent : .default)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -275,7 +288,7 @@ struct VaultView: View {
                             Button {
                                 showCommitSheet = true
                             } label: {
-                                Text("OPEN GIT")
+                                Text(String(localized: "Open Git").uppercased())
                                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                                     .foregroundStyle(Color.brutalAccent)
                                     .tracking(1)
@@ -347,7 +360,7 @@ struct VaultView: View {
                         }
                     } label: {
                         HStack(spacing: 8) {
-                            BSectionHeader(title: "Changed Files")
+                            BSectionHeader(title: String(localized: "Changed Files"))
                             BBadge(text: "\(statusEntries.count)", style: .accent)
                             Image(systemName: showChangedFiles ? "chevron.up" : "chevron.down")
                                 .font(.system(size: 12, weight: .semibold))
@@ -365,7 +378,7 @@ struct VaultView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.uturn.backward")
                                 .font(.system(size: 11, weight: .bold))
-                            Text("ALL")
+                            Text(String(localized: "All").uppercased())
                                 .font(.system(size: 11, weight: .bold, design: .monospaced))
                                 .tracking(1)
                         }
@@ -437,29 +450,29 @@ struct VaultView: View {
 
     private func fileStatusSummary(for entry: GitStatusEntry) -> String {
         switch (entry.indexStatus, entry.workTreeStatus) {
-        case let (index?, workTree?): return "Staged \(fileStatusLabel(index)) · Unstaged \(fileStatusLabel(workTree))"
-        case let (index?, nil):       return "Staged \(fileStatusLabel(index))"
+        case let (index?, workTree?): return String(localized: "Staged \(fileStatusLabel(index))") + " · " + String(localized: "Unstaged \(fileStatusLabel(workTree))")
+        case let (index?, nil):       return String(localized: "Staged \(fileStatusLabel(index))")
         case let (nil, workTree?):    return fileStatusLabel(workTree).capitalized
-        case (nil, nil):              return "No status"
+        case (nil, nil):              return String(localized: "No status")
         }
     }
 
     private func fileStatusLabel(_ kind: GitFileStatusKind) -> String {
         switch kind {
-        case .added:       return "added"
-        case .modified:    return "modified"
-        case .deleted:     return "deleted"
-        case .renamed:     return "renamed"
-        case .typeChanged: return "type changed"
-        case .untracked:   return "untracked"
-        case .conflicted:  return "conflicted"
+        case .added:       return String(localized: "added")
+        case .modified:    return String(localized: "modified")
+        case .deleted:     return String(localized: "deleted")
+        case .renamed:     return String(localized: "renamed")
+        case .typeChanged: return String(localized: "type changed")
+        case .untracked:   return String(localized: "untracked")
+        case .conflicted:  return String(localized: "conflicted")
         }
     }
 
     @ViewBuilder
     private func fileStatusBadge(for entry: GitStatusEntry) -> some View {
         if entry.isConflicted {
-            BBadge(text: "CONFLICT", style: .error)
+            BBadge(text: String(localized: "Conflict"), style: .error)
         } else if let index = entry.indexStatus {
             BBadge(text: fileStatusLabel(index), style: .success)
         } else if let work = entry.workTreeStatus {
@@ -478,8 +491,8 @@ struct VaultView: View {
                 BCard(padding: 0) {
                     BActionRow(
                         icon: "⬇",
-                        title: "Pull",
-                        subtitle: "Fetch remote changes"
+                        title: String(localized: "Pull"),
+                        subtitle: String(localized: "Fetch remote changes")
                     )
                 }
             }
@@ -494,8 +507,8 @@ struct VaultView: View {
                 BCard(padding: 0) {
                     BActionRow(
                         icon: "⬆",
-                        title: "Commit & Push",
-                        subtitle: "Push local changes to remote",
+                        title: String(localized: "Commit & Push"),
+                        subtitle: String(localized: "Push local changes to remote"),
                         badge: changeCount > 0 ? changeCount : nil,
                         badgeStyle: .accent
                     )
@@ -529,12 +542,12 @@ struct VaultView: View {
     private func callbackResultBanner(_ result: CallbackResultState) -> some View {
         BCard(padding: 14, bg: result.isSuccess ? Color.brutalSuccess.opacity(0.04) : Color.brutalError.opacity(0.04)) {
             HStack(spacing: 12) {
-                BBadge(text: result.isSuccess ? "SUCCESS" : "FAILED", style: result.isSuccess ? .success : .error)
+                BBadge(text: result.isSuccess ? String(localized: "Success") : String(localized: "Failed"), style: result.isSuccess ? .success : .error)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(result.isSuccess
-                         ? "\(result.action.capitalized) Complete"
-                         : "\(result.action.capitalized) Failed")
+                         ? String(localized: "\(result.action.capitalized) Complete")
+                         : String(localized: "\(result.action.capitalized) Failed"))
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(Color.brutalText)
 
@@ -564,7 +577,7 @@ struct VaultView: View {
             BCard(padding: 0) {
                 BActionRow(
                     icon: "📁",
-                    title: "Files Location",
+                    title: String(localized: "Files Location"),
                     subtitle: state.vaultDisplayPath(for: repoID)
                 )
             }
@@ -586,7 +599,7 @@ struct VaultView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            BLoading(text: "Cloning Repository")
+            BLoading(text: String(localized: "Cloning Repository"))
 
             Text(state.syncProgress)
                 .font(.system(size: 13, design: .monospaced))
@@ -609,9 +622,9 @@ struct VaultView: View {
             Spacer()
 
             BEmptyState(
-                title: "Not Cloned",
-                subtitle: "This repository hasn't been\ncloned to your device yet.",
-                actionTitle: "Clone Repository"
+                title: String(localized: "Not Cloned"),
+                subtitle: String(localized: "This repository hasn't been cloned yet.\nTap below to download it."),
+                actionTitle: String(localized: "Clone Repository")
             ) {
                 Task { await state.clone(repoID: repoID) }
             }

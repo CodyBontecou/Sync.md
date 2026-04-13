@@ -18,6 +18,11 @@ struct ContentView: View {
         }
         .opacity(showContent ? 1 : 0)
         .onAppear {
+            #if DEBUG
+            if MarketingCapture.isActive {
+                MarketingDemoSeeder.seed(into: state)
+            }
+            #endif
             withAnimation(.easeOut(duration: 0.5)) {
                 showContent = true
             }

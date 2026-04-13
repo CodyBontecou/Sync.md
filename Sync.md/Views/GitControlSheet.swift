@@ -79,7 +79,7 @@ struct GitControlSheet: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("DONE")
+                        Text(String(localized: "Done").uppercased())
                             .font(.system(size: 13, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color.brutalText)
                             .tracking(1)
@@ -103,12 +103,12 @@ struct GitControlSheet: View {
                     Group {
                         if isLoadingDiff {
                             VStack(spacing: 16) {
-                                BLoading(text: "Loading diff")
+                                BLoading(text: String(localized: "Loading diff"))
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background(Color.brutalBg)
                         } else if selectedDiffText.isEmpty {
-                            ContentUnavailableView("No Diff Available", systemImage: "doc.text")
+                            ContentUnavailableView(String(localized: "No Diff Available"), systemImage: "doc.text")
                         } else {
                             ScrollView {
                                 Text(selectedDiffText)
@@ -131,11 +131,19 @@ struct GitControlSheet: View {
                 .presentationDetents([.medium, .large])
             }
             .task {
+                #if DEBUG
+                guard !MarketingCapture.isActive else { return }
+                #endif
                 await state.loadBranches(repoID: repoID)
                 await state.loadConflictSession(repoID: repoID)
                 await state.loadStashes(repoID: repoID)
                 await state.loadTags(repoID: repoID)
             }
+            #if DEBUG
+            .onReceive(NotificationCenter.default.publisher(for: MarketingCapture.dismissSheetNotification)) { _ in
+                dismiss()
+            }
+            #endif
         }
     }
 
@@ -145,7 +153,7 @@ struct GitControlSheet: View {
         BCard(padding: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    BSectionHeader(title: "Repository Status")
+                    BSectionHeader(title: String(localized: "Repository Status"))
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -155,24 +163,24 @@ struct GitControlSheet: View {
 
                 VStack(spacing: 0) {
                     if let repo = repo {
-                        statusDataRow(label: "Branch", value: repo.gitState.branch, mono: true)
+                        statusDataRow(label: String(localized: "Branch"), value: repo.gitState.branch, mono: true)
                         BDivider()
-                        statusDataRow(label: "Last Sync", value: lastSyncText)
+                        statusDataRow(label: String(localized: "Last Sync"), value: lastSyncText)
                         BDivider()
-                        statusDataRow(label: "Commit SHA", value: String(repo.gitState.commitSHA.prefix(7)), mono: true)
+                        statusDataRow(label: String(localized: "Commit SHA"), value: String(repo.gitState.commitSHA.prefix(7)), mono: true)
                         BDivider()
                     }
 
                     HStack {
-                        Text("LOCAL CHANGES")
+                        Text(String(localized: "Local Changes").uppercased())
                             .font(.system(size: 14, weight: .medium, design: .monospaced))
                             .foregroundStyle(Color.brutalText)
                             .tracking(1)
                         Spacer()
                         if changeCount > 0 {
-                            BBadge(text: "\(changeCount) files", style: .accent)
+                            BBadge(text: "\(changeCount) \(String(localized: "Files").lowercased())", style: .accent)
                         } else {
-                            Text("None")
+                            Text(String(localized: "None"))
                                 .font(.system(size: 14, design: .monospaced))
                                 .foregroundStyle(Color.brutalText)
                         }
@@ -185,8 +193,8 @@ struct GitControlSheet: View {
     }
 
     private var lastSyncText: String {
-        guard let repo else { return "Never" }
-        if repo.gitState.lastSyncDate == .distantPast { return "Never" }
+        guard let repo else { return String(localized: "Never") }
+        if repo.gitState.lastSyncDate == .distantPast { return String(localized: "Never") }
         let fmt = RelativeDateTimeFormatter()
         fmt.unitsStyle = .abbreviated
         return fmt.localizedString(for: repo.gitState.lastSyncDate, relativeTo: Date())
@@ -216,7 +224,7 @@ struct GitControlSheet: View {
         BCard(padding: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    BSectionHeader(title: "Branches")
+                    BSectionHeader(title: String(localized: "Branches"))
                     Spacer()
                     BBadge(text: currentBranchShortName, style: .accent)
                 }
@@ -235,7 +243,7 @@ struct GitControlSheet: View {
                         .padding(.vertical, 9)
                         .background(Color.brutalSurface)
 
-                    Button("CREATE") {
+                    Button(String(localized: "Create").uppercased()) {
                         let name = newBranchName.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !name.isEmpty else { return }
                         Task {
@@ -271,7 +279,7 @@ struct GitControlSheet: View {
 
                 if let detached = branchInventory.detachedHeadOID {
                     HStack(spacing: 6) {
-                        BBadge(text: "DETACHED HEAD", style: .warning)
+                        BBadge(text: String(localized: "Detached Head"), style: .warning)
                         Text(String(detached.prefix(7)))
                             .font(.system(size: 13, design: .monospaced))
                             .foregroundStyle(Color.brutalText)
@@ -300,13 +308,13 @@ struct GitControlSheet: View {
             Spacer()
 
             if branch.isCurrent {
-                BBadge(text: "CURRENT", style: .success)
+                BBadge(text: String(localized: "Current"), style: .success)
             } else {
                 HStack(spacing: 6) {
-                    smallActionButton("SWITCH") {
+                    smallActionButton(String(localized: "Switch").uppercased()) {
                         Task { await state.switchBranch(repoID: repoID, name: branch.shortName) }
                     }
-                    smallActionButton("MERGE") {
+                    smallActionButton(String(localized: "Merge").uppercased()) {
                         Task { await state.mergeBranch(repoID: repoID, from: branch.shortName) }
                     }
                     smallActionButton("✕", isDestructive: true) {
@@ -326,7 +334,7 @@ struct GitControlSheet: View {
         BCard(padding: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    BSectionHeader(title: "Conflict Center")
+                    BSectionHeader(title: String(localized: "Conflict Center"))
                     Spacer()
                     BBadge(text: conflictSession.kind.rawValue, style: .error)
                 }
@@ -336,7 +344,7 @@ struct GitControlSheet: View {
 
 
                 if conflictSession.unmergedPaths.isEmpty {
-                    Text("All conflicts resolved. Complete or abort the merge.")
+                    Text(String(localized: "All conflicts resolved. Complete or abort the merge."))
                         .font(.system(size: 14, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                         .padding(.horizontal, 16)
@@ -363,7 +371,7 @@ struct GitControlSheet: View {
                                 .background(Color.brutalSurface)
                                 .disabled(state.isSyncing)
 
-                            Button("COMPLETE") {
+                            Button(String(localized: "Complete").uppercased()) {
                                 Task {
                                     await state.completeMerge(repoID: repoID, message: mergeCommitMessage)
                                     mergeCommitMessage = ""
@@ -385,7 +393,7 @@ struct GitControlSheet: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "xmark")
                                     .font(.system(size: 13, weight: .bold))
-                                Text("ABORT MERGE")
+                                Text(String(localized: "Abort Merge").uppercased())
                                     .font(.system(size: 13, weight: .bold, design: .monospaced))
                                     .tracking(1)
                             }
@@ -413,16 +421,16 @@ struct GitControlSheet: View {
                 .truncationMode(.middle)
 
             HStack(spacing: 8) {
-                smallActionButton("OURS") {
+                smallActionButton(String(localized: "Ours").uppercased()) {
                     Task { await state.resolveConflictFile(repoID: repoID, path: path, strategy: .ours) }
                 }
-                smallActionButton("THEIRS") {
+                smallActionButton(String(localized: "Theirs").uppercased()) {
                     Task { await state.resolveConflictFile(repoID: repoID, path: path, strategy: .theirs) }
                 }
-                smallActionButton("MANUAL") {
+                smallActionButton(String(localized: "Manual").uppercased()) {
                     Task { await state.resolveConflictFile(repoID: repoID, path: path, strategy: .manual) }
                 }
-                smallActionButton("DIFF") {
+                smallActionButton(String(localized: "Diff").uppercased()) {
                     openDiff(for: path)
                 }
             }
@@ -438,10 +446,10 @@ struct GitControlSheet: View {
         BCard(padding: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    BSectionHeader(title: "Changes")
+                    BSectionHeader(title: String(localized: "Changes"))
                     Spacer()
                     if stagedCount > 0 {
-                        BBadge(text: "\(stagedCount) staged", style: .success)
+                        BBadge(text: "\(stagedCount) \(String(localized: "staged"))", style: .success)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -450,7 +458,7 @@ struct GitControlSheet: View {
 
 
                 if sortedEntries.isEmpty {
-                    Text("No local changes")
+                    Text(String(localized: "No local changes"))
                         .font(.system(size: 14, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                         .padding(.horizontal, 16)
@@ -485,7 +493,7 @@ struct GitControlSheet: View {
 
             Spacer(minLength: 8)
 
-            smallActionButton(entry.indexStatus != nil ? "UNSTAGE" : "STAGE") {
+            smallActionButton(entry.indexStatus != nil ? String(localized: "Unstage").uppercased() : String(localized: "Stage").uppercased()) {
                 Task {
                     if entry.indexStatus != nil {
                         await state.unstageFile(repoID: repoID, path: entry.path)
@@ -495,7 +503,7 @@ struct GitControlSheet: View {
                 }
             }
 
-            smallActionButton("DIFF") {
+            smallActionButton(String(localized: "Diff").uppercased()) {
                 openDiff(for: entry.path)
             }
         }
@@ -506,22 +514,22 @@ struct GitControlSheet: View {
 
     private func changeSummary(for entry: GitStatusEntry) -> String {
         switch (entry.indexStatus, entry.workTreeStatus) {
-        case let (index?, workTree?): return "Staged \(statusLabel(index)) · Unstaged \(statusLabel(workTree))"
-        case let (index?, nil):       return "Staged \(statusLabel(index))"
+        case let (index?, workTree?): return String(localized: "Staged \(statusLabel(index))") + " · " + String(localized: "Unstaged \(statusLabel(workTree))")
+        case let (index?, nil):       return String(localized: "Staged \(statusLabel(index))")
         case let (nil, workTree?):    return statusLabel(workTree).capitalized
-        case (nil, nil):              return "No status"
+        case (nil, nil):              return String(localized: "No status")
         }
     }
 
     private func statusLabel(_ kind: GitFileStatusKind) -> String {
         switch kind {
-        case .added:       return "added"
-        case .modified:    return "modified"
-        case .deleted:     return "deleted"
-        case .renamed:     return "renamed"
-        case .typeChanged: return "type changed"
-        case .untracked:   return "untracked"
-        case .conflicted:  return "conflicted"
+        case .added:       return String(localized: "added")
+        case .modified:    return String(localized: "modified")
+        case .deleted:     return String(localized: "deleted")
+        case .renamed:     return String(localized: "renamed")
+        case .typeChanged: return String(localized: "type changed")
+        case .untracked:   return String(localized: "untracked")
+        case .conflicted:  return String(localized: "conflicted")
         }
     }
 
@@ -531,7 +539,7 @@ struct GitControlSheet: View {
         BCard(padding: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    BSectionHeader(title: "Tags")
+                    BSectionHeader(title: String(localized: "Tags"))
                     Spacer()
                     if !tags.isEmpty {
                         BBadge(text: "\(tags.count)", style: .default)
@@ -558,7 +566,7 @@ struct GitControlSheet: View {
                             .padding(.vertical, 9)
                             .background(Color.brutalSurface)
 
-                        Button("CREATE") {
+                        Button(String(localized: "Create").uppercased()) {
                             let name = newTagName.trimmingCharacters(in: .whitespacesAndNewlines)
                             guard !name.isEmpty else { return }
                             let msg = newTagMessage.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -591,7 +599,7 @@ struct GitControlSheet: View {
                         }
                     }
                 } else {
-                    Text("No tags in this repository")
+                    Text(String(localized: "No tags in this repository"))
                         .font(.system(size: 14, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                         .padding(.horizontal, 16)
@@ -608,7 +616,7 @@ struct GitControlSheet: View {
                     Text(tag.shortName)
                         .font(.system(size: 13, weight: .bold, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
-                    BBadge(text: tag.kind == .annotated ? "annotated" : "light", style: tag.kind == .annotated ? .accent : .default)
+                    BBadge(text: tag.kind == .annotated ? String(localized: "annotated") : String(localized: "light"), style: tag.kind == .annotated ? .accent : .default)
                 }
                 if let message = tag.message, !message.isEmpty {
                     Text(message)
@@ -623,7 +631,7 @@ struct GitControlSheet: View {
 
             Spacer(minLength: 8)
 
-            smallActionButton("PUSH") {
+            smallActionButton(String(localized: "Push").uppercased()) {
                 Task { await state.pushTag(repoID: repoID, name: tag.shortName) }
             }
             smallActionButton("✕", isDestructive: true) {
@@ -641,7 +649,7 @@ struct GitControlSheet: View {
         BCard(padding: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    BSectionHeader(title: "Stash")
+                    BSectionHeader(title: String(localized: "Stash"))
                     Spacer()
                     if !stashes.isEmpty {
                         BBadge(text: "\(stashes.count)", style: .default)
@@ -661,7 +669,7 @@ struct GitControlSheet: View {
                         .padding(.vertical, 9)
                         .background(Color.brutalSurface)
 
-                    Button("SAVE") {
+                    Button(String(localized: "Save").uppercased()) {
                         let msg = stashMessage.trimmingCharacters(in: .whitespacesAndNewlines)
                         Task {
                             await state.saveStash(repoID: repoID, message: msg, includeUntracked: true)
@@ -680,7 +688,7 @@ struct GitControlSheet: View {
                 .padding(.vertical, 12)
 
                 if changeCount == 0 && stashes.isEmpty {
-                    Text("No local changes to stash")
+                    Text(String(localized: "No local changes to stash"))
                         .font(.system(size: 14, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                         .padding(.horizontal, 16)
@@ -713,10 +721,10 @@ struct GitControlSheet: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack(spacing: 8) {
-                smallActionButton("APPLY") {
+                smallActionButton(String(localized: "Apply").uppercased()) {
                     Task { await state.applyStash(repoID: repoID, index: entry.index) }
                 }
-                smallActionButton("POP") {
+                smallActionButton(String(localized: "Pop").uppercased()) {
                     Task { await state.popStash(repoID: repoID, index: entry.index) }
                 }
                 Spacer()
@@ -740,7 +748,7 @@ struct GitControlSheet: View {
             }
         } label: {
             BCard(padding: 0) {
-                BActionRow(icon: "⬇", title: "Pull", subtitle: "Fetch and apply remote changes")
+                BActionRow(icon: "⬇", title: String(localized: "Pull"), subtitle: String(localized: "Fetch and apply remote changes"))
             }
         }
         .buttonStyle(.plain)
@@ -759,10 +767,10 @@ struct GitControlSheet: View {
                         .frame(width: 32)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Commit & Push")
+                        Text(String(localized: "Commit & Push"))
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(Color.brutalText)
-                        Text("Commit staged changes and push to remote")
+                        Text(String(localized: "Commit staged changes and push to remote"))
                             .font(.system(size: 14, design: .monospaced))
                             .foregroundStyle(Color.brutalText)
                     }
@@ -781,7 +789,7 @@ struct GitControlSheet: View {
 
 
                 HStack {
-                    Text(stagedCount == 1 ? "1 file staged" : "\(stagedCount) files staged")
+                    Text(stagedCount == 1 ? String(localized: "1 file staged") : String(localized: "\(stagedCount) files staged"))
                         .font(.system(size: 13, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                     Spacer()
@@ -802,7 +810,7 @@ struct GitControlSheet: View {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.up")
                             .font(.system(size: 14, weight: .bold))
-                        Text(stagedCount == 1 ? "PUSH 1 FILE" : "PUSH \(stagedCount) FILES")
+                        Text(stagedCount == 1 ? String(localized: "Push 1 File").uppercased() : String(localized: "Push \(stagedCount) Files").uppercased())
                             .font(.system(size: 14, weight: .bold, design: .monospaced))
                             .tracking(1)
                     }

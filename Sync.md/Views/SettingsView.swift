@@ -28,10 +28,10 @@ struct SettingsView: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         // Repository Section
-                        settingsSection(title: "Repository") {
+                        settingsSection(title: String(localized: "Repository")) {
                             VStack(spacing: 0) {
-                                settingsFieldRow(label: "URL") {
-                                    Text(showCopiedToast ? "Copied!" : (repo?.repoURL ?? ""))
+                                settingsFieldRow(label: String(localized: "URL")) {
+                                    Text(showCopiedToast ? String(localized: "Copied!") : (repo?.repoURL ?? ""))
                                         .font(.system(size: 14, design: .monospaced))
                                         .foregroundStyle(showCopiedToast ? Color.brutalSuccess : Color.brutalText)
                                         .lineLimit(1)
@@ -49,7 +49,7 @@ struct SettingsView: View {
 
                                 BDivider().padding(.horizontal, 16)
 
-                                settingsInputRow(label: "Branch") {
+                                settingsInputRow(label: String(localized: "Branch")) {
                                     TextField("main", text: $branch)
                                         .font(.system(size: 14, design: .monospaced))
                                         .multilineTextAlignment(.trailing)
@@ -61,9 +61,9 @@ struct SettingsView: View {
                         }
 
                         // Git Author Section
-                        settingsSection(title: "Git Author") {
+                        settingsSection(title: String(localized: "Git Author")) {
                             VStack(spacing: 0) {
-                                settingsInputRow(label: "Name") {
+                                settingsInputRow(label: String(localized: "Name")) {
                                     TextField("Your Name", text: $authorName)
                                         .font(.system(size: 14, design: .monospaced))
                                         .multilineTextAlignment(.trailing)
@@ -72,7 +72,7 @@ struct SettingsView: View {
 
                                 BDivider().padding(.horizontal, 16)
 
-                                settingsInputRow(label: "Email") {
+                                settingsInputRow(label: String(localized: "Email")) {
                                     TextField("you@example.com", text: $authorEmail)
                                         .font(.system(size: 14, design: .monospaced))
                                         .multilineTextAlignment(.trailing)
@@ -84,10 +84,10 @@ struct SettingsView: View {
                         }
 
                         // Storage Section
-                        settingsSection(title: "Storage") {
+                        settingsSection(title: String(localized: "Storage")) {
                             VStack(spacing: 0) {
                                 if state.isUsingCustomLocation(for: repoID) {
-                                    settingsFieldRow(label: "Location") {
+                                    settingsFieldRow(label: String(localized: "Location")) {
                                         Text(state.vaultURL(for: repoID).lastPathComponent)
                                             .font(.system(size: 14, design: .monospaced))
                                             .foregroundStyle(Color.brutalText)
@@ -95,7 +95,7 @@ struct SettingsView: View {
 
                                     BDivider().padding(.horizontal, 16)
 
-                                    settingsFieldRow(label: "Path") {
+                                    settingsFieldRow(label: String(localized: "Path")) {
                                         Text(state.vaultDisplayPath(for: repoID))
                                             .font(.system(size: 13, design: .monospaced))
                                             .foregroundStyle(Color.brutalText)
@@ -103,7 +103,7 @@ struct SettingsView: View {
                                             .truncationMode(.middle)
                                     }
                                 } else {
-                                    settingsFieldRow(label: "Folder") {
+                                    settingsFieldRow(label: String(localized: "Folder")) {
                                         Text(vaultName)
                                             .font(.system(size: 14, design: .monospaced))
                                             .foregroundStyle(Color.brutalText)
@@ -111,8 +111,8 @@ struct SettingsView: View {
 
                                     BDivider().padding(.horizontal, 16)
 
-                                    settingsFieldRow(label: "Path") {
-                                        Text("On My iPhone › Sync.md › \(vaultName)")
+                                    settingsFieldRow(label: String(localized: "Path")) {
+                                        Text(String(localized: "On My iPhone › Sync.md › \(vaultName)"))
                                             .font(.system(size: 13, design: .monospaced))
                                             .foregroundStyle(Color.brutalText)
                                             .lineLimit(1)
@@ -125,7 +125,7 @@ struct SettingsView: View {
                                     showMoveLocationPicker = true
                                 } label: {
                                     HStack {
-                                        Text("MOVE VAULT")
+                                        Text(String(localized: "Move Vault").uppercased())
                                             .font(.system(size: 12, weight: .bold, design: .monospaced))
                                             .foregroundStyle(Color.brutalAccent)
                                             .tracking(1)
@@ -143,11 +143,11 @@ struct SettingsView: View {
 
                         // Sync Info Section
                         if let repo = repo, repo.isCloned {
-                            settingsSection(title: "Sync Info") {
+                            settingsSection(title: String(localized: "Sync Info")) {
                                 VStack(spacing: 0) {
-                                    settingsFieldRow(label: "Last Sync") {
+                                    settingsFieldRow(label: String(localized: "Last Sync")) {
                                         Text(repo.gitState.lastSyncDate == .distantPast
-                                             ? "Never"
+                                             ? String(localized: "Never")
                                              : relativeDate(repo.gitState.lastSyncDate))
                                             .font(.system(size: 13, design: .monospaced))
                                             .foregroundStyle(Color.brutalText)
@@ -155,7 +155,7 @@ struct SettingsView: View {
 
                                     BDivider().padding(.horizontal, 16)
 
-                                    settingsFieldRow(label: "Commit SHA") {
+                                    settingsFieldRow(label: String(localized: "Commit SHA")) {
                                         Text(String(repo.gitState.commitSHA.prefix(7)))
                                             .font(.system(size: 13, weight: .medium, design: .monospaced))
                                             .foregroundStyle(Color.brutalText)
@@ -163,7 +163,7 @@ struct SettingsView: View {
 
                                     BDivider().padding(.horizontal, 16)
 
-                                    settingsFieldRow(label: "Files") {
+                                    settingsFieldRow(label: String(localized: "Files")) {
                                         Text("\(repo.gitState.blobSHAs.count)")
                                             .font(.system(size: 13, design: .monospaced))
                                             .foregroundStyle(Color.brutalText)
@@ -173,12 +173,12 @@ struct SettingsView: View {
                         }
 
                         // Debug Log
-                        settingsSection(title: "Debug") {
+                        settingsSection(title: String(localized: "Debug")) {
                             NavigationLink {
                                 DebugLogView()
                             } label: {
                                 HStack {
-                                    Text("VIEW DEBUG LOG")
+                                    Text(String(localized: "View Debug Log").uppercased())
                                         .font(.system(size: 12, weight: .bold, design: .monospaced))
                                         .foregroundStyle(Color.brutalText)
                                         .tracking(1)
@@ -195,7 +195,7 @@ struct SettingsView: View {
                         }
 
                         // Remove
-                        BDestructiveButton(title: "Remove Repository") {
+                        BDestructiveButton(title: String(localized: "Remove Repository")) {
                             showRemoveConfirm = true
                         }
                         .padding(.horizontal, 20)
@@ -209,7 +209,7 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("SETTINGS")
+                    Text(String(localized: "Settings").uppercased())
                         .font(.system(size: 13, weight: .black, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                         .tracking(3)
@@ -218,7 +218,7 @@ struct SettingsView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("CANCEL")
+                        Text(String(localized: "Cancel").uppercased())
                             .font(.system(size: 14, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color.brutalText)
                             .tracking(1)
@@ -230,7 +230,7 @@ struct SettingsView: View {
                         saveChanges()
                         dismiss()
                     } label: {
-                        Text("SAVE")
+                        Text(String(localized: "Save").uppercased())
                             .font(.system(size: 14, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color(.systemBackground))
                             .tracking(1)
@@ -249,6 +249,11 @@ struct SettingsView: View {
                     vaultName = repo.vaultFolderName
                 }
             }
+            #if DEBUG
+            .onReceive(NotificationCenter.default.publisher(for: MarketingCapture.dismissSheetNotification)) { _ in
+                dismiss()
+            }
+            #endif
             .alert("Remove Repository?", isPresented: $showRemoveConfirm) {
                 Button("Cancel", role: .cancel) {}
                 Button("Remove", role: .destructive) {
@@ -363,7 +368,7 @@ struct SettingsView: View {
     // MARK: - Helpers
 
     private func relativeDate(_ date: Date) -> String {
-        if date == .distantPast { return "Never" }
+        if date == .distantPast { return String(localized: "Never") }
         let fmt = RelativeDateTimeFormatter()
         fmt.unitsStyle = .full
         return fmt.localizedString(for: date, relativeTo: Date())

@@ -131,14 +131,14 @@ struct FileDiffView: View {
 
             if isLoading {
                 VStack(spacing: 12) {
-                    BLoading(text: "Loading diff")
+                    BLoading(text: String(localized: "Loading diff"))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if patch.isEmpty {
                 ContentUnavailableView(
-                    "No Diff Available",
+                    String(localized: "No Diff Available"),
                     systemImage: "doc.text",
-                    description: Text("This file may be binary or has no staged content.")
+                    description: Text(String(localized: "This file may be binary or has no staged content."))
                 )
             } else {
                 content
@@ -172,10 +172,10 @@ struct FileDiffView: View {
         .overlay {
             if showRevertModal {
                 RevertConfirmModal(
-                    title: "Revert Changes",
+                    title: String(localized: "Revert Changes"),
                     filename: filename,
                     files: [],
-                    confirmLabel: "Revert",
+                    confirmLabel: String(localized: "Revert"),
                     onConfirm: {
                         showRevertModal = false
                         Task {
@@ -192,6 +192,12 @@ struct FileDiffView: View {
         }
         .animation(.easeOut(duration: 0.18), value: showRevertModal)
         .task {
+            #if DEBUG
+            if MarketingCapture.isActive {
+                isLoading = false
+                return
+            }
+            #endif
             await state.loadUnifiedDiff(repoID: repoID, path: path)
             isLoading = false
         }
@@ -263,7 +269,7 @@ struct FileDiffView: View {
                 HStack(spacing: 0) {
                     statPill(
                         count: addedCount,
-                        label: "ADDED",
+                        label: String(localized: "Added").uppercased(),
                         color: Color(hex: 0x1A7A1A)
                     )
                     Spacer()
@@ -273,7 +279,7 @@ struct FileDiffView: View {
                     Spacer()
                     statPill(
                         count: removedCount,
-                        label: "REMOVED",
+                        label: String(localized: "Removed").uppercased(),
                         color: Color(hex: 0xD70015)
                     )
                     if let shas = commitSHAs {
@@ -316,7 +322,7 @@ struct FileDiffView: View {
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(Color.brutalTextMid)
             }
-            Text("COMMIT")
+            Text(String(localized: "Commit").uppercased())
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
                 .foregroundStyle(Color.brutalTextFaint)
                 .tracking(1)
@@ -326,7 +332,7 @@ struct FileDiffView: View {
     @ViewBuilder
     private func entryBadge(_ entry: GitStatusEntry) -> some View {
         if entry.isConflicted {
-            BBadge(text: "CONFLICT", style: .error)
+            BBadge(text: String(localized: "Conflict"), style: .error)
         } else if let index = entry.indexStatus {
             BBadge(text: statusWord(index), style: .success)
         } else if let work = entry.workTreeStatus {
@@ -336,13 +342,13 @@ struct FileDiffView: View {
 
     private func statusWord(_ kind: GitFileStatusKind) -> String {
         switch kind {
-        case .added:       return "ADDED"
-        case .modified:    return "MODIFIED"
-        case .deleted:     return "DELETED"
-        case .renamed:     return "RENAMED"
-        case .typeChanged: return "TYPE CHG"
-        case .untracked:   return "UNTRACKED"
-        case .conflicted:  return "CONFLICT"
+        case .added:       return String(localized: "Added")
+        case .modified:    return String(localized: "Modified")
+        case .deleted:     return String(localized: "Deleted")
+        case .renamed:     return String(localized: "Renamed")
+        case .typeChanged: return String(localized: "Type Chg")
+        case .untracked:   return String(localized: "Untracked")
+        case .conflicted:  return String(localized: "Conflict")
         }
     }
 

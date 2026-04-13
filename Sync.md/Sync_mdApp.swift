@@ -32,6 +32,10 @@ struct Sync_mdApp: App {
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
+                #if DEBUG
+                guard !MarketingCapture.isActive else { return }
+                #endif
+
                 // Re-validate repos when returning to foreground —
                 // the user may have deleted files via the Files app.
                 appState.validateClonedRepos()

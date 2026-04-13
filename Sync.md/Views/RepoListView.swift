@@ -64,13 +64,13 @@ struct RepoListView: View {
                                 Button {
                                     showAppSettings = true
                                 } label: {
-                                    Label("App Settings", systemImage: "gearshape")
+                                    Label(String(localized: "App Settings"), systemImage: "gearshape")
                                 }
                             }
                             Button(role: .destructive) {
                                 showSignOutConfirm = true
                             } label: {
-                                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                                Label(String(localized: "Sign Out"), systemImage: "rectangle.portrait.and.arrow.right")
                             }
                         } label: {
                             GitHubAvatarView(avatarURL: state.gitHubAvatarURL, size: 28)
@@ -81,7 +81,7 @@ struct RepoListView: View {
                         Button {
                             Task { await state.signInWithGitHub() }
                         } label: {
-                            Text("SIGN IN")
+                            Text(String(localized: "Sign In").uppercased())
                                 .font(.system(size: 13, weight: .bold, design: .monospaced))
                                 .foregroundStyle(Color.brutalAccent)
                                 .tracking(1)
@@ -115,6 +115,59 @@ struct RepoListView: View {
                     navigationPath = NavigationPath()
                 }
             }
+            #if DEBUG
+            .onAppear {
+                guard MarketingCapture.isActive,
+                      !MarketingCaptureCoordinator.shared.hasStarted else { return }
+                MarketingCaptureCoordinator.shared.hasStarted = true
+
+                Task {
+                    try? await Task.sleep(for: .milliseconds(1500))
+                    guard let primaryRepo = state.repos.first else { return }
+                    let repoID = primaryRepo.id
+
+                    let steps: [CaptureStep] = [
+                        CaptureStep(name: "01-repo-list") {
+                            // Already showing
+                        },
+
+                        CaptureStep(name: "02-vault") {
+                            navigationPath.append(repoID)
+                        },
+
+                        CaptureStep(name: "03-git-control", settle: .milliseconds(2000)) {
+                            NotificationCenter.default.post(
+                                name: MarketingCapture.showGitSheetNotification, object: nil
+                            )
+                        } cleanup: {
+                            NotificationCenter.default.post(
+                                name: MarketingCapture.dismissSheetNotification, object: nil
+                            )
+                        },
+
+                        CaptureStep(name: "04-diff", settle: .milliseconds(2000)) {
+                            navigationPath.append(
+                                DiffDestination(repoID: repoID, path: "projects/app-launch.md")
+                            )
+                        } cleanup: {
+                            navigationPath.removeLast()
+                        },
+
+                        CaptureStep(name: "05-settings") {
+                            NotificationCenter.default.post(
+                                name: MarketingCapture.showSettingsNotification, object: nil
+                            )
+                        } cleanup: {
+                            NotificationCenter.default.post(
+                                name: MarketingCapture.dismissSheetNotification, object: nil
+                            )
+                        },
+                    ]
+
+                    await MarketingCaptureCoordinator.shared.run(steps: steps)
+                }
+            }
+            #endif
         }
     }
 
@@ -126,9 +179,9 @@ struct RepoListView: View {
             if ghosts.isEmpty {
                 Spacer()
                 BEmptyState(
-                    title: "No Repositories",
-                    subtitle: "Add a GitHub repository to\nstart syncing your files.",
-                    actionTitle: "Add Repository",
+                    title: String(localized: "No Repositories"),
+                    subtitle: String(localized: "Add a GitHub repository to start\nsyncing your markdown files."),
+                    actionTitle: String(localized: "Add Repository"),
                     action: { handleAddRepoTapped() }
                 )
                 Spacer()
@@ -136,7 +189,7 @@ struct RepoListView: View {
             } else {
                 Spacer()
                 VStack(alignment: .leading, spacing: 12) {
-                    BSectionHeader(title: "Previously Cloned")
+                    BSectionHeader(title: String(localized: "Previously Cloned"))
                         .padding(.horizontal, 20)
 
                     ForEach(ghosts, id: \.self) { id in
@@ -145,7 +198,7 @@ struct RepoListView: View {
                     }
 
                     Button { handleAddRepoTapped() } label: {
-                        Text("+ ADD DIFFERENT REPOSITORY")
+                        Text("+ " + String(localized: "Add Different Repository").uppercased())
                             .font(.system(size: 11, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color.brutalText.opacity(0.45))
                             .tracking(2)
@@ -177,13 +230,13 @@ struct RepoListView: View {
                         Button {
                             settingsRepoID = repo.id
                         } label: {
-                            Label("Settings", systemImage: "gearshape")
+                            Label(String(localized: "Settings"), systemImage: "gearshape")
                         }
                     }
                 }
 
                 if !ghosts.isEmpty {
-                    BSectionHeader(title: "Previously Cloned")
+                    BSectionHeader(title: String(localized: "Previously Cloned"))
                         .padding(.top, 8)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -255,8 +308,8 @@ struct RepoListView: View {
                     BDivider().padding(.horizontal, 16)
 
                     HStack(spacing: 8) {
-                        BBadge(text: "previously cloned", style: .default)
-                        Text("tap to re-clone")
+                        BBadge(text: String(localized: "previously cloned"), style: .default)
+                        Text(String(localized: "tap to re-clone"))
                             .font(.system(size: 13, design: .monospaced))
                             .foregroundStyle(Color.brutalText)
                         Spacer()
@@ -310,7 +363,7 @@ struct RepoListView: View {
 
                 if isThisRepoSyncing {
                     HStack(spacing: 8) {
-                        BBadge(text: "syncing", style: .accent)
+                        BBadge(text: String(localized: "syncing"), style: .accent)
                         Text(state.syncProgress)
                             .font(.system(size: 13, design: .monospaced))
                             .foregroundStyle(Color.brutalText)
@@ -331,7 +384,7 @@ struct RepoListView: View {
                     .padding(.vertical, 10)
                 } else {
                     HStack(spacing: 8) {
-                        BBadge(text: "Not cloned", style: .warning)
+                        BBadge(text: String(localized: "Not cloned"), style: .warning)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
@@ -350,7 +403,7 @@ struct RepoListView: View {
                 Text("+")
                     .font(.system(size: 20, weight: .black, design: .monospaced))
                     .foregroundStyle(Color.brutalText)
-                Text("ADD REPOSITORY")
+                Text(String(localized: "Add Repository").uppercased())
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color.brutalText)
                     .tracking(2)
@@ -371,14 +424,14 @@ struct RepoListView: View {
     private var demoBanner: some View {
         BCard(padding: 12, bg: .brutalSurface) {
             HStack(spacing: 10) {
-                BBadge(text: "DEMO MODE", style: .warning)
+                BBadge(text: String(localized: "Demo Mode"), style: .warning)
 
                 Spacer()
 
                 Button {
                     state.deactivateDemoMode()
                 } label: {
-                    Text("EXIT")
+                    Text(String(localized: "Exit").uppercased())
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
                         .foregroundStyle(Color.brutalText)
                         .tracking(1)
