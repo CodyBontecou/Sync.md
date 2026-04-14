@@ -536,6 +536,29 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             }
             try git2Check(checkoutCode, context: "Checkout remote tree safely")
 
+            // Explicitly rebuild the index from the remote tree and flush it
+            // to disk. git_checkout_tree is supposed to update index entries
+            // as it walks files, but relying on that leaves a window where a
+            // freshly-added file pulled from the remote can still appear as
+            // untracked in subsequent status reads — the working tree has the
+            // file while the on-disk index never recorded it. Re-reading the
+            // remote tree into the index and writing it guarantees HEAD ==
+            // index == workdir after a fast-forward pull.
+            var pulledIndex: OpaquePointer?
+            defer { if let pulledIndex { git_index_free(pulledIndex) } }
+            try git2Check(
+                git_repository_index(&pulledIndex, repo),
+                context: "Open index after fast-forward checkout"
+            )
+            try git2Check(
+                git_index_read_tree(pulledIndex, remoteTree),
+                context: "Rebuild index from remote tree"
+            )
+            try git2Check(
+                git_index_write(pulledIndex),
+                context: "Write index after fast-forward"
+            )
+
             let localRefName = "refs/heads/\(branch)"
             var existingRef: OpaquePointer?
             let refResult = git_reference_lookup(&existingRef, repo, localRefName)
@@ -1347,8 +1370,23 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             defer { if let index { git_index_free(index) } }
             try git2Check(git_repository_index(&index, repo), context: "Get index")
 
+            // Try to add the file first. If it no longer exists on disk
+            // (deletion, rename, or move), `git_index_add_bypath` returns
+            // GIT_ENOTFOUND — fall back to `git_index_remove_bypath` so the
+            // removal is recorded in the index. This also closes the TOCTOU
+            // window of checking file existence before calling add_bypath.
             try path.withCString { cPath in
-                try git2Check(git_index_add_bypath(index, cPath), context: "Stage \(path)")
+                let addCode = git_index_add_bypath(index, cPath)
+                if addCode == GIT_ENOTFOUND.rawValue {
+                    let removeCode = git_index_remove_bypath(index, cPath)
+                    // GIT_ENOTFOUND on remove means the path was never tracked —
+                    // nothing to stage, not a real error.
+                    if removeCode != GIT_ENOTFOUND.rawValue {
+                        try git2Check(removeCode, context: "Stage deletion of \(path)")
+                    }
+                } else {
+                    try git2Check(addCode, context: "Stage \(path)")
+                }
             }
 
             try git2Check(git_index_write(index), context: "Write index")
