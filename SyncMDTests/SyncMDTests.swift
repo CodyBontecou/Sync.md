@@ -1643,6 +1643,118 @@ final class SyncMDTests: XCTestCase {
         XCTAssertFalse(info.statusEntries.contains { $0.path == "A.md" }, "Staged file should be committed and clean")
     }
 
+    func testLocalGitServiceStagesDeletionsRenamesAndMoves() async throws {
+        let fm = FileManager.default
+        let repoURL = fm.temporaryDirectory.appendingPathComponent("SyncMD-StageDeletions-\(UUID().uuidString)", isDirectory: true)
+        try fm.createDirectory(at: repoURL, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: repoURL) }
+
+        var repo: OpaquePointer?
+        XCTAssertEqual(git_repository_init(&repo, repoURL.path, 0), 0)
+        if let repo { git_repository_free(repo) }
+
+        let service = LocalGitService(localURL: repoURL)
+
+        let keep = repoURL.appendingPathComponent("keep.md")
+        let doomed = repoURL.appendingPathComponent("doomed.md")
+        let renameOld = repoURL.appendingPathComponent("old-name.md")
+        let subdir = repoURL.appendingPathComponent("subdir", isDirectory: true)
+        try fm.createDirectory(at: subdir, withIntermediateDirectories: true)
+        let moveOld = subdir.appendingPathComponent("mover.md")
+
+        try "keep\n".write(to: keep, atomically: true, encoding: .utf8)
+        try "doomed\n".write(to: doomed, atomically: true, encoding: .utf8)
+        try "rename me\n".write(to: renameOld, atomically: true, encoding: .utf8)
+        try "move me\n".write(to: moveOld, atomically: true, encoding: .utf8)
+
+        try await service.stage(path: "keep.md")
+        try await service.stage(path: "doomed.md")
+        try await service.stage(path: "old-name.md")
+        try await service.stage(path: "subdir/mover.md")
+
+        do {
+            _ = try await service.commitAndPush(
+                message: "Initial",
+                authorName: "SyncMD Tests",
+                authorEmail: "tests@example.com",
+                pat: ""
+            )
+            XCTFail("Expected push to fail without origin remote")
+        } catch {
+            // Expected push failure; commit still created.
+        }
+
+        let cleanInfo = try await service.repoInfo()
+        XCTAssertEqual(cleanInfo.changeCount, 0)
+
+        // Deletion: remove a tracked file from disk.
+        try fm.removeItem(at: doomed)
+
+        // Rename: remove the old file and create a new file with a new name.
+        try fm.removeItem(at: renameOld)
+        let renameNew = repoURL.appendingPathComponent("new-name.md")
+        try "rename me\n".write(to: renameNew, atomically: true, encoding: .utf8)
+
+        // Move to a different folder: same as rename across directories.
+        try fm.removeItem(at: moveOld)
+        let moveNewDir = repoURL.appendingPathComponent("other", isDirectory: true)
+        try fm.createDirectory(at: moveNewDir, withIntermediateDirectories: true)
+        let moveNew = moveNewDir.appendingPathComponent("mover.md")
+        try "move me\n".write(to: moveNew, atomically: true, encoding: .utf8)
+
+        // Staging the old halves (files no longer on disk) must succeed and
+        // record the removal in the index. Before the fix, stage() called
+        // git_index_add_bypath which requires the file to exist, so these
+        // calls silently failed and the commit kept the old paths.
+        try await service.stage(path: "doomed.md")
+        try await service.stage(path: "old-name.md")
+        try await service.stage(path: "subdir/mover.md")
+
+        // Staging the new halves adds the new paths to the index.
+        try await service.stage(path: "new-name.md")
+        try await service.stage(path: "other/mover.md")
+
+        do {
+            _ = try await service.commitAndPush(
+                message: "Delete, rename, move",
+                authorName: "SyncMD Tests",
+                authorEmail: "tests@example.com",
+                pat: ""
+            )
+            XCTFail("Expected push to fail without origin remote")
+        } catch {
+            // Expected push failure.
+        }
+
+        let afterInfo = try await service.repoInfo()
+        XCTAssertEqual(afterInfo.changeCount, 0, "All deletions/renames/moves should be committed and the working tree clean")
+        XCTAssertFalse(afterInfo.statusEntries.contains { $0.path == "doomed.md" })
+        XCTAssertFalse(afterInfo.statusEntries.contains { $0.path == "old-name.md" })
+        XCTAssertFalse(afterInfo.statusEntries.contains { $0.path == "new-name.md" })
+        XCTAssertFalse(afterInfo.statusEntries.contains { $0.path == "subdir/mover.md" })
+        XCTAssertFalse(afterInfo.statusEntries.contains { $0.path == "other/mover.md" })
+
+        // Verify the HEAD tree actually reflects the deletions/renames/moves
+        // by inspecting the latest commit's changed files.
+        let latest = try await service.commitHistory(limit: 1, skip: 0)
+        let oid = try XCTUnwrap(latest.first?.oid)
+        let detail = try await service.commitDetail(oid: oid)
+
+        let deletedPaths = detail.changedFiles
+            .filter { $0.changeType == .deleted }
+            .map(\.path)
+            .sorted()
+        XCTAssertTrue(deletedPaths.contains("doomed.md"), "Deleted file must appear as deleted in commit detail")
+
+        // Rename/move may appear either as add+delete or as a rename delta
+        // depending on libgit2's similarity detection — either outcome proves
+        // the old path is no longer in HEAD and the new path is. Check that
+        // the new paths exist in the commit's change set.
+        let changedPaths = Set(detail.changedFiles.map(\.path))
+        XCTAssertTrue(changedPaths.contains("new-name.md") || changedPaths.contains("old-name.md"))
+        XCTAssertTrue(changedPaths.contains("other/mover.md") || changedPaths.contains("subdir/mover.md"))
+    }
+
     func testLocalGitServiceUnifiedDiffShowsStagedOnlyJSONChanges() async throws {
         let fm = FileManager.default
         let repoURL = fm.temporaryDirectory.appendingPathComponent("SyncMD-JSONDiff-\(UUID().uuidString)", isDirectory: true)

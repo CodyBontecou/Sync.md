@@ -536,6 +536,29 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             }
             try git2Check(checkoutCode, context: "Checkout remote tree safely")
 
+            // Explicitly rebuild the index from the remote tree and flush it
+            // to disk. git_checkout_tree is supposed to update index entries
+            // as it walks files, but relying on that leaves a window where a
+            // freshly-added file pulled from the remote can still appear as
+            // untracked in subsequent status reads — the working tree has the
+            // file while the on-disk index never recorded it. Re-reading the
+            // remote tree into the index and writing it guarantees HEAD ==
+            // index == workdir after a fast-forward pull.
+            var pulledIndex: OpaquePointer?
+            defer { if let pulledIndex { git_index_free(pulledIndex) } }
+            try git2Check(
+                git_repository_index(&pulledIndex, repo),
+                context: "Open index after fast-forward checkout"
+            )
+            try git2Check(
+                git_index_read_tree(pulledIndex, remoteTree),
+                context: "Rebuild index from remote tree"
+            )
+            try git2Check(
+                git_index_write(pulledIndex),
+                context: "Write index after fast-forward"
+            )
+
             let localRefName = "refs/heads/\(branch)"
             var existingRef: OpaquePointer?
             let refResult = git_reference_lookup(&existingRef, repo, localRefName)
@@ -1337,6 +1360,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
     func stage(path: String) async throws {
         let repoPath = self.localURL.path
+        let fullPath = self.localURL.appendingPathComponent(path).path
 
         try await Task.detached {
             var repo: OpaquePointer?
@@ -1347,8 +1371,25 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             defer { if let index { git_index_free(index) } }
             try git2Check(git_repository_index(&index, repo), context: "Get index")
 
+            // `git_index_add_bypath` requires the file to exist on disk. For
+            // deletions, renames, and moves, the old path no longer exists in
+            // the working tree — we need `git_index_remove_bypath` instead,
+            // otherwise staging the old half of a rename/move/delete silently
+            // fails and the commit never records the removal.
+            let fileExists = FileManager.default.fileExists(atPath: fullPath)
+
             try path.withCString { cPath in
-                try git2Check(git_index_add_bypath(index, cPath), context: "Stage \(path)")
+                if fileExists {
+                    try git2Check(git_index_add_bypath(index, cPath), context: "Stage \(path)")
+                } else {
+                    let removeCode = git_index_remove_bypath(index, cPath)
+                    // Nothing tracked under this path yet — not a real error,
+                    // just nothing to stage. Skip the libgit2 check for that
+                    // specific code.
+                    if removeCode != GIT_ENOTFOUND.rawValue {
+                        try git2Check(removeCode, context: "Stage deletion of \(path)")
+                    }
+                }
             }
 
             try git2Check(git_index_write(index), context: "Write index")
