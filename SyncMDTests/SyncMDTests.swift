@@ -1680,8 +1680,10 @@ final class SyncMDTests: XCTestCase {
                 pat: ""
             )
             XCTFail("Expected push to fail without origin remote")
+        } catch LocalGitError.pushFailed {
+            // Expected: commit succeeded, push failed because there is no remote.
         } catch {
-            // Expected push failure; commit still created.
+            XCTFail("Unexpected error during initial commit: \(error)")
         }
 
         let cleanInfo = try await service.repoInfo()
@@ -1722,8 +1724,10 @@ final class SyncMDTests: XCTestCase {
                 pat: ""
             )
             XCTFail("Expected push to fail without origin remote")
+        } catch LocalGitError.pushFailed {
+            // Expected: commit succeeded, push failed because there is no remote.
         } catch {
-            // Expected push failure.
+            XCTFail("Unexpected error during delete/rename/move commit: \(error)")
         }
 
         let afterInfo = try await service.repoInfo()
@@ -1747,12 +1751,16 @@ final class SyncMDTests: XCTestCase {
         XCTAssertTrue(deletedPaths.contains("doomed.md"), "Deleted file must appear as deleted in commit detail")
 
         // Rename/move may appear either as add+delete or as a rename delta
-        // depending on libgit2's similarity detection — either outcome proves
-        // the old path is no longer in HEAD and the new path is. Check that
-        // the new paths exist in the commit's change set.
+        // depending on libgit2's similarity detection. In both cases the new
+        // path must be present in the commit's change set and the old path must
+        // not still be tracked in HEAD.
         let changedPaths = Set(detail.changedFiles.map(\.path))
-        XCTAssertTrue(changedPaths.contains("new-name.md") || changedPaths.contains("old-name.md"))
-        XCTAssertTrue(changedPaths.contains("other/mover.md") || changedPaths.contains("subdir/mover.md"))
+        XCTAssertTrue(changedPaths.contains("new-name.md"), "Renamed file's new path must appear in commit")
+        XCTAssertFalse(changedPaths.contains("old-name.md") && !deletedPaths.contains("old-name.md"),
+                       "old-name.md may only appear in commit as a deletion, not still tracked")
+        XCTAssertTrue(changedPaths.contains("other/mover.md"), "Moved file's new path must appear in commit")
+        XCTAssertFalse(changedPaths.contains("subdir/mover.md") && !deletedPaths.contains("subdir/mover.md"),
+                       "subdir/mover.md may only appear in commit as a deletion, not still tracked")
     }
 
     func testLocalGitServiceUnifiedDiffShowsStagedOnlyJSONChanges() async throws {

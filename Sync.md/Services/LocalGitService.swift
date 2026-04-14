@@ -1360,7 +1360,6 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
     func stage(path: String) async throws {
         let repoPath = self.localURL.path
-        let fullPath = self.localURL.appendingPathComponent(path).path
 
         try await Task.detached {
             var repo: OpaquePointer?
@@ -1371,24 +1370,22 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             defer { if let index { git_index_free(index) } }
             try git2Check(git_repository_index(&index, repo), context: "Get index")
 
-            // `git_index_add_bypath` requires the file to exist on disk. For
-            // deletions, renames, and moves, the old path no longer exists in
-            // the working tree — we need `git_index_remove_bypath` instead,
-            // otherwise staging the old half of a rename/move/delete silently
-            // fails and the commit never records the removal.
-            let fileExists = FileManager.default.fileExists(atPath: fullPath)
-
+            // Try to add the file first. If it no longer exists on disk
+            // (deletion, rename, or move), `git_index_add_bypath` returns
+            // GIT_ENOTFOUND — fall back to `git_index_remove_bypath` so the
+            // removal is recorded in the index. This also closes the TOCTOU
+            // window of checking file existence before calling add_bypath.
             try path.withCString { cPath in
-                if fileExists {
-                    try git2Check(git_index_add_bypath(index, cPath), context: "Stage \(path)")
-                } else {
+                let addCode = git_index_add_bypath(index, cPath)
+                if addCode == GIT_ENOTFOUND.rawValue {
                     let removeCode = git_index_remove_bypath(index, cPath)
-                    // Nothing tracked under this path yet — not a real error,
-                    // just nothing to stage. Skip the libgit2 check for that
-                    // specific code.
+                    // GIT_ENOTFOUND on remove means the path was never tracked —
+                    // nothing to stage, not a real error.
                     if removeCode != GIT_ENOTFOUND.rawValue {
                         try git2Check(removeCode, context: "Stage deletion of \(path)")
                     }
+                } else {
+                    try git2Check(addCode, context: "Stage \(path)")
                 }
             }
 
