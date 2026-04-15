@@ -74,7 +74,7 @@ struct RepoListView: View {
                             }
                         } label: {
                             GitHubAvatarView(avatarURL: state.gitHubAvatarURL, size: 28)
-                                .overlay(Rectangle().strokeBorder(Color.brutalBorder, lineWidth: 1))
+                                .contentShape(Circle())
                         }
                         .menuStyle(.borderlessButton)
                     } else {
