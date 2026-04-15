@@ -553,6 +553,63 @@ struct BCardRow: View {
     }
 }
 
+// MARK: - Confirmation Modal
+
+struct BConfirmModal: View {
+    let title: String
+    let message: String
+    let confirmLabel: String
+    var isDestructive: Bool = true
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture { onCancel() }
+
+            VStack(spacing: 0) {
+                // Header
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(title.uppercased())
+                        .font(.system(size: 15, weight: .black, design: .monospaced))
+                        .foregroundStyle(Color.brutalText)
+                        .tracking(2)
+
+                    Text(message)
+                        .font(.system(size: 13, design: .monospaced))
+                        .foregroundStyle(Color.brutalTextMid)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Rectangle()
+                    .fill(Color.brutalBorder)
+                    .frame(height: 1)
+
+                // Buttons
+                VStack(spacing: 8) {
+                    if isDestructive {
+                        BDestructiveButton(title: confirmLabel, action: onConfirm)
+                    } else {
+                        BPrimaryButton(title: confirmLabel, action: onConfirm)
+                    }
+                    BGhostButton(title: "Cancel", action: onCancel)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+            }
+            .background(Color.brutalBg)
+            .overlay(Rectangle().strokeBorder(Color.brutalBorder, lineWidth: 2))
+            .padding(.horizontal, 28)
+        }
+    }
+}
+
 // MARK: - Action Row (icon + title + subtitle + arrow)
 
 struct BActionRow: View {

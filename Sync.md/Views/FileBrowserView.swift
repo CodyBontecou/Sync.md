@@ -26,9 +26,9 @@ struct FileBrowserView: View {
     @State private var items: [FileItem] = []
     @State private var renameItem: FileItem? = nil
     @State private var newName: String = ""
-    @State private var deleteItem: FileItem? = nil
-    @State private var showDeleteConfirm = false
     @State private var showRenameAlert = false
+    @State private var showCreateFileAlert = false
+    @State private var newFileName: String = ""
 
     private var vaultURL: URL { state.vaultURL(for: repoID) }
     private var currentURL: URL {
@@ -63,21 +63,22 @@ struct FileBrowserView: View {
                     .foregroundStyle(Color.brutalText)
                     .tracking(2)
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    newFileName = ""
+                    showCreateFileAlert = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.brutalText)
+                }
+            }
         }
         .navigationDestination(for: FileBrowserDestination.self) { dest in
             FileBrowserView(repoID: dest.repoID, relativePath: dest.relativePath)
         }
-        .confirmationDialog(
-            "Delete \"\(deleteItem?.name ?? "")\"?",
-            isPresented: $showDeleteConfirm,
-            titleVisibility: .visible
-        ) {
-            Button("Delete", role: .destructive) {
-                if let item = deleteItem { performDelete(item) }
-            }
-            Button("Cancel", role: .cancel) { deleteItem = nil }
-        } message: {
-            Text("This will be reflected in git status as a deletion.")
+        .navigationDestination(for: FileEditorDestination.self) { dest in
+            FileEditorView(repoID: dest.repoID, fileURL: dest.fileURL)
         }
         .alert("Rename", isPresented: $showRenameAlert, presenting: renameItem) { item in
             TextField("New name", text: $newName)
@@ -90,6 +91,15 @@ struct FileBrowserView: View {
             }
         } message: { item in
             Text("Enter a new name for \"\(item.name)\"")
+        }
+        .alert("New File", isPresented: $showCreateFileAlert) {
+            TextField("filename.md", text: $newFileName)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+            Button("Create") { performCreateFile() }
+            Button("Cancel", role: .cancel) { newFileName = "" }
+        } message: {
+            Text("Enter a name for the new file in \"\(navTitle)\"")
         }
         .onAppear { loadItems() }
     }
@@ -145,17 +155,13 @@ struct FileBrowserView: View {
                 }
                 .buttonStyle(.plain)
             } else {
-                rowContent(item: item, gitStatus: gitStatus)
+                NavigationLink(value: FileEditorDestination(repoID: repoID, fileURL: item.url)) {
+                    rowContent(item: item, gitStatus: gitStatus)
+                }
+                .buttonStyle(.plain)
             }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button(role: .destructive) {
-                deleteItem = item
-                showDeleteConfirm = true
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-
             Button {
                 renameItem = item
                 newName = item.name
@@ -302,14 +308,6 @@ struct FileBrowserView: View {
 
     // MARK: - File Operations
 
-    private func performDelete(_ item: FileItem) {
-        deleteItem = nil
-        try? FileManager.default.removeItem(at: item.url)
-        loadItems()
-        // Refresh git status so the deletion appears in VaultView
-        state.detectChanges(repoID: repoID)
-    }
-
     private func performRename(_ item: FileItem, to name: String) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         renameItem = nil
@@ -319,6 +317,17 @@ struct FileBrowserView: View {
         try? FileManager.default.moveItem(at: item.url, to: dest)
         loadItems()
         // Refresh git status so the rename appears in VaultView
+        state.detectChanges(repoID: repoID)
+    }
+
+    private func performCreateFile() {
+        let trimmed = newFileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        newFileName = ""
+        guard !trimmed.isEmpty else { return }
+        let dest = currentURL.appendingPathComponent(trimmed)
+        guard !FileManager.default.fileExists(atPath: dest.path) else { return }
+        FileManager.default.createFile(atPath: dest.path, contents: nil)
+        loadItems()
         state.detectChanges(repoID: repoID)
     }
 }
