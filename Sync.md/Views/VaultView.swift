@@ -71,6 +71,9 @@ struct VaultView: View {
         .navigationDestination(for: DiffDestination.self) { dest in
             FileDiffView(repoID: dest.repoID, path: dest.path)
         }
+        .navigationDestination(for: FileBrowserDestination.self) { dest in
+            FileBrowserView(repoID: dest.repoID, relativePath: dest.relativePath)
+        }
         .overlay {
             if showRevertAllConfirm {
                 RevertConfirmModal(
@@ -587,18 +590,29 @@ struct VaultView: View {
     // MARK: - Files Location
 
     private var filesLocationCard: some View {
-        Button {
-            openInFilesApp()
-        } label: {
-            BCard(padding: 0) {
-                BActionRow(
-                    icon: "📁",
-                    title: String(localized: "Files Location"),
-                    subtitle: state.vaultDisplayPath(for: repoID)
-                )
+        BCard(padding: 0) {
+            VStack(spacing: 0) {
+                NavigationLink(value: FileBrowserDestination(repoID: repoID, relativePath: "")) {
+                    BActionRow(
+                        icon: "🗂️",
+                        title: String(localized: "Browse Files"),
+                        subtitle: String(localized: "Delete, rename, and move files")
+                    )
+                }
+                .buttonStyle(.plain)
+
+                BDivider()
+
+                Button { openInFilesApp() } label: {
+                    BActionRow(
+                        icon: "📁",
+                        title: String(localized: "Open in Files"),
+                        subtitle: state.vaultDisplayPath(for: repoID)
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
-        .buttonStyle(.plain)
     }
 
     private func openInFilesApp() {
