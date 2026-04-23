@@ -259,7 +259,10 @@ struct FileBrowserView: View {
     }
 
     private func gitStatusFor(_ item: FileItem) -> GitStatusEntry? {
-        let rel = relativePathFor(item)
+        // Normalise to NFC before comparing: git stores paths as NFC while
+        // APFS/HFS+ gives back NFD from FileManager, so a straight == fails
+        // for Korean, Japanese, and other non-ASCII filenames.
+        let rel = relativePathFor(item).precomposedStringWithCanonicalMapping
         if item.isDirectory {
             return statusEntries.first { $0.path.hasPrefix(rel + "/") }
         }

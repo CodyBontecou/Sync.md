@@ -323,6 +323,18 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
     /// One-time libgit2 global init.
     private static let initOnce: Void = { git_libgit2_init() }()
 
+    /// Set `core.precomposeunicode = true` on a repo so libgit2 transparently
+    /// normalises filenames between NFC (git objects) and NFD (APFS/HFS+).
+    /// Without this, Korean/Japanese/Chinese filenames appear as permanently
+    /// modified and staging operations can silently mis-identify files.
+    private static func setPrecomposeUnicode(repo: OpaquePointer?) {
+        var config: OpaquePointer?
+        defer { if let config { git_config_free(config) } }
+        if git_repository_config(&config, repo) == 0, let config {
+            git_config_set_bool(config, "core.precomposeunicode", 1)
+        }
+    }
+
     init(localURL: URL) {
         _ = Self.initOnce
         self.localURL = localURL
@@ -360,6 +372,10 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             guard code == 0, let repo else {
                 throw LocalGitError.cloneFailed(git2ErrorMessage())
             }
+
+            // Persist core.precomposeunicode so subsequent libgit2 calls on
+            // this repo transparently handle NFC↔NFD for non-ASCII filenames.
+            Self.setPrecomposeUnicode(repo: repo)
 
             // Read HEAD to get branch and commit SHA
             var head: OpaquePointer?
@@ -1361,7 +1377,47 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
         }.value
     }
 
+    /// Stage all worktree changes (adds/modifies/deletes) like `git add -A`.
+    ///
+    /// We combine `git_index_add_all` (captures new/untracked + modified files)
+    /// and `git_index_update_all` (captures tracked-file deletions) so callback
+    /// pushes can atomically include rename/create/delete operations without
+    /// relying on rename detection timing.
+    func stageAll() async throws {
+        let repoPath = self.localURL.path
+
+        try await Task.detached {
+            var repo: OpaquePointer?
+            defer { if let repo { git_repository_free(repo) } }
+            try git2Check(git_repository_open(&repo, repoPath), context: "Open repo")
+
+            var index: OpaquePointer?
+            defer { if let index { git_index_free(index) } }
+            try git2Check(git_repository_index(&index, repo), context: "Get index")
+
+            try git2Check(
+                git_index_add_all(index, nil, UInt32(GIT_INDEX_ADD_DEFAULT.rawValue), nil, nil),
+                context: "Stage all added/modified files"
+            )
+
+            try git2Check(
+                git_index_update_all(index, nil, nil, nil),
+                context: "Stage tracked deletions/modifications"
+            )
+
+            try git2Check(git_index_write(index), context: "Write index")
+        }.value
+    }
+
     func stage(path: String) async throws {
+        try await stage(path: path, oldPath: nil)
+    }
+
+    func unstage(path: String) async throws {
+        try await unstage(path: path, oldPath: nil)
+    }
+
+    func stage(path: String, oldPath: String?) async throws {
         let repoPath = self.localURL.path
 
         try await Task.detached {
@@ -1392,11 +1448,23 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 }
             }
 
+            // For a rename, also drop the old path from the index. Without
+            // this, the commit keeps the HEAD blob at the old path alongside
+            // the newly-added blob at the new path.
+            if let oldPath, oldPath != path {
+                try oldPath.withCString { cOldPath in
+                    let removeCode = git_index_remove_bypath(index, cOldPath)
+                    if removeCode != 0 && removeCode != GIT_ENOTFOUND.rawValue {
+                        try git2Check(removeCode, context: "Stage removal of renamed old path \(oldPath)")
+                    }
+                }
+            }
+
             try git2Check(git_index_write(index), context: "Write index")
         }.value
     }
 
-    func unstage(path: String) async throws {
+    func unstage(path: String, oldPath: String?) async throws {
         let repoPath = self.localURL.path
 
         try await Task.detached {
@@ -1423,15 +1491,27 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 try git2Check(headCode, context: "Read HEAD for unstage")
             }
 
-            let cString = strdup(path)!
-            let storage = UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>.allocate(capacity: 1)
+            // For a renamed entry, also reset the old path so HEAD's blob is
+            // restored at its original name — otherwise unstaging leaves the
+            // old path missing from the index.
+            var paths: [String] = [path]
+            if let oldPath, oldPath != path {
+                paths.append(oldPath)
+            }
+
+            let cStrings = paths.map { strdup($0)! }
+            let storage = UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>.allocate(capacity: cStrings.count)
             defer {
-                free(cString)
+                for cString in cStrings { free(cString) }
                 storage.deallocate()
+            }
+            for (index, cString) in cStrings.enumerated() {
+                storage.advanced(by: index).pointee = cString
             }
 
             var pathspec = git_strarray()
-            makeStrarray(cString, into: &pathspec, storage: storage)
+            pathspec.strings = storage
+            pathspec.count = cStrings.count
 
             try git2Check(
                 git_reset_default(repo, targetObject, &pathspec),
@@ -2393,6 +2473,10 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             defer { if let repo { git_repository_free(repo) } }
             try git2Check(git_repository_open(&repo, path), context: "Open repo")
 
+            // Ensure core.precomposeunicode is set for repos cloned before
+            // this fix was in place (no-op if already configured).
+            Self.setPrecomposeUnicode(repo: repo)
+
             // Read HEAD
             var head: OpaquePointer?
             defer { if let head { git_reference_free(head) } }
@@ -2417,6 +2501,18 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 syncState: syncState,
                 statusEntries: entries
             )
+        }.value
+    }
+
+    // MARK: - Fetch Remote
+
+    func fetchRemote(pat: String) async throws {
+        let path = self.localURL.path
+        try await Task.detached {
+            var repo: OpaquePointer?
+            defer { if let repo { git_repository_free(repo) } }
+            try git2Check(git_repository_open(&repo, path), context: "Open repo")
+            try Self.fetchOrigin(repo: repo, pat: pat)
         }.value
     }
 
@@ -2616,18 +2712,11 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
     }
 
     private static func hasUncommittedChanges(repo: OpaquePointer?) throws -> Bool {
-        var statusOpts = git_status_options()
-        git_status_options_init(&statusOpts, UInt32(GIT_STATUS_OPTIONS_VERSION))
-        statusOpts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR
-        statusOpts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED.rawValue
-            | GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS.rawValue
-
-        var statusList: OpaquePointer?
-        defer { if let statusList { git_status_list_free(statusList) } }
-
-        try git2Check(git_status_list_new(&statusList, repo, &statusOpts), context: "Read status list")
-        guard let statusList else { return false }
-        return git_status_list_entrycount(statusList) > 0
+        // Reuse statusEntries so that spurious-rename filtering (NFC/NFD on
+        // APFS) is applied consistently. A discrepancy between the two code
+        // paths caused pulls to be blocked even when the health card showed
+        // 0 changed/untracked files.
+        return try !statusEntries(repo: repo).isEmpty
     }
 
     private static func statusEntries(repo: OpaquePointer?) throws -> [GitStatusEntry] {
@@ -2654,31 +2743,91 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             let entry = entryPtr.pointee
             let statusFlags = entry.status.rawValue
 
-            let path: String = {
+            let (path, oldPath): (String, String?) = {
+                // For renames, capture both new and old paths so staging can
+                // remove the old index entry in the same operation. libgit2
+                // reports the rename on either the head_to_index delta
+                // (staged rename) or the index_to_workdir delta (unstaged
+                // workdir rename).
                 if let delta = entry.head_to_index {
-                    if let newPath = delta.pointee.new_file.path {
-                        return String(cString: newPath)
+                    let deltaStatus = delta.pointee.status
+                    let newPath = delta.pointee.new_file.path.map { String(cString: $0) }
+                    let oldPath = delta.pointee.old_file.path.map { String(cString: $0) }
+                    if let newPath {
+                        let isRename = deltaStatus == GIT_DELTA_RENAMED
+                        return (newPath, (isRename && oldPath != newPath) ? oldPath : nil)
                     }
-                    if let oldPath = delta.pointee.old_file.path {
-                        return String(cString: oldPath)
+                    if let oldPath {
+                        return (oldPath, nil)
                     }
                 }
                 if let delta = entry.index_to_workdir {
-                    if let newPath = delta.pointee.new_file.path {
-                        return String(cString: newPath)
+                    let deltaStatus = delta.pointee.status
+                    let newPath = delta.pointee.new_file.path.map { String(cString: $0) }
+                    let oldPath = delta.pointee.old_file.path.map { String(cString: $0) }
+                    if let newPath {
+                        let isRename = deltaStatus == GIT_DELTA_RENAMED
+                        return (newPath, (isRename && oldPath != newPath) ? oldPath : nil)
                     }
-                    if let oldPath = delta.pointee.old_file.path {
-                        return String(cString: oldPath)
+                    if let oldPath {
+                        return (oldPath, nil)
                     }
                 }
-                return "<unknown>"
+                return ("<unknown>", nil)
             }()
+
+            // Case A — explicit fake rename: libgit2 returned different byte
+            // forms (e.g. NFD old, NFC new) that normalise to the same NFC
+            // path. Reclassify as untracked so the user can stage the file.
+            let isFakeRename: Bool
+            if let old = oldPath,
+               path.precomposedStringWithCanonicalMapping == old.precomposedStringWithCanonicalMapping,
+               path != old {
+                isFakeRename = true
+            } else {
+                isFakeRename = false
+            }
+
+            // Case B — spurious rename: core.precomposeunicode normalised
+            // BOTH delta paths to the same NFC form, so our closure set
+            // oldPath = nil (paths appeared equal). The RENAMED flag is
+            // still set even though nothing actually changed. Skip the entry
+            // so the file does not appear as "Renamed" after a push where
+            // the committed path (NFC) and the on-disk path (NFD) are the
+            // same logical file. Only skip if no other meaningful flag
+            // (e.g. WT_MODIFIED) remains after clearing the RENAMED bits.
+            let hasSpuriousRename = (oldPath == nil) && (
+                statusFlags & GIT_STATUS_WT_RENAMED.rawValue != 0 ||
+                statusFlags & GIT_STATUS_INDEX_RENAMED.rawValue != 0
+            )
+
+            var effectiveFlags = statusFlags
+            if isFakeRename {
+                // Treat as a new untracked file so staging works.
+                effectiveFlags &= ~GIT_STATUS_WT_RENAMED.rawValue
+                effectiveFlags &= ~GIT_STATUS_INDEX_RENAMED.rawValue
+                effectiveFlags |= GIT_STATUS_WT_NEW.rawValue
+            } else if hasSpuriousRename {
+                // Clear the artefact RENAMED bits; if nothing meaningful
+                // remains the entry will be skipped below.
+                effectiveFlags &= ~GIT_STATUS_WT_RENAMED.rawValue
+                effectiveFlags &= ~GIT_STATUS_INDEX_RENAMED.rawValue
+                if Self.mapIndexStatus(effectiveFlags) == nil &&
+                   Self.mapWorkTreeStatus(effectiveFlags) == nil {
+                    continue   // file is logically clean — omit from results
+                }
+            }
 
             entries.append(
                 GitStatusEntry(
-                    path: path,
-                    indexStatus: mapIndexStatus(statusFlags),
-                    workTreeStatus: mapWorkTreeStatus(statusFlags)
+                    // Normalise to NFC so paths from git objects (NFC) and
+                    // from the APFS/HFS+ filesystem (NFD) compare equal.
+                    // Without this, Korean/CJK filenames show as perpetually
+                    // modified and never match UI path lookups.
+                    path: path.precomposedStringWithCanonicalMapping,
+                    indexStatus: mapIndexStatus(effectiveFlags),
+                    workTreeStatus: mapWorkTreeStatus(effectiveFlags),
+                    oldPath: isFakeRename ? nil : oldPath?.precomposedStringWithCanonicalMapping
                 )
             )
         }
