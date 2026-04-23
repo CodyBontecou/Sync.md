@@ -10,6 +10,12 @@
 	<array>
 		<string>shareddocuments</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Shows a live selfie overlay while you use Sync.md.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Records audio during screen recording.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Saves finished recordings to your photo library.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

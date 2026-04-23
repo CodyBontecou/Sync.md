@@ -19,6 +19,40 @@ platform :ios do
     )
   end
 
+  lane :upload_metadata do
+    asc_api_key
+    upload_to_app_store(
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      force: true,
+      submit_for_review: false,
+      automatic_release: false,
+      app_version: app_version,
+      release_notes: {
+        "en-US" => release_notes_text
+      },
+      precheck_include_in_app_purchases: false,
+      submission_information: submission_information
+    )
+  end
+
+  lane :upload_screenshots do
+    asc_api_key
+    upload_to_app_store(
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      skip_metadata: true,
+      force: true,
+      submit_for_review: false,
+      automatic_release: false,
+      app_version: app_version,
+      precheck_include_in_app_purchases: false,
+      overwrite_screenshots: false,
+      sync_screenshots: true
+    )
+  end
+
   lane :upload_all do
     asc_api_key
     upload_to_app_store(
@@ -35,6 +69,24 @@ platform :ios do
       precheck_include_in_app_purchases: false,
       submission_information: submission_information,
       overwrite_screenshots: true
+    )
+  end
+
+  lane :submit do
+    asc_api_key
+    upload_to_app_store(
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: false,
+      force: true,
+      submit_for_review: true,
+      automatic_release: false,
+      app_version: app_version,
+      release_notes: {
+        "en-US" => release_notes_text
+      },
+      precheck_include_in_app_purchases: false,
+      submission_information: submission_information
     )
   end
 

@@ -41,6 +41,7 @@ struct GitControlSheet: View {
                         changesCard
                         stashCard
                         tagCard
+                        fetchCard
                         pullCard
                         pushCard
 
@@ -450,9 +451,9 @@ struct GitControlSheet: View {
             smallActionButton(entry.indexStatus != nil ? String(localized: "Unstage").uppercased() : String(localized: "Stage").uppercased()) {
                 Task {
                     if entry.indexStatus != nil {
-                        await state.unstageFile(repoID: repoID, path: entry.path)
+                        await state.unstageFile(repoID: repoID, path: entry.path, oldPath: entry.oldPath)
                     } else {
-                        await state.stageFile(repoID: repoID, path: entry.path)
+                        await state.stageFile(repoID: repoID, path: entry.path, oldPath: entry.oldPath)
                     }
                 }
             }
@@ -690,6 +691,21 @@ struct GitControlSheet: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .disabled(state.isSyncing)
+    }
+
+    // MARK: - Fetch Card
+
+    private var fetchCard: some View {
+        Button {
+            Task { await state.fetchRemote(repoID: repoID) }
+        } label: {
+            BCard(padding: 0) {
+                BActionRow(icon: "↕", title: String(localized: "Fetch"), subtitle: String(localized: "Check remote for new commits"))
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(state.isSyncing)
+        .opacity(state.isSyncing ? 0.45 : 1)
     }
 
     // MARK: - Pull Card

@@ -18,8 +18,8 @@ protocol GitRepositoryProtocol: Sendable {
     func abortMerge() async throws
     func conflictSession() async throws -> ConflictSession
     func resolveConflict(path: String, strategy: ConflictResolutionStrategy) async throws
-    func stage(path: String) async throws
-    func unstage(path: String) async throws
+    func stage(path: String, oldPath: String?) async throws
+    func unstage(path: String, oldPath: String?) async throws
     func discardChanges(path: String) async throws
     func discardAllChanges() async throws
     func commitAndPush(
@@ -37,6 +37,7 @@ protocol GitRepositoryProtocol: Sendable {
     func createTag(name: String, targetOID: String?, message: String?, authorName: String, authorEmail: String) async throws -> GitTag
     func deleteTag(name: String) async throws
     func pushTag(name: String, pat: String) async throws
+    func fetchRemote(pat: String) async throws
     func commitHistory(limit: Int, skip: Int) async throws -> [GitCommitSummary]
     func commitDetail(oid: String) async throws -> GitCommitDetail
     func repoInfo() async throws -> LocalRepoInfo

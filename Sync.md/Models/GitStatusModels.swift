@@ -14,6 +14,19 @@ struct GitStatusEntry: Identifiable, Codable, Sendable, Equatable {
     let path: String
     let indexStatus: GitFileStatusKind?
     let workTreeStatus: GitFileStatusKind?
+    let oldPath: String?
+
+    init(
+        path: String,
+        indexStatus: GitFileStatusKind?,
+        workTreeStatus: GitFileStatusKind?,
+        oldPath: String? = nil
+    ) {
+        self.path = path
+        self.indexStatus = indexStatus
+        self.workTreeStatus = workTreeStatus
+        self.oldPath = oldPath
+    }
 
     var id: String { path }
 

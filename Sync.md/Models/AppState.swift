@@ -521,6 +521,20 @@ final class AppState {
         }
     }
 
+    func fetchRemote(repoID: UUID) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+        guard gitService.hasGitDirectory else { return }
+        do {
+            try await gitService.fetchRemote(pat: pat)
+            detectChanges(repoID: repoID)
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+    }
+
     func loadUnifiedDiff(repoID: UUID, path: String? = nil) async {
         guard let repo = repo(id: repoID), repo.isCloned else {
             diffByRepo[repoID] = .empty
@@ -1218,7 +1232,7 @@ final class AppState {
         syncingRepoID = nil
     }
 
-    func stageFile(repoID: UUID, path: String) async {
+    func stageFile(repoID: UUID, path: String, oldPath: String? = nil) async {
         guard let repo = repo(id: repoID), repo.isCloned else { return }
         if isDemoMode { return }
 
@@ -1231,14 +1245,14 @@ final class AppState {
         }
 
         do {
-            try await gitService.stage(path: path)
+            try await gitService.stage(path: path, oldPath: oldPath)
             detectChanges(repoID: repoID)
         } catch {
             showError(message: error.localizedDescription)
         }
     }
 
-    func unstageFile(repoID: UUID, path: String) async {
+    func unstageFile(repoID: UUID, path: String, oldPath: String? = nil) async {
         guard let repo = repo(id: repoID), repo.isCloned else { return }
         if isDemoMode { return }
 
@@ -1251,7 +1265,7 @@ final class AppState {
         }
 
         do {
-            try await gitService.unstage(path: path)
+            try await gitService.unstage(path: path, oldPath: oldPath)
             detectChanges(repoID: repoID)
         } catch {
             showError(message: error.localizedDescription)

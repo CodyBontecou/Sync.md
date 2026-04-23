@@ -2160,6 +2160,8 @@ private final class FakeGitRepository: GitRepositoryProtocol, @unchecked Sendabl
 
     func pushCurrentBranch(pat: String) async throws {}
 
+    func fetchRemote(pat: String) async throws {}
+
     func revertCommit(oid: String, message: String, authorName: String, authorEmail: String) async throws -> RevertResult {
         revertResult
     }
@@ -2180,12 +2182,14 @@ private final class FakeGitRepository: GitRepositoryProtocol, @unchecked Sendabl
         resolvedConflicts.append((path: path, strategy: strategy))
     }
 
-    func stage(path: String) async throws {
+    func stage(path: String, oldPath: String?) async throws {
         stagedPaths.append(path)
+        if let oldPath { stagedPaths.append(oldPath) }
     }
 
-    func unstage(path: String) async throws {
+    func unstage(path: String, oldPath: String?) async throws {
         unstagedPaths.append(path)
+        if let oldPath { unstagedPaths.append(oldPath) }
     }
 
     func discardChanges(path: String) async throws {

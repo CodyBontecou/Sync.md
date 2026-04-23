@@ -262,6 +262,10 @@ final class CallbackURLHandler {
             throw LocalGitError.notCloned
         }
 
+        // x-callback pushes (Obsidian workflow) should include all local changes
+        // without requiring a manual staging step in the Sync.md UI.
+        try await stageAllLocalChanges(gitService: gitService)
+
         let commitMsg = message.isEmpty ? "Update from Sync.md" : message
 
         let result = try await gitService.commitAndPush(
@@ -277,6 +281,56 @@ final class CallbackURLHandler {
         appState.detectChanges(repoID: repoID)
 
         return result
+    }
+
+    /// Stages all local changes for callback pushes, with a short settle window
+    /// to absorb delayed file-system events (e.g. Obsidian rename = copy+delete
+    /// where the delete can arrive shortly after the new file appears).
+    private func stageAllLocalChanges(gitService: LocalGitService) async throws {
+        var sawAnyChanges = false
+
+        // Run multiple add/update passes over a short window so delayed rename
+        // deletions are captured before commit.
+        for pass in 0..<8 {
+            let before = try await gitService.repoInfo()
+            if !before.statusEntries.isEmpty {
+                sawAnyChanges = true
+            }
+
+            try await gitService.stageAll()
+
+            if pass < 7 {
+                try? await Task.sleep(for: .milliseconds(250))
+            }
+        }
+
+        var finalInfo = try await gitService.repoInfo()
+        if finalInfo.statusEntries.contains(where: { $0.indexStatus != nil }) {
+            return
+        }
+
+        // Fallback to per-entry staging if libgit2 add/update missed anything.
+        if !finalInfo.statusEntries.isEmpty {
+            var seen = Set<String>()
+            for entry in finalInfo.statusEntries {
+                guard entry.path != "<unknown>" else { continue }
+                let key = "\(entry.path)\u{0}\(entry.oldPath ?? "")"
+                guard seen.insert(key).inserted else { continue }
+                try await gitService.stage(path: entry.path, oldPath: entry.oldPath)
+            }
+
+            finalInfo = try await gitService.repoInfo()
+            if finalInfo.statusEntries.contains(where: { $0.indexStatus != nil }) {
+                return
+            }
+        }
+
+        if sawAnyChanges {
+            // We saw changes but couldn't stage them into the index.
+            throw LocalGitError.commitFailed("Could not stage local file changes before push.")
+        }
+
+        throw LocalGitError.noChanges
     }
 
     private func performStatus(repoID: UUID) async throws -> LocalRepoInfo {
