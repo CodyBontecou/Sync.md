@@ -1,0 +1,35 @@
+name: Build Number Guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  reject-non-timestamp-build-numbers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # CFBundleVersion (CURRENT_PROJECT_VERSION) must remain a 12-digit
+      # YYYYMMDDHHMM timestamp. A reset to a small integer would cause every
+      # fresh install to compare numerically as "less than" any future
+      # build-number-based legacy threshold and silently auto-unlock as legacy.
+      # The current legacy check uses originalPurchaseDate, but this guard keeps
+      # the door closed in case anyone reintroduces a build-number comparison.
+      - name: Reject non-12-digit CURRENT_PROJECT_VERSION
+        run: |
+          set -e
+          PBXPROJ="Sync.md.xcodeproj/project.pbxproj"
+          if [ ! -f "$PBXPROJ" ]; then
+            echo "::error::$PBXPROJ not found"
+            exit 1
+          fi
+          BAD=$(grep -E 'CURRENT_PROJECT_VERSION = [^;]+;' "$PBXPROJ" \
+                | grep -vE 'CURRENT_PROJECT_VERSION = [0-9]{12};' || true)
+          if [ -n "$BAD" ]; then
+            echo "::error::CURRENT_PROJECT_VERSION must be a 12-digit YYYYMMDDHHMM timestamp."
+            echo "Offending lines:"
+            echo "$BAD"
+            exit 1
+          fi

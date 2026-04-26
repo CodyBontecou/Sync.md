@@ -3,14 +3,17 @@
  *
  * POST /verify-legacy
  *   Body:    { "receipt": "<base64-encoded App Store receipt>" }
- *   Returns: { "isLegacy": true | false, "originalVersion": "..." }
+ *   Returns: { "isLegacy": true | false, "originalPurchaseDate": "ISO-8601",
+ *              "originalVersion": "..." }
  *   Verifies via Apple's verifyReceipt endpoint (requires on-disk receipt file).
  *
  * POST /verify-legacy-jws
  *   Body:    { "jws": "<AppTransaction JWS from StoreKit 2>" }
- *   Returns: { "isLegacy": true | false, "originalVersion": "..." }
- *   Decodes the Apple-signed AppTransaction JWS and checks originalAppVersion.
- *   Works on TestFlight + App Store (no receipt file needed).
+ *   Returns: { "isLegacy": true | false, "originalPurchaseDate": "ISO-8601",
+ *              "originalVersion": "..." }
+ *   Decodes the Apple-signed AppTransaction JWS and classifies legacy by
+ *   `originalPurchaseDate` against `FREEMIUM_CUTOFF_MS`. Works on TestFlight +
+ *   App Store (no receipt file needed).
  *
  * The iOS app caches a successful `isLegacy: true` response in the Keychain
  * so either endpoint is only ever called once per device.
@@ -32,26 +35,35 @@ interface AppleVerifyReceiptResponse {
   status: number;
   receipt?: {
     bundle_id: string;
-    /** CFBundleVersion (build number) on iOS, CFBundleShortVersionString on macOS. */
+    /** CFBundleVersion (build number) on iOS, CFBundleShortVersionString on macOS.
+     *  Retained in the response shape for diagnostics; legacy classification uses
+     *  `original_purchase_date_ms` instead — see comment on FREEMIUM_CUTOFF_MS. */
     original_application_version: string;
+    /** Original purchase date as a string of milliseconds since 1970-01-01T00:00:00Z. */
+    original_purchase_date_ms?: string;
   };
   /** Returned when status === 21007 — receipt is from the sandbox environment. */
   environment?: string;
 }
 
 const BUNDLE_ID = "bontecou.Sync-md";
-/** Marketing version threshold (CFBundleShortVersionString, used by macOS).
- *  v1.6 was accidentally shipped as a paid app; v1.7 is the first truly free release. */
-const FREEMIUM_INTRO_VERSION = "1.7";
-/** Build number threshold (CFBundleVersion, used by iOS).
- *  On iOS, originalApplicationVersion is CFBundleVersion, NOT CFBundleShortVersionString.
+
+/** Cutoff just past the App Store release of v1.7 (the first free build).
  *
- *  History:
- *    v1.5  build "1"            — paid app
- *    v1.6  build "202603260933" — accidentally still paid; all v1.6 users get legacy access
- *    v1.7  build ≥ "202603270000" — first free (freemium) release
- */
-const FREEMIUM_INTRO_BUILD_NUMBER = "202603270000";
+ *  An `originalPurchaseDate` strictly before this milestone means the user first
+ *  installed v1.5 or v1.6 — both paid releases — and qualifies for a legacy unlock.
+ *
+ *  We use the purchase date instead of the build-number string because the latter
+ *  is `CFBundleVersion`, which can be reset (e.g. back to "1") in a future release.
+ *  That would silently classify every fresh install as legacy. The purchase date is
+ *  Apple-signed and immutable.
+ *
+ *  2026-04-01 00:00 UTC is biased toward generosity for paid customers: the v1.7
+ *  build was created 2026-03-29 10:00 UTC and went live a day or two later, so
+ *  this cutoff captures every v1.6 buyer (last paid build was 2026-03-26 09:33 UTC).
+ *  Trade-off: anyone who installed free v1.7 in the window between Apple approval
+ *  and 2026-04-01 also gets unlocked. */
+const FREEMIUM_CUTOFF_MS = Date.UTC(2026, 3, 1, 0, 0, 0); // April = month 3 (0-indexed)
 
 const APPLE_PRODUCTION_URL = "https://buy.itunes.apple.com/verifyReceipt";
 const APPLE_SANDBOX_URL    = "https://sandbox.itunes.apple.com/verifyReceipt";
@@ -76,7 +88,7 @@ function decodeAppTransactionJWS(jws: string): AppTransactionPayload | null {
   if (parts.length !== 3) return null;
   try {
     const payload = JSON.parse(base64urlDecode(parts[1])) as AppTransactionPayload;
-    if (!payload.bundleId || !payload.originalApplicationVersion) return null;
+    if (!payload.bundleId || typeof payload.originalPurchaseDate !== "number") return null;
     return payload;
   } catch {
     return null;
@@ -86,43 +98,14 @@ function decodeAppTransactionJWS(jws: string): AppTransactionPayload | null {
 interface AppTransactionPayload {
   bundleId: string;
   /** Apple uses "originalApplicationVersion" in the JWS payload, even though
-   *  StoreKit 2's Swift API exposes it as `originalAppVersion`. */
-  originalApplicationVersion: string;
+   *  StoreKit 2's Swift API exposes it as `originalAppVersion`. Retained for
+   *  diagnostics; legacy classification uses `originalPurchaseDate` instead. */
+  originalApplicationVersion?: string;
+  /** Milliseconds since 1970-01-01T00:00:00Z. Apple-signed and immutable. */
+  originalPurchaseDate: number;
   applicationVersion?: string;
   environment?: string;
   [key: string]: unknown;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function versionIsLessThan(v1: string, v2: string): boolean {
-  const a = v1.split(".").map(Number);
-  const b = v2.split(".").map(Number);
-  for (let i = 0; i < Math.max(a.length, b.length); i++) {
-    const x = a[i] ?? 0;
-    const y = b[i] ?? 0;
-    if (x < y) return true;
-    if (x > y) return false;
-  }
-  return false;
-}
-
-/** Detects whether a version string is a CFBundleVersion build number
- *  versus a marketing version. */
-function isBuildNumber(version: string): boolean {
-  return !version.includes(".") && version.length > 0 && /^\d+$/.test(version);
-}
-
-/** Returns true when the given originalApplicationVersion indicates a legacy
- *  (pre-freemium) install, handling both build numbers (iOS) and marketing
- *  versions (macOS). */
-function isLegacyVersion(version: string): boolean {
-  if (isBuildNumber(version)) {
-    return versionIsLessThan(version, FREEMIUM_INTRO_BUILD_NUMBER);
-  }
-  return versionIsLessThan(version, FREEMIUM_INTRO_VERSION);
 }
 
 async function verifyWithApple(
@@ -198,12 +181,16 @@ export default {
         return jsonResponse({ error: "Bundle ID mismatch" }, 400);
       }
 
-      const originalVersion = payload.originalApplicationVersion;
+      const originalPurchaseDateMs = payload.originalPurchaseDate;
       const isLegacy = env.DEBUG_FORCE_LEGACY === "true"
         ? true
-        : isLegacyVersion(originalVersion);
+        : originalPurchaseDateMs < FREEMIUM_CUTOFF_MS;
 
-      return jsonResponse({ isLegacy, originalVersion });
+      return jsonResponse({
+        isLegacy,
+        originalPurchaseDate: new Date(originalPurchaseDateMs).toISOString(),
+        originalVersion: payload.originalApplicationVersion,
+      });
     }
 
     // -----------------------------------------------------------------------
@@ -245,11 +232,23 @@ export default {
       return jsonResponse({ error: "Bundle ID mismatch" }, 400);
     }
 
-    const originalVersion = result.receipt.original_application_version;
+    if (!result.receipt.original_purchase_date_ms) {
+      return jsonResponse({ error: "Missing original_purchase_date_ms in receipt" }, 400);
+    }
+
+    const originalPurchaseDateMs = parseInt(result.receipt.original_purchase_date_ms, 10);
+    if (!Number.isFinite(originalPurchaseDateMs)) {
+      return jsonResponse({ error: "Malformed original_purchase_date_ms" }, 400);
+    }
+
     const isLegacy = env.DEBUG_FORCE_LEGACY === "true"
       ? true
-      : isLegacyVersion(originalVersion);
+      : originalPurchaseDateMs < FREEMIUM_CUTOFF_MS;
 
-    return jsonResponse({ isLegacy, originalVersion });
+    return jsonResponse({
+      isLegacy,
+      originalPurchaseDate: new Date(originalPurchaseDateMs).toISOString(),
+      originalVersion: result.receipt.original_application_version,
+    });
   },
 };
