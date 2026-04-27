@@ -83,13 +83,9 @@ struct RepoListView: View {
                         } label: {
                             Text(String(localized: "Sign In").uppercased())
                                 .font(.system(size: 13, weight: .bold, design: .monospaced))
-                                .foregroundStyle(Color.brutalAccent)
                                 .tracking(1)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .overlay(Rectangle().strokeBorder(Color.brutalAccent.opacity(0.5), lineWidth: 1))
                         }
-                        .buttonStyle(.plain)
+                        .tint(Color.brutalAccent)
                     }
                 }
             }
