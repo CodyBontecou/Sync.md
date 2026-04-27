@@ -400,6 +400,6 @@ struct ConflictEditorView: View {
             additionalPathsToRemove: extras
         )
 
-        showResolved = true
+        dismiss()
     }
 }
