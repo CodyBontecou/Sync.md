@@ -46,6 +46,21 @@ enum SyncTheme {
     static let subtleText = Color(.tertiaryLabel)
 }
 
+// MARK: - Onboarding Color Palette (soft, friendly aesthetic)
+
+extension Color {
+    static let obBg        = Color(hex: 0xFDF8F5)
+    static let obPurple    = Color(hex: 0x7B68EE)
+    static let obPurpleL   = Color(hex: 0xA89CF5)
+    static let obPurpleDim = Color(hex: 0xEDE9FF)
+    static let obText      = Color(hex: 0x1C1C1E)
+    static let obSub       = Color(hex: 0x8A8A8E)
+    static let obGreen     = Color(hex: 0x34C759)
+    static let obGreenDim  = Color(hex: 0xE8F9EE)
+    static let obOrange    = Color(hex: 0xFF9500)
+    static let obOrangeDim = Color(hex: 0xFFF3E0)
+}
+
 // MARK: - Hex Color Initializer
 
 extension Color {
