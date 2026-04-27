@@ -635,6 +635,183 @@ final class AppState {
         }
     }
 
+    func loadConflictDetail(repoID: UUID, path: String) async -> ConflictFileDetail? {
+        guard let repo = repo(id: repoID), repo.isCloned else { return nil }
+        if isDemoMode { return nil }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else { return nil }
+
+        do {
+            return try await gitService.conflictDetail(path: path)
+        } catch {
+            showError(message: error.localizedDescription)
+            return nil
+        }
+    }
+
+    func resolveConflictWithContent(
+        repoID: UUID,
+        path: String,
+        content: Data,
+        additionalPathsToRemove: [String] = []
+    ) async {
+        guard let repo = repo(id: repoID), repo.isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        do {
+            try await gitService.resolveConflictWithContent(
+                path: path,
+                content: content,
+                additionalPathsToRemove: additionalPathsToRemove
+            )
+            detectChanges(repoID: repoID)
+            await loadConflictSession(repoID: repoID)
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+    }
+
+    /// Auto-commit local edits, then attempt a merge with the remote-tracking
+    /// branch. This is the unblock path from the "Local edits detected" banner:
+    /// the user can't pull because there are uncommitted changes, and we'd
+    /// rather create a real commit + merge (so any conflicts surface in the
+    /// conflict editor) than block them with no in-app way forward.
+    func commitLocalAndAttemptMerge(repoID: UUID, message: String) async {
+        guard let idx = repoIndex(id: repoID), repos[idx].isCloned else { return }
+        if isDemoMode { return }
+
+        let vaultDir = vaultURL(for: repoID)
+        let gitService = gitRepositoryFactory(vaultDir)
+
+        guard gitService.hasGitDirectory else {
+            showError(message: LocalGitError.notCloned.localizedDescription)
+            return
+        }
+
+        let repo = repos[idx]
+        let currentBranch = repo.gitState.branch.isEmpty ? "main" : repo.gitState.branch
+        let upstreamName = "origin/\(currentBranch)"
+        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        let commitMessage = trimmed.isEmpty
+            ? String(localized: "Local changes from Sync.md")
+            : trimmed
+
+        isSyncing = true
+        syncingRepoID = repoID
+        syncProgress = String(localized: "Committing local changes...")
+        pullOutcomeByRepo.removeValue(forKey: repoID)
+
+        do {
+            try await gitService.stageAll()
+        } catch {
+            isSyncing = false
+            syncingRepoID = nil
+            showError(message: error.localizedDescription)
+            return
+        }
+
+        var didCommit = false
+        do {
+            let newSHA = try await gitService.commitLocal(
+                message: commitMessage,
+                authorName: repo.authorName,
+                authorEmail: repo.authorEmail
+            )
+            repos[idx].gitState.commitSHA = newSHA
+            repos[idx].gitState.lastSyncDate = Date()
+            saveRepos()
+            clearCommitHistoryCache(for: repoID)
+            didCommit = true
+            DebugLogger.shared.info("merge", "Auto-committed local changes", detail: "SHA: \(newSHA)")
+        } catch LocalGitError.noChanges {
+            // Nothing to commit — proceed straight to the merge.
+        } catch {
+            isSyncing = false
+            syncingRepoID = nil
+            showError(message: error.localizedDescription)
+            return
+        }
+
+        syncProgress = String(localized: "Merging with remote...")
+        do {
+            let result = try await gitService.mergeBranch(
+                name: upstreamName,
+                authorName: repo.authorName,
+                authorEmail: repo.authorEmail
+            )
+
+            switch result.kind {
+            case .upToDate:
+                detectChanges(repoID: repoID)
+                if didCommit {
+                    syncProgress = String(localized: "Pushing local commit...")
+                    do {
+                        try await gitService.pushCurrentBranch(pat: pat)
+                        setPullOutcome(
+                            repoID: repoID,
+                            kind: .fastForwarded,
+                            message: String(localized: "Committed and pushed successfully")
+                        )
+                    } catch {
+                        showError(message: error.localizedDescription)
+                    }
+                } else {
+                    setPullOutcome(
+                        repoID: repoID,
+                        kind: .upToDate,
+                        message: String(localized: "Already up to date")
+                    )
+                }
+
+            case .fastForwarded, .mergeCommitted:
+                repos[idx].gitState.commitSHA = result.newCommitSHA
+                repos[idx].gitState.lastSyncDate = Date()
+                saveRepos()
+                clearCommitHistoryCache(for: repoID)
+                detectChanges(repoID: repoID)
+                await loadBranches(repoID: repoID)
+
+                syncProgress = String(localized: "Pushing merged changes...")
+                do {
+                    try await gitService.pushCurrentBranch(pat: pat)
+                    setPullOutcome(
+                        repoID: repoID,
+                        kind: .fastForwarded,
+                        message: String(localized: "Merged and pushed successfully")
+                    )
+                } catch {
+                    showError(message: error.localizedDescription)
+                }
+            }
+        } catch LocalGitError.mergeConflictsDetected {
+            await loadConflictSession(repoID: repoID)
+            detectChanges(repoID: repoID)
+            setPullOutcome(
+                repoID: repoID,
+                kind: .diverged,
+                message: String(localized: "Merge has conflicts — tap a conflicted file to resolve")
+            )
+        } catch {
+            await loadConflictSession(repoID: repoID)
+            showError(message: error.localizedDescription)
+        }
+
+        isSyncing = false
+        syncingRepoID = nil
+    }
+
     func loadStashes(repoID: UUID) async {
         guard let repo = repo(id: repoID), repo.isCloned else {
             stashesByRepo[repoID] = []
@@ -1081,10 +1258,11 @@ final class AppState {
 
         } catch LocalGitError.mergeConflictsDetected {
             await loadConflictSession(repoID: repoID)
+            detectChanges(repoID: repoID)
             setPullOutcome(
                 repoID: repoID,
                 kind: .diverged,
-                message: String(localized: "Merge has conflicts — open Git to resolve")
+                message: String(localized: "Merge has conflicts — tap a conflicted file to resolve")
             )
         } catch {
             showError(message: error.localizedDescription)
@@ -1562,6 +1740,16 @@ final class AppState {
         guard let idx = repoIndex(id: repoID) else {
             showError(message: String(localized: "Repository not found"))
             return false
+        }
+
+        // If we're in the middle of a merge, "Commit & Push" really means
+        // "complete the merge and push the merge commit". commitAndPush
+        // would otherwise fail with "nothing to commit" when the conflict
+        // resolution left the tree identical to HEAD — and even when it
+        // didn't, we'd lose the two-parent merge topology.
+        if let session = conflictSessionByRepo[repoID], session.kind == .merge {
+            await completeMerge(repoID: repoID, message: message)
+            return conflictSessionByRepo[repoID]?.isActive == false
         }
 
         isSyncing = true

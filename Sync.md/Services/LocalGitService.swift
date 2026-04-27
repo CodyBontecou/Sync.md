@@ -949,27 +949,70 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 throw LocalGitError.libgit2("Merge analysis did not produce a supported strategy")
             }
 
+            // Compute the merge in-memory rather than calling git_merge.
+            // git_merge runs an internal "would be overwritten" check that
+            // diffs workdir against the merge result with no NFC/NFD
+            // tolerance — on APFS that triggers false GIT_EINDEXDIRTY
+            // failures even when status is clean. git_merge_commits skips
+            // the workdir entirely and returns just the merged index, so
+            // we can take it from here ourselves.
             var mergeOpts = git_merge_options()
             git_merge_options_init(&mergeOpts, UInt32(GIT_MERGE_OPTIONS_VERSION))
+            mergeOpts.flags = UInt32(GIT_MERGE_FIND_RENAMES.rawValue)
 
-            var checkoutOpts = git_checkout_options()
-            git_checkout_options_init(&checkoutOpts, UInt32(GIT_CHECKOUT_OPTIONS_VERSION))
-            checkoutOpts.checkout_strategy = GIT_CHECKOUT_SAFE.rawValue
+            var mergedIndex: OpaquePointer?
+            defer { if let mergedIndex { git_index_free(mergedIndex) } }
+            try git2Check(
+                git_merge_commits(&mergedIndex, repo, headCommit, sourceCommit, &mergeOpts),
+                context: "Compute merge index"
+            )
 
-            try theirHeads.withUnsafeMutableBufferPointer { buffer in
-                try git2Check(
-                    git_merge(repo, buffer.baseAddress, 1, &mergeOpts, &checkoutOpts),
-                    context: "Perform merge"
-                )
-            }
-
+            // Open the repo's working index so we can replace its contents
+            // with whatever git_merge_commits produced, conflicts or not.
             var index: OpaquePointer?
             defer { if let index { git_index_free(index) } }
-            try git2Check(git_repository_index(&index, repo), context: "Read merge index")
+            try git2Check(git_repository_index(&index, repo), context: "Open repo index")
+            try git2Check(git_index_clear(index), context: "Clear repo index")
+
+            let entryCount = git_index_entrycount(mergedIndex)
+            for i in 0..<entryCount {
+                if let entry = git_index_get_byindex(mergedIndex, i) {
+                    try git2Check(git_index_add(index, entry), context: "Copy merge entry")
+                }
+            }
+            try git2Check(git_index_write(index), context: "Write merge index")
 
             if git_index_has_conflicts(index) == 1 {
+                // Manually mark the repo as in-merge so libgit2 reports
+                // GIT_REPOSITORY_STATE_MERGE and our conflict UI activates.
+                let gitDir = repoPath + "/.git"
+                let mergeHeadFile = gitDir + "/MERGE_HEAD"
+                let mergeMsgFile = gitDir + "/MERGE_MSG"
+                let sourceHex = oidToHex(sourceOid)
+                try? (sourceHex + "\n").write(
+                    toFile: mergeHeadFile,
+                    atomically: true,
+                    encoding: .utf8
+                )
+                try? "Merge branch '\(branchName)'\n".write(
+                    toFile: mergeMsgFile,
+                    atomically: true,
+                    encoding: .utf8
+                )
                 throw LocalGitError.mergeConflictsDetected
             }
+
+            // Clean merge — push the merged tree out to the worktree and
+            // record the merge commit. FORCE checkout is appropriate here
+            // because hasUncommittedChanges already returned false, and
+            // FORCE leaves untracked files alone.
+            var checkoutOpts = git_checkout_options()
+            git_checkout_options_init(&checkoutOpts, UInt32(GIT_CHECKOUT_OPTIONS_VERSION))
+            checkoutOpts.checkout_strategy = GIT_CHECKOUT_FORCE.rawValue
+            try git2Check(
+                git_checkout_index(repo, index, &checkoutOpts),
+                context: "Checkout merged index"
+            )
 
             var treeOid = git_oid()
             try git2Check(git_index_write_tree(&treeOid, index), context: "Write merge tree")
@@ -1312,6 +1355,276 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             try git2Check(git_index_write(index), context: "Write index")
         }.value
     }
+
+    func conflictDetail(path: String) async throws -> ConflictFileDetail {
+        let repoPath = self.localURL.path
+        let lookupPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return try await Task.detached {
+            guard !lookupPath.isEmpty else {
+                throw LocalGitError.conflictPathNotFound(path)
+            }
+
+            var repo: OpaquePointer?
+            defer { if let repo { git_repository_free(repo) } }
+            try git2Check(git_repository_open(&repo, repoPath), context: "Open repo")
+
+            var index: OpaquePointer?
+            defer { if let index { git_index_free(index) } }
+            try git2Check(git_repository_index(&index, repo), context: "Read index")
+
+            var iterator: OpaquePointer?
+            defer { if let iterator { git_index_conflict_iterator_free(iterator) } }
+            try git2Check(
+                git_index_conflict_iterator_new(&iterator, index),
+                context: "Create conflict iterator"
+            )
+
+            // Walk every conflict triple in the index. A rename/rename can have
+            // ancestor/ours/theirs at three different paths, so we accept a match
+            // on any side. The `lookupPath` argument is whatever the UI displayed
+            // — usually one of those paths.
+            while true {
+                var ancestorEntry: UnsafePointer<git_index_entry>?
+                var oursEntry: UnsafePointer<git_index_entry>?
+                var theirsEntry: UnsafePointer<git_index_entry>?
+                let nextCode = git_index_conflict_next(
+                    &ancestorEntry, &oursEntry, &theirsEntry, iterator
+                )
+                if nextCode == GIT_ITEROVER.rawValue { break }
+                try git2Check(nextCode, context: "Iterate conflicts")
+
+                let ancestorPath = ancestorEntry.flatMap { String(cString: $0.pointee.path) }
+                let oursPath = oursEntry.flatMap { String(cString: $0.pointee.path) }
+                let theirsPath = theirsEntry.flatMap { String(cString: $0.pointee.path) }
+
+                let matches = [ancestorPath, oursPath, theirsPath].contains(lookupPath)
+                guard matches else { continue }
+
+                let ancestor = try Self.readConflictSide(repo: repo, entry: ancestorEntry)
+                let ours = try Self.readConflictSide(repo: repo, entry: oursEntry)
+                let theirs = try Self.readConflictSide(repo: repo, entry: theirsEntry)
+
+                return ConflictFileDetail(
+                    lookupPath: lookupPath,
+                    ancestor: ancestor,
+                    ours: ours,
+                    theirs: theirs
+                )
+            }
+
+            throw LocalGitError.conflictPathNotFound(lookupPath)
+        }.value
+    }
+
+    func resolveConflictWithContent(
+        path: String,
+        content: Data,
+        additionalPathsToRemove: [String]
+    ) async throws {
+        let repoPath = self.localURL.path
+        let workdir = self.localURL.path
+        let trimmedPath = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        let extras = additionalPathsToRemove
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && $0 != trimmedPath }
+
+        try await Task.detached {
+            guard !trimmedPath.isEmpty else {
+                throw LocalGitError.conflictPathNotFound(path)
+            }
+
+            var repo: OpaquePointer?
+            defer { if let repo { git_repository_free(repo) } }
+            try git2Check(git_repository_open(&repo, repoPath), context: "Open repo")
+
+            var index: OpaquePointer?
+            defer { if let index { git_index_free(index) } }
+            try git2Check(git_repository_index(&index, repo), context: "Read index")
+
+            // Write the resolved bytes to the working tree, creating any missing
+            // parent directories. The kept path may not exist on disk yet (e.g.
+            // after `git_merge` left only conflict markers, or if the user is
+            // picking a new filename for a rename/rename).
+            let absoluteKeepPath = (workdir as NSString).appendingPathComponent(trimmedPath)
+            let parent = (absoluteKeepPath as NSString).deletingLastPathComponent
+            try FileManager.default.createDirectory(
+                atPath: parent,
+                withIntermediateDirectories: true
+            )
+            try content.write(to: URL(fileURLWithPath: absoluteKeepPath), options: .atomic)
+
+            // Clear conflict markers for every path involved in this conflict.
+            // libgit2 keys conflicts by path, so a rename/rename has multiple
+            // entries to clear (ancestor path + both rename targets).
+            for clearPath in [trimmedPath] + extras {
+                try clearPath.withCString { cPath in
+                    let removeCode = git_index_conflict_remove(index, cPath)
+                    if removeCode != 0 && removeCode != GIT_ENOTFOUND.rawValue {
+                        try git2Check(removeCode, context: "Remove conflict for \(clearPath)")
+                    }
+                }
+            }
+
+            // Drop unwanted paths from the index and the working tree. For a
+            // rename/rename where the user keeps only one filename, this deletes
+            // the alternative on disk too so the resulting commit is clean.
+            for extra in extras {
+                try extra.withCString { cPath in
+                    let removeCode = git_index_remove_bypath(index, cPath)
+                    if removeCode != 0 && removeCode != GIT_ENOTFOUND.rawValue {
+                        try git2Check(removeCode, context: "Remove index entry for \(extra)")
+                    }
+                }
+                let absoluteExtra = (workdir as NSString).appendingPathComponent(extra)
+                if FileManager.default.fileExists(atPath: absoluteExtra) {
+                    try? FileManager.default.removeItem(atPath: absoluteExtra)
+                }
+            }
+
+            // Stage the resolved file last so it is the canonical entry.
+            try trimmedPath.withCString { cPath in
+                try git2Check(
+                    git_index_add_bypath(index, cPath),
+                    context: "Stage resolved file \(trimmedPath)"
+                )
+            }
+
+            try git2Check(git_index_write(index), context: "Write index")
+        }.value
+    }
+
+    func commitLocal(
+        message: String,
+        authorName: String,
+        authorEmail: String
+    ) async throws -> String {
+        let repoPath = self.localURL.path
+
+        return try await Task.detached {
+            var repo: OpaquePointer?
+            defer { if let repo { git_repository_free(repo) } }
+            try git2Check(git_repository_open(&repo, repoPath), context: "Open repo")
+
+            var index: OpaquePointer?
+            defer { if let index { git_index_free(index) } }
+            try git2Check(git_repository_index(&index, repo), context: "Get index")
+
+            guard try Self.hasStagedChanges(repo: repo, index: index) else {
+                throw LocalGitError.noChanges
+            }
+
+            try git2Check(git_index_write(index), context: "Write index")
+
+            var treeOid = git_oid()
+            try git2Check(git_index_write_tree(&treeOid, index), context: "Write tree from index")
+
+            var tree: OpaquePointer?
+            defer { if let tree { git_tree_free(tree) } }
+            try git2Check(git_tree_lookup(&tree, repo, &treeOid), context: "Lookup tree")
+
+            var headRef: OpaquePointer?
+            defer { if let headRef { git_reference_free(headRef) } }
+            var parentCommit: OpaquePointer?
+            defer { if let parentCommit { git_commit_free(parentCommit) } }
+
+            let headCode = git_repository_head(&headRef, repo)
+            if headCode == 0 {
+                guard let headOid = git_reference_target(headRef) else {
+                    throw LocalGitError.repositoryCorrupted("Could not resolve HEAD for commit")
+                }
+                var headOidCopy = headOid.pointee
+                try git2Check(
+                    git_commit_lookup(&parentCommit, repo, &headOidCopy),
+                    context: "Lookup HEAD commit"
+                )
+            } else if headCode != GIT_EUNBORNBRANCH.rawValue && headCode != GIT_ENOTFOUND.rawValue {
+                try git2Check(headCode, context: "Read HEAD")
+            }
+
+            var sig: UnsafeMutablePointer<git_signature>?
+            defer { if let sig { git_signature_free(sig) } }
+            try git2Check(
+                git_signature_now(&sig, authorName, authorEmail),
+                context: "Create signature"
+            )
+
+            var commitOid = git_oid()
+            if let parentCommit {
+                var parents: [OpaquePointer?] = [parentCommit]
+                try parents.withUnsafeMutableBufferPointer { buf in
+                    try git2Check(
+                        git_commit_create(
+                            &commitOid, repo, "HEAD",
+                            sig, sig,
+                            nil,
+                            message,
+                            tree,
+                            1,
+                            buf.baseAddress
+                        ),
+                        context: "Create commit"
+                    )
+                }
+            } else {
+                try git2Check(
+                    git_commit_create(
+                        &commitOid, repo, "HEAD",
+                        sig, sig,
+                        nil,
+                        message,
+                        tree,
+                        0,
+                        nil
+                    ),
+                    context: "Create initial commit"
+                )
+            }
+
+            return oidToHex(&commitOid)
+        }.value
+    }
+
+    /// Read one stage of an index conflict into a `ConflictFileSide`. Caps
+    /// content at `conflictBlobByteCap` so a runaway binary doesn't blow up
+    /// memory; oversized blobs come back with `content == nil`.
+    private static func readConflictSide(
+        repo: OpaquePointer?,
+        entry: UnsafePointer<git_index_entry>?
+    ) throws -> ConflictFileSide? {
+        guard let entry else { return nil }
+
+        let entryPath = String(cString: entry.pointee.path)
+        var oidCopy = entry.pointee.id
+        let oidString = oidToHex(&oidCopy)
+
+        var blob: OpaquePointer?
+        defer { if let blob { git_blob_free(blob) } }
+        try git2Check(
+            git_blob_lookup(&blob, repo, &oidCopy),
+            context: "Lookup conflict blob for \(entryPath)"
+        )
+
+        let isBinary = git_blob_is_binary(blob) == 1
+        let rawSize = git_blob_rawsize(blob)
+        let size = Int(clamping: rawSize)
+
+        var content: Data? = nil
+        if size <= conflictBlobByteCap, let raw = git_blob_rawcontent(blob), size > 0 {
+            content = Data(bytes: raw, count: size)
+        } else if size == 0 {
+            content = Data()
+        }
+
+        return ConflictFileSide(
+            path: entryPath,
+            oid: oidString,
+            isBinary: isBinary,
+            content: content
+        )
+    }
+
+    private static let conflictBlobByteCap = 2 * 1024 * 1024
 
     // MARK: - Diff
 

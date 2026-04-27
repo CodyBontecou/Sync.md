@@ -8,6 +8,7 @@ struct GitControlSheet: View {
 
     @State private var commitMessage = ""
     @State private var diffDestination: DiffDestination? = nil
+    @State private var conflictEditorDestination: ConflictEditorDestination? = nil
     @State private var newBranchName = ""
     @State private var mergeCommitMessage = ""
     @State private var stashMessage = ""
@@ -84,6 +85,9 @@ struct GitControlSheet: View {
             }
             .navigationDestination(item: $diffDestination) { dest in
                 FileDiffView(repoID: dest.repoID, path: dest.path)
+            }
+            .navigationDestination(item: $conflictEditorDestination) { dest in
+                ConflictEditorView(repoID: dest.repoID, path: dest.path)
             }
             .task {
                 #if DEBUG
@@ -382,8 +386,8 @@ struct GitControlSheet: View {
                 smallActionButton(String(localized: "Theirs").uppercased()) {
                     Task { await state.resolveConflictFile(repoID: repoID, path: path, strategy: .theirs) }
                 }
-                smallActionButton(String(localized: "Manual").uppercased()) {
-                    Task { await state.resolveConflictFile(repoID: repoID, path: path, strategy: .manual) }
+                smallActionButton(String(localized: "Edit").uppercased()) {
+                    conflictEditorDestination = ConflictEditorDestination(repoID: repoID, path: path)
                 }
                 smallActionButton(String(localized: "Diff").uppercased()) {
                     openDiff(for: path)
@@ -729,7 +733,25 @@ struct GitControlSheet: View {
     // MARK: - Push Card
 
     private var pushCard: some View {
-        BCard(padding: 0) {
+        let inMerge = conflictSession.kind == .merge
+        let title = inMerge ? String(localized: "Complete Merge") : String(localized: "Commit & Push")
+        let subtitle = inMerge
+            ? String(localized: "Finalize the merge with a commit and push")
+            : String(localized: "Commit staged changes and push to remote")
+        let placeholder = inMerge ? "Merge commit message…" : "Commit message…"
+        let buttonLabel: String
+        if inMerge {
+            buttonLabel = String(localized: "Complete Merge").uppercased()
+        } else if stagedCount == 1 {
+            buttonLabel = String(localized: "Push 1 File").uppercased()
+        } else {
+            buttonLabel = String(localized: "Push \(stagedCount) Files").uppercased()
+        }
+        let buttonDisabled = state.isSyncing
+            || (!inMerge && stagedCount == 0)
+            || (inMerge && conflictSession.hasConflicts)
+
+        return BCard(padding: 0) {
             VStack(spacing: 0) {
                 HStack(spacing: 12) {
                     Text("⬆")
@@ -737,10 +759,10 @@ struct GitControlSheet: View {
                         .frame(width: 32)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(String(localized: "Commit & Push"))
+                        Text(title)
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(Color.brutalText)
-                        Text(String(localized: "Commit staged changes and push to remote"))
+                        Text(subtitle)
                             .font(.system(size: 14, design: .monospaced))
                             .foregroundStyle(Color.brutalText)
                     }
@@ -751,7 +773,7 @@ struct GitControlSheet: View {
 
 
                 // Commit message
-                TextField("Commit message…", text: $commitMessage, axis: .vertical)
+                TextField(placeholder, text: $commitMessage, axis: .vertical)
                     .font(.system(size: 15, design: .monospaced))
                     .lineLimit(1...4)
                     .padding(13)
@@ -759,9 +781,17 @@ struct GitControlSheet: View {
 
 
                 HStack {
-                    Text(stagedCount == 1 ? String(localized: "1 file staged") : String(localized: "\(stagedCount) files staged"))
-                        .font(.system(size: 13, design: .monospaced))
-                        .foregroundStyle(Color.brutalText)
+                    if inMerge {
+                        Text(conflictSession.hasConflicts
+                             ? String(localized: "\(conflictSession.unmergedPaths.count) conflicts to resolve")
+                             : String(localized: "All conflicts resolved"))
+                            .font(.system(size: 13, design: .monospaced))
+                            .foregroundStyle(conflictSession.hasConflicts ? Color.brutalError : Color.brutalSuccess)
+                    } else {
+                        Text(stagedCount == 1 ? String(localized: "1 file staged") : String(localized: "\(stagedCount) files staged"))
+                            .font(.system(size: 13, design: .monospaced))
+                            .foregroundStyle(Color.brutalText)
+                    }
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -778,19 +808,19 @@ struct GitControlSheet: View {
                     }
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "arrow.up")
+                        Image(systemName: inMerge ? "checkmark" : "arrow.up")
                             .font(.system(size: 14, weight: .bold))
-                        Text(stagedCount == 1 ? String(localized: "Push 1 File").uppercased() : String(localized: "Push \(stagedCount) Files").uppercased())
+                        Text(buttonLabel)
                             .font(.system(size: 14, weight: .bold, design: .monospaced))
                             .tracking(1)
                     }
                     .foregroundStyle(Color(.systemBackground))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(stagedCount == 0 || state.isSyncing ? Color.primary.opacity(0.3) : Color.primary)
+                    .background(buttonDisabled ? Color.primary.opacity(0.3) : Color.primary)
                 }
                 .buttonStyle(.plain)
-                .disabled(stagedCount == 0 || state.isSyncing)
+                .disabled(buttonDisabled)
             }
         }
     }

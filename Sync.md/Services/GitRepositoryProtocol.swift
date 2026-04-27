@@ -17,8 +17,16 @@ protocol GitRepositoryProtocol: Sendable {
     func completeMerge(message: String, authorName: String, authorEmail: String) async throws -> MergeFinalizeResult
     func abortMerge() async throws
     func conflictSession() async throws -> ConflictSession
+    func conflictDetail(path: String) async throws -> ConflictFileDetail
     func resolveConflict(path: String, strategy: ConflictResolutionStrategy) async throws
+    func resolveConflictWithContent(
+        path: String,
+        content: Data,
+        additionalPathsToRemove: [String]
+    ) async throws
+    func commitLocal(message: String, authorName: String, authorEmail: String) async throws -> String
     func stage(path: String, oldPath: String?) async throws
+    func stageAll() async throws
     func unstage(path: String, oldPath: String?) async throws
     func discardChanges(path: String) async throws
     func discardAllChanges() async throws
