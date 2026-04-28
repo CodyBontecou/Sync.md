@@ -104,6 +104,23 @@ struct RepoListView: View {
             } message: {
                 Text(state.lastError ?? String(localized: "Unknown error"))
             }
+            .alert(
+                "Untrusted Server Certificate",
+                isPresented: Binding(
+                    get: { state.pendingCertTrust != nil },
+                    set: { if !$0 { state.dismissPendingCertTrust() } }
+                ),
+                presenting: state.pendingCertTrust
+            ) { prompt in
+                Button("Trust & Continue") {
+                    Task { await state.acceptPendingCertTrust() }
+                }
+                Button("Cancel", role: .cancel) {
+                    state.dismissPendingCertTrust()
+                }
+            } message: { prompt in
+                Text("The server's TLS certificate is not trusted by the system. Only continue if you recognise this server (e.g. your own homelab Gitea over Tailscale).\n\nSHA-256 fingerprint:\n\(LocalGitService.formatCertificateFingerprint(prompt.fingerprint))")
+            }
             .onChange(of: state.callbackNavigateToRepoID) { _, newValue in
                 if let repoID = newValue {
                     navigationPath = NavigationPath([repoID])

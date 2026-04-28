@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import Clibgit2
 import libgit2
 
@@ -30,6 +31,7 @@ enum LocalGitError: LocalizedError {
     case tagAlreadyExists(String)
     case tagNotFound(String)
     case repositoryCorrupted(String)
+    case untrustedCertificate(fingerprint: String)
     case libgit2(String)
 
     var errorDescription: String? {
@@ -84,6 +86,8 @@ enum LocalGitError: LocalizedError {
             return String(localized: "Tag '\(name)' was not found.")
         case .repositoryCorrupted(let msg):
             return String(localized: "Repository corrupted: \(msg). Try removing and re-cloning.")
+        case .untrustedCertificate(let fingerprint):
+            return String(localized: "The remote server's TLS certificate is not trusted (SHA-256: \(LocalGitService.formatCertificateFingerprint(fingerprint))). Confirm you recognise the server before continuing.")
         case .libgit2(let msg):
             return String(localized: "Git error: \(msg)")
         }
@@ -169,15 +173,40 @@ private func makeStrarray(_ cStr: UnsafeMutablePointer<CChar>, into arr: inout g
 
 // MARK: - Credential Callback
 
+/// Captures shared TLS-pinning state between the credential callback's payload
+/// (which libgit2 reuses for the certificate-check callback) and the Swift
+/// caller that needs to surface an untrusted-cert error after the C call returns.
+final class CertVerificationState: @unchecked Sendable {
+    let trustedFingerprint: String?
+    private let lock = NSLock()
+    private var captured: String?
+
+    init(trustedFingerprint: String?) {
+        self.trustedFingerprint = trustedFingerprint
+    }
+
+    var capturedUntrustedFingerprint: String? {
+        lock.lock(); defer { lock.unlock() }
+        return captured
+    }
+
+    func capture(_ fingerprint: String) {
+        lock.lock(); defer { lock.unlock() }
+        captured = fingerprint
+    }
+}
+
 /// Context passed through libgit2's credential callback payload.
 private final class CredentialContext {
     let username: String
     let password: String
+    let certState: CertVerificationState
     var didAttempt = false
 
-    init(username: String, password: String) {
+    init(username: String, password: String, certState: CertVerificationState = CertVerificationState(trustedFingerprint: nil)) {
         self.username = username
         self.password = password
+        self.certState = certState
     }
 }
 
@@ -214,12 +243,14 @@ nonisolated private func credentialCallback(
 private final class PushContext {
     let username: String
     let password: String
+    let certState: CertVerificationState
     var didAttempt = false
     var rejectedRefs: [(refname: String, reason: String)] = []
 
-    init(username: String, password: String) {
+    init(username: String, password: String, certState: CertVerificationState = CertVerificationState(trustedFingerprint: nil)) {
         self.username = username
         self.password = password
+        self.certState = certState
     }
 }
 
@@ -240,6 +271,62 @@ nonisolated private func pushCredentialCallback(
         return git_credential_userpass_plaintext_new(cred, ctx.username, ctx.password)
     }
     return GIT_EUSER.rawValue
+}
+
+/// Compute the SHA-256 hex digest of an X.509 cert delivered to libgit2,
+/// or nil if the cert is not X.509 / has no DER body.
+nonisolated private func sha256OfX509Cert(_ cert: UnsafeMutablePointer<git_cert>) -> String? {
+    guard cert.pointee.cert_type == GIT_CERT_X509 else { return nil }
+    let x509 = cert.withMemoryRebound(to: git_cert_x509.self, capacity: 1) { $0.pointee }
+    guard let raw = x509.data, x509.len > 0 else { return nil }
+    let buffer = UnsafeBufferPointer(
+        start: raw.assumingMemoryBound(to: UInt8.self),
+        count: x509.len
+    )
+    let digest = SHA256.hash(data: Data(buffer))
+    return digest.map { String(format: "%02x", $0) }.joined()
+}
+
+/// Shared cert-check logic. Returns 0 to accept, GIT_ECERTIFICATE to reject.
+/// On rejection due to untrusted cert, captures the fingerprint into `state`
+/// so the Swift caller can surface a typed error.
+nonisolated private func evaluateCertificate(
+    cert: UnsafeMutablePointer<git_cert>?,
+    valid: Int32,
+    state: CertVerificationState
+) -> Int32 {
+    // System trust accepted the cert — defer to that.
+    if valid != 0 { return 0 }
+    guard let cert else { return GIT_ECERTIFICATE.rawValue }
+    // Non-X509 (SSH host keys etc.) — we don't pin those, accept.
+    guard let hex = sha256OfX509Cert(cert) else { return 0 }
+    if let trusted = state.trustedFingerprint?.lowercased(), trusted == hex {
+        return 0
+    }
+    state.capture(hex)
+    return GIT_ECERTIFICATE.rawValue
+}
+
+nonisolated private func certificateCheckCallbackForCredentialContext(
+    cert: UnsafeMutablePointer<git_cert>?,
+    valid: Int32,
+    host: UnsafePointer<CChar>?,
+    payload: UnsafeMutableRawPointer?
+) -> Int32 {
+    guard let payload else { return GIT_ECERTIFICATE.rawValue }
+    let ctx = Unmanaged<CredentialContext>.fromOpaque(payload).takeUnretainedValue()
+    return evaluateCertificate(cert: cert, valid: valid, state: ctx.certState)
+}
+
+nonisolated private func certificateCheckCallbackForPushContext(
+    cert: UnsafeMutablePointer<git_cert>?,
+    valid: Int32,
+    host: UnsafePointer<CChar>?,
+    payload: UnsafeMutableRawPointer?
+) -> Int32 {
+    guard let payload else { return GIT_ECERTIFICATE.rawValue }
+    let ctx = Unmanaged<PushContext>.fromOpaque(payload).takeUnretainedValue()
+    return evaluateCertificate(cert: cert, valid: valid, state: ctx.certState)
 }
 
 nonisolated private func pushUpdateReferenceCallback(
@@ -319,9 +406,27 @@ nonisolated private func stashForeachCallback(
 /// Replaces the GitHub REST API approach which only stored file contents.
 final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
     let localURL: URL
+    /// Optional pinned SHA-256 fingerprint (lowercase hex) of the server's TLS
+    /// certificate. Set when a user has explicitly trusted a self-signed cert
+    /// (e.g. self-hosted Gitea over a Tailscale tailnet).
+    let trustedFingerprint: String?
 
     /// One-time libgit2 global init.
     private static let initOnce: Void = { git_libgit2_init() }()
+
+    /// Format a hex SHA-256 fingerprint as colon-separated uppercase byte pairs
+    /// for display (e.g. "abcdef" → "AB:CD:EF"). A trailing odd nibble is
+    /// dropped — SHA-256 is always 32 bytes / 64 hex chars in practice.
+    static func formatCertificateFingerprint(_ hex: String) -> String {
+        let upper = hex.uppercased()
+        var pairs: [String] = []
+        var iterator = upper.makeIterator()
+        while let high = iterator.next() {
+            guard let low = iterator.next() else { break }
+            pairs.append(String([high, low]))
+        }
+        return pairs.joined(separator: ":")
+    }
 
     /// Set `core.precomposeunicode = true` on a repo so libgit2 transparently
     /// normalises filenames between NFC (git objects) and NFD (APFS/HFS+).
@@ -335,9 +440,10 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
         }
     }
 
-    init(localURL: URL) {
+    init(localURL: URL, trustedFingerprint: String? = nil) {
         _ = Self.initOnce
         self.localURL = localURL
+        self.trustedFingerprint = trustedFingerprint
     }
 
     /// Whether a `.git` directory exists at the local URL.
@@ -352,23 +458,33 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
     func clone(remoteURL: String, pat: String) async throws -> LocalCloneResult {
         let dest = self.localURL.path
         let localURL = self.localURL
+        let trustedFingerprint = self.trustedFingerprint
 
         return try await Task.detached {
             var repo: OpaquePointer?
             defer { if let repo { git_repository_free(repo) } }
 
-            // Configure clone options with HTTPS credential callback
+            // Configure clone options with HTTPS credential + cert-check callbacks
             var opts = git_clone_options()
             git_clone_options_init(&opts, UInt32(GIT_CLONE_OPTIONS_VERSION))
 
-            let ctx = CredentialContext(username: "x-access-token", password: pat)
+            let certState = CertVerificationState(trustedFingerprint: trustedFingerprint)
+            let ctx = CredentialContext(
+                username: "x-access-token",
+                password: pat,
+                certState: certState
+            )
             let ctxPtr = Unmanaged.passRetained(ctx).toOpaque()
             defer { Unmanaged<CredentialContext>.fromOpaque(ctxPtr).release() }
 
             opts.fetch_opts.callbacks.credentials = credentialCallback
+            opts.fetch_opts.callbacks.certificate_check = certificateCheckCallbackForCredentialContext
             opts.fetch_opts.callbacks.payload = ctxPtr
 
             let code = git_clone(&repo, remoteURL, dest, &opts)
+            if let bad = certState.capturedUntrustedFingerprint {
+                throw LocalGitError.untrustedCertificate(fingerprint: bad)
+            }
             guard code == 0, let repo else {
                 throw LocalGitError.cloneFailed(git2ErrorMessage())
             }
@@ -400,6 +516,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
     func pullPlan(pat: String) async throws -> PullPlan {
         let path = self.localURL.path
+        let trustedFingerprint = self.trustedFingerprint
 
         return try await Task.detached {
             var repo: OpaquePointer?
@@ -427,7 +544,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 branch = "main"
             }
 
-            try Self.fetchOrigin(repo: repo, pat: pat)
+            try Self.fetchOrigin(repo: repo, pat: pat, trustedFingerprint: trustedFingerprint)
 
             let remoteRefName = "refs/remotes/origin/\(branch)"
             var remoteRef: OpaquePointer?
@@ -506,6 +623,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
     private func performSafeFastForward(branch: String, pat: String) async throws -> LocalPullResult {
         let path = self.localURL.path
+        let trustedFingerprint = self.trustedFingerprint
 
         return try await Task.detached {
             var repo: OpaquePointer?
@@ -518,7 +636,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 throw LocalGitError.pullBlockedByLocalChanges
             }
 
-            try Self.fetchOrigin(repo: repo, pat: pat)
+            try Self.fetchOrigin(repo: repo, pat: pat, trustedFingerprint: trustedFingerprint)
 
             let remoteRefName = "refs/remotes/origin/\(branch)"
             var remoteRef: OpaquePointer?
@@ -2270,6 +2388,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
     func pushTag(name: String, pat: String) async throws {
         let repoPath = self.localURL.path
+        let trustedFingerprint = self.trustedFingerprint
 
         try await Task.detached {
             var repo: OpaquePointer?
@@ -2299,11 +2418,13 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             var pushOpts = git_push_options()
             git_push_options_init(&pushOpts, UInt32(GIT_PUSH_OPTIONS_VERSION))
 
-            let ctx = PushContext(username: "x-access-token", password: pat)
+            let certState = CertVerificationState(trustedFingerprint: trustedFingerprint)
+            let ctx = PushContext(username: "x-access-token", password: pat, certState: certState)
             let ctxPtr = Unmanaged.passRetained(ctx).toOpaque()
             defer { Unmanaged<PushContext>.fromOpaque(ctxPtr).release() }
 
             pushOpts.callbacks.credentials = pushCredentialCallback
+            pushOpts.callbacks.certificate_check = certificateCheckCallbackForPushContext
             pushOpts.callbacks.push_update_reference = pushUpdateReferenceCallback
             pushOpts.callbacks.payload = ctxPtr
 
@@ -2316,10 +2437,11 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             stringsPtr[0] = refspecCStr
             var refspecs = git_strarray(strings: stringsPtr, count: 1)
 
-            try git2Check(
-                git_remote_push(pushRemote, &refspecs, &pushOpts),
-                context: "Push tag \(name)"
-            )
+            let pushCode = git_remote_push(pushRemote, &refspecs, &pushOpts)
+            if let bad = certState.capturedUntrustedFingerprint {
+                throw LocalGitError.untrustedCertificate(fingerprint: bad)
+            }
+            try git2Check(pushCode, context: "Push tag \(name)")
 
             if !ctx.rejectedRefs.isEmpty {
                 let detail = ctx.rejectedRefs
@@ -2385,6 +2507,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
         pat: String
     ) async throws -> LocalPushResult {
         let path = self.localURL.path
+        let trustedFingerprint = self.trustedFingerprint
 
         return try await Task.detached {
             // Open repository
@@ -2483,11 +2606,13 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             var pushOpts = git_push_options()
             git_push_options_init(&pushOpts, UInt32(GIT_PUSH_OPTIONS_VERSION))
 
-            let pushCtx = PushContext(username: "x-access-token", password: pat)
+            let certState = CertVerificationState(trustedFingerprint: trustedFingerprint)
+            let pushCtx = PushContext(username: "x-access-token", password: pat, certState: certState)
             let pushCtxPtr = Unmanaged.passRetained(pushCtx).toOpaque()
             defer { Unmanaged<PushContext>.fromOpaque(pushCtxPtr).release() }
 
             pushOpts.callbacks.credentials = pushCredentialCallback
+            pushOpts.callbacks.certificate_check = certificateCheckCallbackForPushContext
             pushOpts.callbacks.push_update_reference = pushUpdateReferenceCallback
             pushOpts.callbacks.payload = pushCtxPtr
 
@@ -2506,10 +2631,11 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             refStringsPtr[0] = refspecCStr
             var refspecs = git_strarray(strings: refStringsPtr, count: 1)
 
-            try git2Check(
-                git_remote_push(pushRemote, &refspecs, &pushOpts),
-                context: "Push to origin"
-            )
+            let pushCode = git_remote_push(pushRemote, &refspecs, &pushOpts)
+            if let bad = certState.capturedUntrustedFingerprint {
+                throw LocalGitError.untrustedCertificate(fingerprint: bad)
+            }
+            try git2Check(pushCode, context: "Push to origin")
 
             // git_remote_push returns 0 when the network upload completes, even
             // if the remote rejected the ref update. Check the per-ref status
@@ -2528,7 +2654,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             // update). Re-fetch and verify refs/remotes/origin/<branch> actually
             // points at our new commit; if not, surface the failure so the user
             // sees a real error instead of a fake "Push complete".
-            try Self.fetchOrigin(repo: repo, pat: pat)
+            try Self.fetchOrigin(repo: repo, pat: pat, trustedFingerprint: trustedFingerprint)
             let remoteTrackingRefName = "refs/remotes/origin/\(branchName)"
             var verifyRef: OpaquePointer?
             defer { if let verifyRef { git_reference_free(verifyRef) } }
@@ -2553,6 +2679,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
     func pushCurrentBranch(pat: String) async throws {
         let path = self.localURL.path
+        let trustedFingerprint = self.trustedFingerprint
 
         try await Task.detached {
             var repo: OpaquePointer?
@@ -2582,11 +2709,13 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             var pushOpts = git_push_options()
             git_push_options_init(&pushOpts, UInt32(GIT_PUSH_OPTIONS_VERSION))
 
-            let pushCtx = PushContext(username: "x-access-token", password: pat)
+            let certState = CertVerificationState(trustedFingerprint: trustedFingerprint)
+            let pushCtx = PushContext(username: "x-access-token", password: pat, certState: certState)
             let pushCtxPtr = Unmanaged.passRetained(pushCtx).toOpaque()
             defer { Unmanaged<PushContext>.fromOpaque(pushCtxPtr).release() }
 
             pushOpts.callbacks.credentials = pushCredentialCallback
+            pushOpts.callbacks.certificate_check = certificateCheckCallbackForPushContext
             pushOpts.callbacks.push_update_reference = pushUpdateReferenceCallback
             pushOpts.callbacks.payload = pushCtxPtr
 
@@ -2598,10 +2727,11 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             refStringsPtr[0] = refspecCStr
             var refspecs = git_strarray(strings: refStringsPtr, count: 1)
 
-            try git2Check(
-                git_remote_push(pushRemote, &refspecs, &pushOpts),
-                context: "Push to origin"
-            )
+            let pushCode = git_remote_push(pushRemote, &refspecs, &pushOpts)
+            if let bad = certState.capturedUntrustedFingerprint {
+                throw LocalGitError.untrustedCertificate(fingerprint: bad)
+            }
+            try git2Check(pushCode, context: "Push to origin")
 
             if !pushCtx.rejectedRefs.isEmpty {
                 let detail = pushCtx.rejectedRefs
@@ -2610,7 +2740,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 throw LocalGitError.pushFailed(detail)
             }
 
-            try Self.fetchOrigin(repo: repo, pat: pat)
+            try Self.fetchOrigin(repo: repo, pat: pat, trustedFingerprint: trustedFingerprint)
             let remoteTrackingRefName = "refs/remotes/origin/\(branchName)"
             var verifyRef: OpaquePointer?
             defer { if let verifyRef { git_reference_free(verifyRef) } }
@@ -2851,11 +2981,12 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
     func fetchRemote(pat: String) async throws {
         let path = self.localURL.path
+        let trustedFingerprint = self.trustedFingerprint
         try await Task.detached {
             var repo: OpaquePointer?
             defer { if let repo { git_repository_free(repo) } }
             try git2Check(git_repository_open(&repo, path), context: "Open repo")
-            try Self.fetchOrigin(repo: repo, pat: pat)
+            try Self.fetchOrigin(repo: repo, pat: pat, trustedFingerprint: trustedFingerprint)
         }.value
     }
 
@@ -3036,7 +3167,11 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
         return git_diff_num_deltas(diff) > 0
     }
 
-    private static func fetchOrigin(repo: OpaquePointer?, pat: String) throws {
+    private static func fetchOrigin(
+        repo: OpaquePointer?,
+        pat: String,
+        trustedFingerprint: String? = nil
+    ) throws {
         var remote: OpaquePointer?
         defer { if let remote { git_remote_free(remote) } }
         try git2Check(git_remote_lookup(&remote, repo, "origin"), context: "Lookup remote")
@@ -3044,14 +3179,24 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
         var fetchOpts = git_fetch_options()
         git_fetch_options_init(&fetchOpts, UInt32(GIT_FETCH_OPTIONS_VERSION))
 
-        let ctx = CredentialContext(username: "x-access-token", password: pat)
+        let certState = CertVerificationState(trustedFingerprint: trustedFingerprint)
+        let ctx = CredentialContext(
+            username: "x-access-token",
+            password: pat,
+            certState: certState
+        )
         let ctxPtr = Unmanaged.passRetained(ctx).toOpaque()
         defer { Unmanaged<CredentialContext>.fromOpaque(ctxPtr).release() }
 
         fetchOpts.callbacks.credentials = credentialCallback
+        fetchOpts.callbacks.certificate_check = certificateCheckCallbackForCredentialContext
         fetchOpts.callbacks.payload = ctxPtr
 
-        try git2Check(git_remote_fetch(remote, nil, &fetchOpts, nil), context: "Fetch")
+        let fetchCode = git_remote_fetch(remote, nil, &fetchOpts, nil)
+        if let bad = certState.capturedUntrustedFingerprint {
+            throw LocalGitError.untrustedCertificate(fingerprint: bad)
+        }
+        try git2Check(fetchCode, context: "Fetch")
     }
 
     private static func hasUncommittedChanges(repo: OpaquePointer?) throws -> Bool {

@@ -172,6 +172,41 @@ struct SettingsView: View {
                             }
                         }
 
+                        // Trusted TLS Certificate
+                        if let repo = repo, let fingerprint = repo.trustedCertSHA256 {
+                            settingsSection(title: String(localized: "Trusted Certificate")) {
+                                VStack(spacing: 0) {
+                                    settingsFieldRow(label: String(localized: "SHA-256")) {
+                                        Text(LocalGitService.formatCertificateFingerprint(fingerprint))
+                                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                            .foregroundStyle(Color.brutalText)
+                                            .lineLimit(2)
+                                            .truncationMode(.middle)
+                                    }
+
+                                    BDivider().padding(.horizontal, 16)
+
+                                    Button {
+                                        state.updateRepo(id: repoID) { $0.trustedCertSHA256 = nil }
+                                    } label: {
+                                        HStack {
+                                            Text(String(localized: "Forget Trusted Certificate").uppercased())
+                                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                                .foregroundStyle(Color.brutalAccent)
+                                                .tracking(1)
+                                            Spacer()
+                                            Image(systemName: "xmark.circle")
+                                                .font(.system(size: 13))
+                                                .foregroundStyle(Color.brutalAccent)
+                                        }
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 13)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+
                         // Debug Log
                         settingsSection(title: String(localized: "Debug")) {
                             NavigationLink {
