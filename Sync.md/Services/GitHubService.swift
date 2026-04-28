@@ -198,10 +198,12 @@ final class GitHubService: Sendable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: ".git", with: "")
 
-        // Handle HTTPS URLs
+        // Handle HTTPS URLs (GitHub or any self-hosted server: Gitea, Forgejo,
+        // GitLab CE, a Tailscale-only tailnet host, etc.)
         if let url = URL(string: cleaned),
-           let host = url.host,
-           host.contains("github.com") {
+           let scheme = url.scheme?.lowercased(),
+           scheme == "https" || scheme == "http",
+           url.host?.isEmpty == false {
             let components = url.pathComponents.filter { $0 != "/" }
             guard components.count >= 2 else { return nil }
             return (components[0], components[1])

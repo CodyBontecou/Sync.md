@@ -9,6 +9,107 @@ final class SyncMDTests: XCTestCase {
         XCTAssertTrue(true)
     }
 
+    // MARK: - GitHubService.parseRepoURL
+
+    func testParseRepoURLHandlesGitHubHTTPS() {
+        let result = GitHubService.parseRepoURL("https://github.com/owner/repo.git")
+        XCTAssertEqual(result?.owner, "owner")
+        XCTAssertEqual(result?.repo, "repo")
+    }
+
+    func testParseRepoURLHandlesGitHubSSH() {
+        let result = GitHubService.parseRepoURL("git@github.com:owner/repo.git")
+        XCTAssertEqual(result?.owner, "owner")
+        XCTAssertEqual(result?.repo, "repo")
+    }
+
+    func testParseRepoURLHandlesBareOwnerRepo() {
+        let result = GitHubService.parseRepoURL("owner/repo")
+        XCTAssertEqual(result?.owner, "owner")
+        XCTAssertEqual(result?.repo, "repo")
+    }
+
+    func testParseRepoURLAcceptsSelfHostedTailnetHost() {
+        let result = GitHubService.parseRepoURL("https://gitea.example.ts.net/me/notes.git")
+        XCTAssertEqual(result?.owner, "me")
+        XCTAssertEqual(result?.repo, "notes")
+    }
+
+    func testParseRepoURLAcceptsSelfHostedHTTPSWithoutDotGit() {
+        let result = GitHubService.parseRepoURL("https://git.homelab.local/team/wiki")
+        XCTAssertEqual(result?.owner, "team")
+        XCTAssertEqual(result?.repo, "wiki")
+    }
+
+    func testParseRepoURLRejectsHTTPSWithoutEnoughPathSegments() {
+        XCTAssertNil(GitHubService.parseRepoURL("https://gitea.example.ts.net/"))
+        XCTAssertNil(GitHubService.parseRepoURL("https://gitea.example.ts.net/onlyone"))
+    }
+
+    // MARK: - RepoConfig.trustedCertSHA256
+
+    func testRepoConfigDefaultsTrustedCertSHA256ToNil() {
+        let cfg = RepoConfig(
+            repoURL: "https://example.com/me/notes",
+            branch: "main",
+            authorName: "Me",
+            authorEmail: "me@example.com",
+            vaultFolderName: "notes"
+        )
+        XCTAssertNil(cfg.trustedCertSHA256)
+    }
+
+    func testRepoConfigCodableRoundTripsTrustedCertSHA256() throws {
+        var cfg = RepoConfig(
+            repoURL: "https://gitea.tailnet.ts.net/me/notes",
+            branch: "main",
+            authorName: "Me",
+            authorEmail: "me@example.com",
+            vaultFolderName: "notes"
+        )
+        cfg.trustedCertSHA256 = "abcd1234"
+        let data = try JSONEncoder().encode(cfg)
+        let decoded = try JSONDecoder().decode(RepoConfig.self, from: data)
+        XCTAssertEqual(decoded.trustedCertSHA256, "abcd1234")
+    }
+
+    func testRepoConfigDecodesLegacyJSONWithoutTrustedCertField() throws {
+        let payload: [String: Any] = [
+            "id": "11111111-1111-1111-1111-111111111111",
+            "repoURL": "https://github.com/me/notes",
+            "branch": "main",
+            "authorName": "Me",
+            "authorEmail": "me@example.com",
+            "vaultFolderName": "notes",
+            "customLocationIsParent": false,
+            "gitState": [
+                "commitSHA": "",
+                "treeSHA": "",
+                "branch": "main",
+                "blobSHAs": [String: String](),
+                // distantPast as TimeInterval since reference date (2001-01-01)
+                "lastSyncDate": -63113904000.0
+            ]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: payload, options: [])
+        let cfg = try JSONDecoder().decode(RepoConfig.self, from: data)
+        XCTAssertNil(cfg.trustedCertSHA256)
+        XCTAssertEqual(cfg.repoURL, "https://github.com/me/notes")
+    }
+
+    // MARK: - Certificate fingerprint formatting
+
+    func testFormatCertificateFingerprintProducesColonSeparatedUppercase() {
+        XCTAssertEqual(
+            LocalGitService.formatCertificateFingerprint("abcdef0123456789"),
+            "AB:CD:EF:01:23:45:67:89"
+        )
+    }
+
+    func testFormatCertificateFingerprintHandlesEmptyString() {
+        XCTAssertEqual(LocalGitService.formatCertificateFingerprint(""), "")
+    }
+
     func testFixtureFactoryBuildsDeterministicCleanDirtyDivergedAndConflictedStates() throws {
         for state in GitFixtureState.allCases {
             let fixtureA = try GitFixtureFactory.make(state: state)
@@ -29,7 +130,7 @@ final class SyncMDTests: XCTestCase {
         defer { fixture.cleanup() }
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -81,7 +182,7 @@ final class SyncMDTests: XCTestCase {
         )
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -110,7 +211,7 @@ final class SyncMDTests: XCTestCase {
         fixture.repository.pullResult = .success(LocalPullResult(updated: true, newCommitSHA: newCommit))
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -142,7 +243,7 @@ final class SyncMDTests: XCTestCase {
         fixture.repository.diffResult = expectedDiff
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -187,7 +288,7 @@ final class SyncMDTests: XCTestCase {
         fixture.repository.commitHistoryResult = pageData
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -212,7 +313,7 @@ final class SyncMDTests: XCTestCase {
         defer { fixture.cleanup() }
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -233,7 +334,7 @@ final class SyncMDTests: XCTestCase {
         defer { fixture.cleanup() }
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -269,7 +370,7 @@ final class SyncMDTests: XCTestCase {
         ]
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -286,7 +387,7 @@ final class SyncMDTests: XCTestCase {
         defer { fixture.cleanup() }
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -323,7 +424,7 @@ final class SyncMDTests: XCTestCase {
         )
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -339,7 +440,7 @@ final class SyncMDTests: XCTestCase {
         defer { fixture.cleanup() }
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -385,7 +486,7 @@ final class SyncMDTests: XCTestCase {
         fixture.repository.branchInventoryResult = expected
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -401,7 +502,7 @@ final class SyncMDTests: XCTestCase {
         defer { fixture.cleanup() }
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -424,7 +525,7 @@ final class SyncMDTests: XCTestCase {
         fixture.repository.mergeResult = MergeResult(kind: .fastForwarded, sourceBranch: "feature", newCommitSHA: mergedSHA)
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -447,7 +548,7 @@ final class SyncMDTests: XCTestCase {
         )
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -466,7 +567,7 @@ final class SyncMDTests: XCTestCase {
         fixture.repository.mergeFinalizeResult = MergeFinalizeResult(newCommitSHA: finalizedSHA)
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -482,7 +583,7 @@ final class SyncMDTests: XCTestCase {
         defer { fixture.cleanup() }
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -503,7 +604,7 @@ final class SyncMDTests: XCTestCase {
         )
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -522,7 +623,7 @@ final class SyncMDTests: XCTestCase {
         fixture.repository.conflictSessionResult = ConflictSession(kind: .merge, unmergedPaths: ["README.md"])
 
         let appState = AppState(
-            gitRepositoryFactory: { _ in fixture.repository },
+            gitRepositoryFactory: { _, _ in fixture.repository },
             loadPersistedState: false
         )
         appState.repos = [fixture.repoConfig]
@@ -1152,7 +1253,11 @@ final class SyncMDTests: XCTestCase {
         let featureSHA = try await service.repoInfo().commitSHA
 
         try await service.switchBranch(name: mainBranch)
-        let mergeResult = try await service.mergeBranch(name: "feature")
+        let mergeResult = try await service.mergeBranch(
+            name: "feature",
+            authorName: "SyncMD Tests",
+            authorEmail: "tests@example.com"
+        )
 
         XCTAssertEqual(mergeResult.kind, .fastForwarded)
         XCTAssertEqual(mergeResult.newCommitSHA, featureSHA)
@@ -1221,7 +1326,11 @@ final class SyncMDTests: XCTestCase {
             // Expected push failure; commit still created.
         }
 
-        let mergeResult = try await service.mergeBranch(name: "feature")
+        let mergeResult = try await service.mergeBranch(
+            name: "feature",
+            authorName: "SyncMD Tests",
+            authorEmail: "tests@example.com"
+        )
 
         XCTAssertEqual(mergeResult.kind, .mergeCommitted)
         let mergedInfo = try await service.repoInfo()
@@ -1286,7 +1395,7 @@ final class SyncMDTests: XCTestCase {
         }
 
         do {
-            _ = try await service.mergeBranch(name: "feature")
+            _ = try await service.mergeBranch(name: "feature", authorName: "SyncMD Tests", authorEmail: "tests@example.com")
             XCTFail("Expected conflict during merge")
         } catch {
             guard let gitError = error as? LocalGitError else {
@@ -1357,7 +1466,7 @@ final class SyncMDTests: XCTestCase {
         } catch { }
 
         do {
-            _ = try await service.mergeBranch(name: "feature")
+            _ = try await service.mergeBranch(name: "feature", authorName: "SyncMD Tests", authorEmail: "tests@example.com")
             XCTFail("Expected merge conflict")
         } catch { }
 
@@ -1423,7 +1532,7 @@ final class SyncMDTests: XCTestCase {
         } catch { }
 
         do {
-            _ = try await service.mergeBranch(name: "feature")
+            _ = try await service.mergeBranch(name: "feature", authorName: "SyncMD Tests", authorEmail: "tests@example.com")
             XCTFail("Expected merge conflict")
         } catch { }
 
@@ -1490,7 +1599,7 @@ final class SyncMDTests: XCTestCase {
         } catch { }
 
         do {
-            _ = try await service.mergeBranch(name: "feature")
+            _ = try await service.mergeBranch(name: "feature", authorName: "SyncMD Tests", authorEmail: "tests@example.com")
             XCTFail("Expected merge conflict")
         } catch { }
 
@@ -1565,7 +1674,7 @@ final class SyncMDTests: XCTestCase {
         } catch { }
 
         do {
-            _ = try await service.mergeBranch(name: "feature")
+            _ = try await service.mergeBranch(name: "feature", authorName: "SyncMD Tests", authorEmail: "tests@example.com")
             XCTFail("Expected merge conflict")
         } catch { }
 
@@ -2181,6 +2290,29 @@ private final class FakeGitRepository: GitRepositoryProtocol, @unchecked Sendabl
     func resolveConflict(path: String, strategy: ConflictResolutionStrategy) async throws {
         resolvedConflicts.append((path: path, strategy: strategy))
     }
+
+    func resolveConflictWithContent(
+        path: String,
+        content: Data,
+        additionalPathsToRemove: [String]
+    ) async throws {
+        resolvedConflicts.append((path: path, strategy: .manual))
+    }
+
+    func conflictDetail(path: String) async throws -> ConflictFileDetail {
+        ConflictFileDetail(
+            lookupPath: path,
+            ancestor: nil,
+            ours: nil,
+            theirs: nil
+        )
+    }
+
+    func commitLocal(message: String, authorName: String, authorEmail: String) async throws -> String {
+        repoInfoResult.commitSHA
+    }
+
+    func stageAll() async throws {}
 
     func stage(path: String, oldPath: String?) async throws {
         stagedPaths.append(path)

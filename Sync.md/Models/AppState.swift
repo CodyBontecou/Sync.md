@@ -73,6 +73,29 @@ final class AppState {
     var lastError: String? = nil
     var showError: Bool = false
 
+    // MARK: - TLS trust-on-first-use prompt
+
+    /// Pending request to accept a self-signed / untrusted TLS cert for a repo.
+    /// Set when a clone/pull/fetch fails with `.untrustedCertificate`. The UI
+    /// observes this and presents a confirmation sheet showing the fingerprint;
+    /// the user accepts (calling `acceptPendingCertTrust`) or cancels.
+    var pendingCertTrust: PendingCertTrustPrompt? = nil
+
+    struct PendingCertTrustPrompt: Equatable {
+        let repoID: UUID
+        let fingerprint: String
+        /// Operation to retry once the trust is persisted.
+        let retry: RetryOperation
+
+        enum RetryOperation: Equatable { case clone, pull, fetch }
+
+        static func == (lhs: PendingCertTrustPrompt, rhs: PendingCertTrustPrompt) -> Bool {
+            lhs.repoID == rhs.repoID
+                && lhs.fingerprint == rhs.fingerprint
+                && lhs.retry == rhs.retry
+        }
+    }
+
     // MARK: - Security-Scoped URLs (runtime only)
 
     private var resolvedCustomURLs: [UUID: URL] = [:]
@@ -87,12 +110,21 @@ final class AppState {
 
     // MARK: - Dependencies
 
-    private let gitRepositoryFactory: (URL) -> any GitRepositoryProtocol
+    private let gitRepositoryFactory: (URL, String?) -> any GitRepositoryProtocol
+
+    /// Build a git service for a repo, automatically applying the user's
+    /// trusted TLS fingerprint (if any) for self-hosted-with-self-signed
+    /// remotes (e.g. Gitea behind a Tailscale tailnet).
+    private func makeGitService(for repoID: UUID, vaultDir: URL) -> any GitRepositoryProtocol {
+        gitRepositoryFactory(vaultDir, repo(id: repoID)?.trustedCertSHA256)
+    }
 
     // MARK: - Init
 
     init(
-        gitRepositoryFactory: @escaping (URL) -> any GitRepositoryProtocol = { LocalGitService(localURL: $0) },
+        gitRepositoryFactory: @escaping (URL, String?) -> any GitRepositoryProtocol = {
+            LocalGitService(localURL: $0, trustedFingerprint: $1)
+        },
         loadPersistedState: Bool = true
     ) {
         self.gitRepositoryFactory = gitRepositoryFactory
@@ -450,7 +482,7 @@ final class AppState {
         var didChange = false
         for (index, repo) in repos.enumerated() where repo.isCloned {
             let vaultDir = vaultURL(for: repo.id)
-            let gitService = gitRepositoryFactory(vaultDir)
+            let gitService = makeGitService(for: repo.id, vaultDir: vaultDir)
 
             if !gitService.hasGitDirectory {
                 repos[index].gitState = .empty
@@ -478,7 +510,7 @@ final class AppState {
         guard let repo = repo(id: repoID), repo.isCloned else { return }
         if isDemoMode { return }
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             // .git directory was removed — reset cloned state
@@ -525,11 +557,17 @@ final class AppState {
         guard let repo = repo(id: repoID), repo.isCloned else { return }
         if isDemoMode { return }
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
         guard gitService.hasGitDirectory else { return }
         do {
             try await gitService.fetchRemote(pat: pat)
             detectChanges(repoID: repoID)
+        } catch let LocalGitError.untrustedCertificate(fingerprint) {
+            pendingCertTrust = PendingCertTrustPrompt(
+                repoID: repoID,
+                fingerprint: fingerprint,
+                retry: .fetch
+            )
         } catch {
             showError(message: error.localizedDescription)
         }
@@ -546,7 +584,7 @@ final class AppState {
         }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             diffByRepo[repoID] = .empty
@@ -572,7 +610,7 @@ final class AppState {
         }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             branchesByRepo[repoID] = .empty
@@ -598,7 +636,7 @@ final class AppState {
         }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             conflictSessionByRepo[repoID] = .none
@@ -618,7 +656,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -640,7 +678,7 @@ final class AppState {
         if isDemoMode { return nil }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else { return nil }
 
@@ -662,7 +700,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -693,7 +731,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -823,7 +861,7 @@ final class AppState {
         }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             stashesByRepo[repoID] = []
@@ -843,7 +881,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -869,7 +907,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -892,7 +930,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -915,7 +953,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -941,7 +979,7 @@ final class AppState {
         }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             tagsByRepo[repoID] = []
@@ -961,7 +999,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -987,7 +1025,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1007,7 +1045,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1034,7 +1072,7 @@ final class AppState {
         }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             commitHistoryByRepo[repoID] = []
@@ -1071,7 +1109,7 @@ final class AppState {
         guard !trimmedOID.isEmpty else { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else { return }
 
@@ -1090,7 +1128,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1110,7 +1148,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1145,7 +1183,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1165,7 +1203,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1205,7 +1243,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1277,7 +1315,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1329,7 +1367,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1385,7 +1423,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1415,7 +1453,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1435,7 +1473,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription)
@@ -1455,7 +1493,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription, category: "revert")
@@ -1477,7 +1515,7 @@ final class AppState {
         if isDemoMode { return }
 
         let vaultDir = vaultURL(for: repoID)
-        let gitService = gitRepositoryFactory(vaultDir)
+        let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
         guard gitService.hasGitDirectory else {
             showError(message: LocalGitError.notCloned.localizedDescription, category: "revert")
@@ -1552,7 +1590,7 @@ final class AppState {
                 cloneURL += ".git"
             }
 
-            let gitService = gitRepositoryFactory(vaultDir)
+            let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
             syncProgress = String(localized: "Cloning repository...")
             DebugLogger.shared.info("clone", "Starting clone", detail: cloneURL)
@@ -1579,6 +1617,13 @@ final class AppState {
             DebugLogger.shared.info("clone", "Clone complete", detail: "\(result.fileCount) files, branch: \(result.branch)")
 
 
+        } catch let LocalGitError.untrustedCertificate(fingerprint) {
+            pendingCertTrust = PendingCertTrustPrompt(
+                repoID: repoID,
+                fingerprint: fingerprint,
+                retry: .clone
+            )
+            DebugLogger.shared.info("clone", "Untrusted TLS cert, awaiting user decision", detail: fingerprint)
         } catch {
             showError(message: error.localizedDescription, category: "clone")
         }
@@ -1586,6 +1631,28 @@ final class AppState {
         try? await Task.sleep(for: .seconds(1))
         isSyncing = false
         syncingRepoID = nil
+    }
+
+    /// Persist the user's decision to trust the TLS cert that triggered
+    /// `pendingCertTrust`, then retry the originally-failing operation.
+    func acceptPendingCertTrust() async {
+        guard let prompt = pendingCertTrust,
+              let idx = repoIndex(id: prompt.repoID) else { return }
+        repos[idx].trustedCertSHA256 = prompt.fingerprint
+        saveRepos()
+        pendingCertTrust = nil
+        switch prompt.retry {
+        case .clone:
+            await clone(repoID: prompt.repoID)
+        case .pull:
+            _ = await pull(repoID: prompt.repoID)
+        case .fetch:
+            await fetchRemote(repoID: prompt.repoID)
+        }
+    }
+
+    func dismissPendingCertTrust() {
+        pendingCertTrust = nil
     }
 
     @discardableResult
@@ -1615,7 +1682,7 @@ final class AppState {
         do {
             var repo = repos[idx]
             let vaultDir = vaultURL(for: repoID)
-            let gitService = gitRepositoryFactory(vaultDir)
+            let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
             guard gitService.hasGitDirectory else {
                 throw LocalGitError.notCloned
@@ -1720,6 +1787,13 @@ final class AppState {
                     kind: .remoteBranchMissing,
                     message: String(localized: "Remote branch '\(branch)' was not found.")
                 )
+            case .untrustedCertificate(let fingerprint):
+                pendingCertTrust = PendingCertTrustPrompt(
+                    repoID: repoID,
+                    fingerprint: fingerprint,
+                    retry: .pull
+                )
+                DebugLogger.shared.info("pull", "Untrusted TLS cert, awaiting user decision", detail: fingerprint)
             default:
                 setPullOutcome(repoID: repoID, kind: .failed, message: error.localizedDescription)
                 showError(message: error.localizedDescription, category: "pull")
@@ -1773,7 +1847,7 @@ final class AppState {
         do {
             var repo = repos[idx]
             let vaultDir = vaultURL(for: repoID)
-            let gitService = gitRepositoryFactory(vaultDir)
+            let gitService = makeGitService(for: repoID, vaultDir: vaultDir)
 
             guard gitService.hasGitDirectory else {
                 throw LocalGitError.notCloned
@@ -1860,7 +1934,7 @@ final class AppState {
             return
         }
 
-        let gitService = gitRepositoryFactory(resolvedURL)
+        let gitService = gitRepositoryFactory(resolvedURL, nil)
 
         guard gitService.hasGitDirectory else {
             resolvedURL.stopAccessingSecurityScopedResource()

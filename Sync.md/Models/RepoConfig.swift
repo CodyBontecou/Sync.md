@@ -13,6 +13,11 @@ struct RepoConfig: Codable, Identifiable, Equatable {
     /// and `vaultFolderName` should be appended to form the actual repo path.
     /// This mirrors `git clone` behaviour: clone into `<parent>/<repoName>/`.
     var customLocationIsParent: Bool
+    /// SHA-256 of the remote's TLS certificate (DER) that the user has explicitly
+    /// trusted for this repo. When set, we accept that exact cert even if the
+    /// system trust evaluation would reject it (e.g. self-signed homelab Gitea
+    /// over a Tailscale tailnet). Mismatch on rotation re-triggers the prompt.
+    var trustedCertSHA256: String?
     var gitState: GitState
 
     init(
@@ -24,6 +29,7 @@ struct RepoConfig: Codable, Identifiable, Equatable {
         vaultFolderName: String,
         customVaultBookmarkData: Data? = nil,
         customLocationIsParent: Bool = false,
+        trustedCertSHA256: String? = nil,
         gitState: GitState = .empty
     ) {
         self.id = id
@@ -34,6 +40,7 @@ struct RepoConfig: Codable, Identifiable, Equatable {
         self.vaultFolderName = vaultFolderName
         self.customVaultBookmarkData = customVaultBookmarkData
         self.customLocationIsParent = customLocationIsParent
+        self.trustedCertSHA256 = trustedCertSHA256
         self.gitState = gitState
     }
 
@@ -42,7 +49,7 @@ struct RepoConfig: Codable, Identifiable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case id, repoURL, branch, authorName, authorEmail
         case vaultFolderName, customVaultBookmarkData
-        case customLocationIsParent, gitState
+        case customLocationIsParent, trustedCertSHA256, gitState
     }
 
     init(from decoder: Decoder) throws {
@@ -55,6 +62,7 @@ struct RepoConfig: Codable, Identifiable, Equatable {
         vaultFolderName         = try c.decode(String.self, forKey: .vaultFolderName)
         customVaultBookmarkData = try c.decodeIfPresent(Data.self, forKey: .customVaultBookmarkData)
         customLocationIsParent  = try c.decodeIfPresent(Bool.self, forKey: .customLocationIsParent) ?? false
+        trustedCertSHA256       = try c.decodeIfPresent(String.self, forKey: .trustedCertSHA256)
         gitState                = try c.decode(GitState.self, forKey: .gitState)
     }
 
