@@ -1,0 +1,96 @@
+# Fire when ASC review approves a GitSync.md build.
+#
+# Triggered by repository_dispatch from the asc-webhook-worker.
+# Dispatch payload normally includes:
+#   { state: "READY_FOR_DISTRIBUTION", appStoreVersionId: "<uuid>" }
+# Manual mode accepts version directly.
+#
+# Required secrets:
+#   ASC_KEY_ID, ASC_ISSUER_ID, ASC_API_KEY_P8 (to look up version from appStoreVersionId)
+#   LLM_WIKI_DISPATCH_TOKEN (fine-grained PAT with contents:write on CodyBontecou/llm-wiki)
+
+name: Announce release
+
+on:
+  repository_dispatch:
+    types: [asc-approved]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 2.3.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  APP_NAME: GitSync.md
+  APP_SLUG: sync-md
+  ASC_APP_ID: '6758960270'
+
+jobs:
+  announce:
+    runs-on: self-hosted
+    timeout-minutes: 10
+    steps:
+      - name: Configure asc CLI
+        if: github.event_name == 'repository_dispatch' && github.event.client_payload.version == ''
+        env:
+          ASC_KEY_ID_SECRET: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID_SECRET: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          ASC_KEY_DIR="$RUNNER_TEMP/.asc-keys"
+          mkdir -p "$ASC_KEY_DIR"
+          chmod 700 "$ASC_KEY_DIR"
+          ASC_KEY_PATH="$ASC_KEY_DIR/AuthKey_${ASC_KEY_ID_SECRET}.p8"
+          echo "$ASC_API_KEY_P8" | base64 --decode > "$ASC_KEY_PATH"
+          chmod 600 "$ASC_KEY_PATH"
+          echo "ASC_KEY_ID=$ASC_KEY_ID_SECRET" >> "$GITHUB_ENV"
+          echo "ASC_ISSUER_ID=$ASC_ISSUER_ID_SECRET" >> "$GITHUB_ENV"
+          echo "ASC_PRIVATE_KEY_PATH=$ASC_KEY_PATH" >> "$GITHUB_ENV"
+          echo "ASC_BYPASS_KEYCHAIN=1" >> "$GITHUB_ENV"
+
+      - name: Resolve version
+        id: meta
+        run: |
+          VERSION='${{ github.event.client_payload.version }}'
+          ASCV_ID='${{ github.event.client_payload.appStoreVersionId }}'
+
+          if [[ -z "$VERSION" && -n "$ASCV_ID" ]]; then
+            echo "Webhook mode: appStoreVersionId=$ASCV_ID"
+            V_JSON=$(asc versions view --version-id "$ASCV_ID" --output json)
+            VERSION=$(printf '%s' "$V_JSON" | jq -r '.attributes.versionString // .data.attributes.versionString')
+          elif [[ -z "$VERSION" ]]; then
+            VERSION='${{ inputs.version }}'
+            echo "Manual mode: version=$VERSION"
+          else
+            echo "Webhook payload included version=$VERSION"
+          fi
+
+          if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
+            echo "::error::Could not resolve version"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger llm-wiki launch checklist scaffold
+        env:
+          GH_TOKEN: ${{ secrets.LLM_WIKI_DISPATCH_TOKEN }}
+        run: |
+          gh api -X POST repos/CodyBontecou/llm-wiki/dispatches \
+            -f event_type=generate-launch-checklist \
+            -F client_payload[app]="$APP_SLUG" \
+            -F client_payload[version]="${{ steps.meta.outputs.version }}" \
+            -F client_payload[asc_id]="$ASC_APP_ID" \
+            -F client_payload[repo]="${{ github.repository }}"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Announce v${{ steps.meta.outputs.version }}"
+            echo ""
+            echo "- llm-wiki: dispatched generate-launch-checklist for $APP_SLUG"
+          } >> "$GITHUB_STEP_SUMMARY"
