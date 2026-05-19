@@ -72,6 +72,7 @@ struct GitControlSheet: View {
                         Image(systemName: "xmark")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(Color.brutalText)
+                            .bIconTapTarget()
                     }
                     .buttonStyle(.plain)
                 }
@@ -237,6 +238,7 @@ struct GitControlSheet: View {
                     .background(newBranchName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || state.isSyncing
                                 ? Color.primary.opacity(0.3)
                                 : Color.primary)
+                    .bMinimumTapTarget()
                     .disabled(newBranchName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || state.isSyncing)
                 }
                 .padding(.horizontal, 16)
@@ -362,6 +364,7 @@ struct GitControlSheet: View {
                             .padding(.vertical, 9)
                             .background(!conflictSession.unmergedPaths.isEmpty || state.isSyncing
                                         ? Color.brutalSuccess.opacity(0.3) : Color.brutalSuccess)
+                            .bMinimumTapTarget()
                             .disabled(!conflictSession.unmergedPaths.isEmpty || state.isSyncing)
                         }
 
@@ -377,7 +380,7 @@ struct GitControlSheet: View {
                             }
                             .foregroundStyle(Color.brutalError)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
+                            .frame(minHeight: 44)
                             .overlay(Rectangle().strokeBorder(Color.brutalError.opacity(0.4), lineWidth: 1))
                         }
                         .buttonStyle(.plain)
@@ -573,6 +576,7 @@ struct GitControlSheet: View {
                         .padding(.vertical, 9)
                         .background(newTagName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || state.isSyncing
                                     ? Color.primary.opacity(0.3) : Color.primary)
+                        .bMinimumTapTarget()
                         .disabled(newTagName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || state.isSyncing)
                     }
                 }
@@ -672,6 +676,7 @@ struct GitControlSheet: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 9)
                     .background(changeCount == 0 || state.isSyncing ? Color.primary.opacity(0.3) : Color.primary)
+                    .bMinimumTapTarget()
                     .disabled(changeCount == 0 || state.isSyncing)
                 }
                 .padding(.horizontal, 16)
@@ -891,6 +896,7 @@ struct GitControlSheet: View {
                     Rectangle()
                         .strokeBorder(isDestructive ? Color.brutalError.opacity(0.4) : Color.brutalBorder, lineWidth: 1)
                 )
+                .bMinimumTapTarget()
         }
         .buttonStyle(.plain)
     }
