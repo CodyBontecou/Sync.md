@@ -2061,6 +2061,53 @@ final class SyncMDTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: lfsFileURL), realData)
     }
 
+    func testGitLFSHydrateCanBeLimitedToChangedPaths() async throws {
+        let fm = FileManager.default
+        let repoURL = fm.temporaryDirectory.appendingPathComponent("SyncMD-LFSHydrateScoped-\(UUID().uuidString)", isDirectory: true)
+        try fm.createDirectory(at: repoURL.appendingPathComponent(".git", isDirectory: true), withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: repoURL) }
+
+        try """
+        [remote "origin"]
+            url = https://github.com/example/vault.git
+        """.write(to: repoURL.appendingPathComponent(".git/config"), atomically: true, encoding: .utf8)
+
+        let changedData = Data("changed lfs data\n".utf8)
+        let unchangedData = Data("unchanged lfs data\n".utf8)
+        let changedPointer = GitLFSPointer(oid: GitLFSPointer.sha256Hex(for: changedData), size: Int64(changedData.count))
+        let unchangedPointer = GitLFSPointer(oid: GitLFSPointer.sha256Hex(for: unchangedData), size: Int64(unchangedData.count))
+        try changedPointer.serializedString.write(to: repoURL.appendingPathComponent("Changed.pdf"), atomically: true, encoding: .utf8)
+        try unchangedPointer.serializedString.write(to: repoURL.appendingPathComponent("Unchanged.pdf"), atomically: true, encoding: .utf8)
+
+        let transport = MockGitLFSTransport { request, body in
+            if request.url?.absoluteString == "https://github.com/example/vault.git/info/lfs/objects/batch" {
+                let bodyString = String(data: try XCTUnwrap(body), encoding: .utf8) ?? ""
+                XCTAssertTrue(bodyString.contains(changedPointer.oid))
+                XCTAssertFalse(bodyString.contains(unchangedPointer.oid))
+                return (Data("""
+                {"transfer":"basic","objects":[{"oid":"\(changedPointer.oid)","size":\(changedData.count),"actions":{"download":{"href":"https://lfs.example.test/objects/\(changedPointer.oid)"}}}]}
+                """.utf8), 200)
+            }
+
+            if request.url?.absoluteString == "https://lfs.example.test/objects/\(changedPointer.oid)" {
+                return (changedData, 200)
+            }
+
+            XCTFail("Unexpected LFS request: \(request.url?.absoluteString ?? "<nil>")")
+            return (Data(), 404)
+        }
+
+        let result = try await GitLFSService(
+            localURL: repoURL,
+            credentials: .gitHubPAT("ghp_test"),
+            transport: transport
+        ).hydrateWorktree(candidatePaths: ["Changed.pdf"])
+
+        XCTAssertEqual(result.checkedOutCount, 1)
+        XCTAssertEqual(try Data(contentsOf: repoURL.appendingPathComponent("Changed.pdf")), changedData)
+        XCTAssertNotNil(GitLFSPointer(data: try Data(contentsOf: repoURL.appendingPathComponent("Unchanged.pdf"))))
+    }
+
     func testGitLFSBatchErrorsIncludeServerMessage() async throws {
         let fm = FileManager.default
         let repoURL = fm.temporaryDirectory.appendingPathComponent("SyncMD-LFSBatchError-\(UUID().uuidString)", isDirectory: true)
@@ -2456,6 +2503,48 @@ final class SyncMDTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: pdfURL), pdfData)
 
         let repoInfo = try await service.repoInfo()
+        XCTAssertEqual(repoInfo.changeCount, 0)
+    }
+
+    func testLocalGitServiceTreatsExistingHydratedLFSObjectMirrorAsClean() async throws {
+        let fm = FileManager.default
+        let repoURL = fm.temporaryDirectory.appendingPathComponent("SyncMD-LFSMirrorClean-\(UUID().uuidString)", isDirectory: true)
+        try fm.createDirectory(at: repoURL, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: repoURL) }
+
+        var repo: OpaquePointer?
+        XCTAssertEqual(git_repository_init(&repo, repoURL.path, 0), 0)
+        if let repo { git_repository_free(repo) }
+
+        try "*.pdf filter=lfs diff=lfs merge=lfs -text\n".write(
+            to: repoURL.appendingPathComponent(".gitattributes"),
+            atomically: true,
+            encoding: .utf8
+        )
+
+        let data = Data("previously hydrated pdf bytes\n".utf8)
+        let pointer = GitLFSPointer(oid: GitLFSPointer.sha256Hex(for: data), size: Int64(data.count))
+        try pointer.serializedString.write(to: repoURL.appendingPathComponent("Manual.pdf"), atomically: true, encoding: .utf8)
+
+        let service = LocalGitService(localURL: repoURL)
+        try await service.stageAll()
+        _ = try await service.commitLocal(
+            message: "Add LFS pointer",
+            authorName: "SyncMD Tests",
+            authorEmail: "tests@example.com"
+        )
+
+        let objectURL = lfsObjectURL(repoURL: repoURL, pointer: pointer)
+        try fm.createDirectory(at: objectURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: objectURL)
+        try data.write(to: repoURL.appendingPathComponent("Manual.pdf"))
+
+        let mirrorDate = Date(timeIntervalSince1970: 1_700_000_000)
+        try fm.setAttributes([.modificationDate: mirrorDate], ofItemAtPath: objectURL.path)
+        try fm.setAttributes([.modificationDate: mirrorDate], ofItemAtPath: repoURL.appendingPathComponent("Manual.pdf").path)
+
+        let repoInfo = try await service.repoInfo()
+
         XCTAssertEqual(repoInfo.changeCount, 0)
     }
 

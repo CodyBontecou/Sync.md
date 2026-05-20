@@ -724,7 +724,7 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
         let path = self.localURL.path
         let localURL = self.localURL
 
-        let result = try await Task.detached {
+        let fastForward = try await Task.detached {
             var repo: OpaquePointer?
             defer { if let repo { git_repository_free(repo) } }
             try git2Check(git_repository_open(&repo, path), context: "Open repo")
@@ -756,8 +756,10 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             let remoteOidPtr = git_reference_target(remoteRef)!
 
             if git_oid_equal(localOidPtr, remoteOidPtr) != 0 {
-                return LocalPullResult(updated: false, newCommitSHA: oidToHex(localOidPtr))
+                return (result: LocalPullResult(updated: false, newCommitSHA: oidToHex(localOidPtr)), changedPaths: [String]())
             }
+
+            let changedPaths = try Self.changedPathsBetween(repo: repo, oldOID: localOidPtr, newOID: remoteOidPtr)
 
             var remoteOidCopy = remoteOidPtr.pointee
             var remoteCommit: OpaquePointer?
@@ -831,17 +833,21 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
             try git2Check(git_repository_set_head(repo, localRefName), context: "Set HEAD")
 
-            return LocalPullResult(updated: true, newCommitSHA: oidToHex(&remoteOidCopy))
+            return (result: LocalPullResult(updated: true, newCommitSHA: oidToHex(&remoteOidCopy)), changedPaths: changedPaths)
         }.value
 
-        if result.updated {
-            let lfsResult = try await Self.hydrateLFSIfNeeded(localURL: localURL, pat: pat)
+        if fastForward.result.updated {
+            let lfsResult = try await Self.hydrateLFSIfNeeded(
+                localURL: localURL,
+                pat: pat,
+                candidatePaths: fastForward.changedPaths
+            )
             if lfsResult.checkedOutCount > 0 {
                 DebugLogger.shared.info("lfs", "Hydrated Git LFS files after pull", detail: "\(lfsResult.checkedOutCount) files")
             }
         }
 
-        return result
+        return fastForward.result
     }
 
     // MARK: - Branches
@@ -2742,7 +2748,21 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
             let commitSHA = oidToHex(&commitOid)
 
-            let lfsPointers = try GitLFSService.pointersInIndex(repo: repo, index: index)
+            var lfsPointerPaths = stagedPaths
+            var pushHeadRef: OpaquePointer?
+            if git_repository_head(&pushHeadRef, repo) == 0, let pushHeadRef {
+                defer { git_reference_free(pushHeadRef) }
+                let pushedPaths = try Self.pushedChangePaths(repo: repo, headRef: pushHeadRef)
+                if !pushedPaths.isEmpty {
+                    lfsPointerPaths = pushedPaths
+                }
+            }
+
+            let lfsPointers = try GitLFSService.pointersInIndex(
+                repo: repo,
+                index: index,
+                candidatePaths: lfsPointerPaths
+            )
             if !lfsPointers.isEmpty {
                 let uploaded = try await GitLFSService(
                     localURL: URL(fileURLWithPath: path, isDirectory: true),
@@ -2872,7 +2892,16 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 credentials: GitRemoteCredentials.fromTransportPayload(pat)
             ).verifyPushAllowed(changedPaths: pushedPaths, refName: "refs/heads/\(branchName)")
 
-            let lfsPointers = try GitLFSService.pointersInIndex(repo: repo, index: index)
+            let lfsPointers: [GitLFSPointer]
+            if pushedPaths.isEmpty {
+                lfsPointers = []
+            } else {
+                lfsPointers = try GitLFSService.pointersInIndex(
+                    repo: repo,
+                    index: index,
+                    candidatePaths: pushedPaths
+                )
+            }
             if !lfsPointers.isEmpty {
                 let uploaded = try await GitLFSService(
                     localURL: URL(fileURLWithPath: path, isDirectory: true),
@@ -3172,11 +3201,15 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
 
     // MARK: - Helpers
 
-    private static func hydrateLFSIfNeeded(localURL: URL, pat: String) async throws -> GitLFSHydrateResult {
+    private static func hydrateLFSIfNeeded(
+        localURL: URL,
+        pat: String,
+        candidatePaths: [String]? = nil
+    ) async throws -> GitLFSHydrateResult {
         try await GitLFSService(
             localURL: localURL,
             credentials: GitRemoteCredentials.fromTransportPayload(pat)
-        ).hydrateWorktree()
+        ).hydrateWorktree(candidatePaths: candidatePaths)
     }
 
     static func classifyPullAction(ahead: Int, behind: Int, hasLocalChanges: Bool) -> PullPlanAction {
@@ -3419,6 +3452,42 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
             }
         }
         return paths.sorted()
+    }
+
+    private static func changedPathsBetween(
+        repo: OpaquePointer?,
+        oldOID: UnsafePointer<git_oid>?,
+        newOID: UnsafePointer<git_oid>?
+    ) throws -> [String] {
+        guard let repo, let oldOID, let newOID else { return [] }
+
+        var oldOIDCopy = oldOID.pointee
+        var newOIDCopy = newOID.pointee
+
+        var oldCommit: OpaquePointer?
+        defer { if let oldCommit { git_commit_free(oldCommit) } }
+        try git2Check(git_commit_lookup(&oldCommit, repo, &oldOIDCopy), context: "Lookup old commit for changed paths")
+
+        var newCommit: OpaquePointer?
+        defer { if let newCommit { git_commit_free(newCommit) } }
+        try git2Check(git_commit_lookup(&newCommit, repo, &newOIDCopy), context: "Lookup new commit for changed paths")
+
+        var oldTree: OpaquePointer?
+        defer { if let oldTree { git_tree_free(oldTree) } }
+        try git2Check(git_commit_tree(&oldTree, oldCommit), context: "Read old tree for changed paths")
+
+        var newTree: OpaquePointer?
+        defer { if let newTree { git_tree_free(newTree) } }
+        try git2Check(git_commit_tree(&newTree, newCommit), context: "Read new tree for changed paths")
+
+        var diff: OpaquePointer?
+        defer { if let diff { git_diff_free(diff) } }
+        try git2Check(
+            git_diff_tree_to_tree(&diff, repo, oldTree, newTree, nil),
+            context: "Diff changed paths"
+        )
+
+        return diffPaths(diff)
     }
 
     private static func fetchOrigin(repo: OpaquePointer?, pat: String) throws {

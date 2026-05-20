@@ -131,6 +131,19 @@ private enum GitLFSCleanStatusCacheStore {
             && abs(entry.modificationTime - metadata.modificationTime) < 0.000_001
     }
 
+    static func isCachedObjectMirror(repositoryURL: URL, pointer: GitLFSPointer, fileURL: URL) -> Bool {
+        guard let fileMetadata = metadata(for: fileURL), fileMetadata.fileSize == pointer.size else { return false }
+        let objectURL = cachedObjectURL(repositoryURL: repositoryURL, oid: pointer.oid)
+        guard let objectMetadata = metadata(for: objectURL), objectMetadata.fileSize == pointer.size else { return false }
+
+        // Existing Sync.md clones hydrated LFS files by copying the cached object
+        // into the worktree before the persistent clean-status cache existed.
+        // Foundation preserves the object mtime during that copy, so matching
+        // size+mtime lets us migrate those files into the cache without hashing
+        // gigabytes of media on first launch after an update.
+        return abs(objectMetadata.modificationTime - fileMetadata.modificationTime) < 1.0
+    }
+
     static func markClean(repositoryURL: URL, records: [FileRecord]) {
         guard !records.isEmpty else { return }
         let cacheURL = cacheURL(repositoryURL: repositoryURL)
@@ -166,6 +179,14 @@ private enum GitLFSCleanStatusCacheStore {
         repositoryURL
             .appendingPathComponent(".git/syncmd", isDirectory: true)
             .appendingPathComponent("lfs-clean-cache.json")
+    }
+
+    private static func cachedObjectURL(repositoryURL: URL, oid: String) -> URL {
+        repositoryURL
+            .appendingPathComponent(".git/lfs/objects", isDirectory: true)
+            .appendingPathComponent(String(oid.prefix(2)), isDirectory: true)
+            .appendingPathComponent(String(oid.dropFirst(2).prefix(2)), isDirectory: true)
+            .appendingPathComponent(oid)
     }
 
     private static func normalizedPath(_ path: String) -> String {
@@ -783,8 +804,8 @@ final class GitLFSService: @unchecked Sendable {
         self.now = now
     }
 
-    func hydrateWorktree() async throws -> GitLFSHydrateResult {
-        let discovered = try discoverPointerFiles()
+    func hydrateWorktree(candidatePaths: [String]? = nil) async throws -> GitLFSHydrateResult {
+        let discovered = try discoverPointerFiles(candidatePaths: candidatePaths)
         guard !discovered.isEmpty else { return .empty }
 
         let uniquePointers = Array(Set(discovered.map(\.pointer))).sorted { $0.oid < $1.oid }
@@ -970,7 +991,20 @@ final class GitLFSService: @unchecked Sendable {
         } while cursor != nil
     }
 
-    private func discoverPointerFiles() throws -> [DiscoveredPointer] {
+    private func discoverPointerFiles(candidatePaths: [String]? = nil) throws -> [DiscoveredPointer] {
+        if let candidatePaths {
+            var result: [DiscoveredPointer] = []
+            let normalizedPaths = Set(candidatePaths.map { $0.replacingOccurrences(of: "\\", with: "/") })
+            for path in normalizedPaths.sorted() {
+                guard !path.isEmpty, path != ".git", !path.hasPrefix(".git/") else { continue }
+                let fileURL = localURL.appendingPathComponent(path)
+                if let pointer = try pointerFileCandidate(path: path, fileURL: fileURL) {
+                    result.append(pointer)
+                }
+            }
+            return result
+        }
+
         guard let enumerator = fileManager.enumerator(
             at: localURL,
             includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
@@ -985,17 +1019,27 @@ final class GitLFSService: @unchecked Sendable {
                 continue
             }
 
-            let values = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
-            guard values.isRegularFile == true,
-                  let size = values.fileSize,
-                  size <= 2048 else { continue }
-
-            let data = try Data(contentsOf: fileURL)
-            guard let pointer = GitLFSPointer(data: data) else { continue }
-            result.append(DiscoveredPointer(path: relative, fileURL: fileURL, pointer: pointer))
+            if let pointer = try pointerFileCandidate(path: relative, fileURL: fileURL) {
+                result.append(pointer)
+            }
         }
 
         return result
+    }
+
+    private func pointerFileCandidate(path: String, fileURL: URL) throws -> DiscoveredPointer? {
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: fileURL.path, isDirectory: &isDirectory),
+              !isDirectory.boolValue else { return nil }
+
+        let values = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+        guard values.isRegularFile == true,
+              let size = values.fileSize,
+              size <= 2048 else { return nil }
+
+        let data = try Data(contentsOf: fileURL)
+        guard let pointer = GitLFSPointer(data: data) else { return nil }
+        return DiscoveredPointer(path: path, fileURL: fileURL, pointer: pointer)
     }
 
     private func downloadObjects(_ pointers: [GitLFSPointer]) async throws {
@@ -1518,21 +1562,59 @@ extension GitLFSService {
         }
     }
 
-    static func pointersInIndex(repo: OpaquePointer?, index: OpaquePointer?) throws -> [GitLFSPointer] {
+    static func pointersInIndex(
+        repo: OpaquePointer?,
+        index: OpaquePointer?,
+        candidatePaths: [String]? = nil
+    ) throws -> [GitLFSPointer] {
         guard let repo, let index else { return [] }
-        let count = git_index_entrycount(index)
         var pointers: Set<GitLFSPointer> = []
 
-        for i in 0..<count {
-            guard let entry = git_index_get_byindex(index, i) else { continue }
+        func collectPointer(from entry: UnsafePointer<git_index_entry>?) {
+            guard let entry else { return }
             var oid = entry.pointee.id
             var blob: OpaquePointer?
             defer { if let blob { git_blob_free(blob) } }
             guard git_blob_lookup(&blob, repo, &oid) == 0,
-                  let blob else { continue }
+                  let blob else { return }
 
             if let pointer = pointer(in: blob) {
                 pointers.insert(pointer)
+            }
+        }
+
+        if let candidatePaths {
+            let normalizedPaths = Set(
+                candidatePaths.map {
+                    $0.replacingOccurrences(of: "\\", with: "/")
+                        .precomposedStringWithCanonicalMapping
+                }
+            )
+            var unresolvedPaths = normalizedPaths
+            for path in candidatePaths.map({ $0.replacingOccurrences(of: "\\", with: "/") }) {
+                let entry = path.withCString { git_index_get_bypath(index, $0, 0) }
+                collectPointer(from: entry)
+                if entry != nil {
+                    unresolvedPaths.remove(path.precomposedStringWithCanonicalMapping)
+                }
+            }
+
+            if !unresolvedPaths.isEmpty {
+                let count = git_index_entrycount(index)
+                for i in 0..<count {
+                    guard let entry = git_index_get_byindex(index, i),
+                          let entryPath = entry.pointee.path else { continue }
+                    let normalizedEntryPath = String(cString: entryPath)
+                        .replacingOccurrences(of: "\\", with: "/")
+                        .precomposedStringWithCanonicalMapping
+                    guard unresolvedPaths.contains(normalizedEntryPath) else { continue }
+                    collectPointer(from: entry)
+                }
+            }
+        } else {
+            let count = git_index_entrycount(index)
+            for i in 0..<count {
+                collectPointer(from: git_index_get_byindex(index, i))
             }
         }
 
@@ -1634,6 +1716,18 @@ extension GitLFSService {
             pointer: pointer,
             fileURL: fileURL
         ) {
+            return true
+        }
+
+        if GitLFSCleanStatusCacheStore.isCachedObjectMirror(
+            repositoryURL: repositoryURL,
+            pointer: pointer,
+            fileURL: fileURL
+        ) {
+            GitLFSCleanStatusCacheStore.markClean(
+                repositoryURL: repositoryURL,
+                records: [GitLFSCleanStatusCacheStore.FileRecord(path: path, pointer: pointer, fileURL: fileURL)]
+            )
             return true
         }
 
