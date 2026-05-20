@@ -712,11 +712,15 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
         case .remoteBranchMissing:
             throw LocalGitError.pullRemoteBranchMissing(plan.branch)
         case .fastForward:
-            return try await performSafeFastForward(branch: plan.branch, pat: pat)
+            return try await performSafeFastForward(branch: plan.branch, pat: pat, refetch: false)
         }
     }
 
-    private func performSafeFastForward(branch: String, pat: String) async throws -> LocalPullResult {
+    func pullFastForward(branch: String, pat: String) async throws -> LocalPullResult {
+        try await performSafeFastForward(branch: branch, pat: pat, refetch: false)
+    }
+
+    private func performSafeFastForward(branch: String, pat: String, refetch: Bool) async throws -> LocalPullResult {
         let path = self.localURL.path
         let localURL = self.localURL
 
@@ -731,7 +735,9 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 throw LocalGitError.pullBlockedByLocalChanges
             }
 
-            try Self.fetchOrigin(repo: repo, pat: pat)
+            if refetch {
+                try Self.fetchOrigin(repo: repo, pat: pat)
+            }
 
             let remoteRefName = "refs/remotes/origin/\(branch)"
             var remoteRef: OpaquePointer?
@@ -3450,16 +3456,27 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
         var statusOpts = git_status_options()
         git_status_options_init(&statusOpts, UInt32(GIT_STATUS_OPTIONS_VERSION))
         statusOpts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR
+        // Keep status checks fast for large Obsidian vaults. libgit2's rename
+        // detection can turn a simple clean/dirty check into an expensive
+        // all-files similarity scan; staging already handles renames as
+        // delete+add, so status does not need to detect them eagerly.
         statusOpts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED.rawValue
             | GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS.rawValue
-            | GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX.rawValue
-            | GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR.rawValue
 
         var statusList: OpaquePointer?
         defer { if let statusList { git_status_list_free(statusList) } }
 
         try git2Check(git_status_list_new(&statusList, repo, &statusOpts), context: "Read status entries")
         guard let statusList else { return [] }
+
+        let repositoryURL = git_repository_workdir(repo).map {
+            URL(fileURLWithPath: String(cString: $0), isDirectory: true)
+        }
+        var lfsIndex: OpaquePointer?
+        defer { if let lfsIndex { git_index_free(lfsIndex) } }
+        if git_repository_index(&lfsIndex, repo) != 0 {
+            lfsIndex = nil
+        }
 
         let entryCount = Int(git_status_list_entrycount(statusList))
         var entries: [GitStatusEntry] = []
@@ -3545,7 +3562,13 @@ final class LocalGitService: GitRepositoryProtocol, @unchecked Sendable {
                 }
             }
 
-            if GitLFSService.isCleanHydratedLFSFile(repo: repo, path: path, statusFlags: effectiveFlags) {
+            if GitLFSService.isCleanHydratedLFSFile(
+                repo: repo,
+                index: lfsIndex,
+                repositoryURL: repositoryURL,
+                path: path,
+                statusFlags: effectiveFlags
+            ) {
                 continue
             }
 

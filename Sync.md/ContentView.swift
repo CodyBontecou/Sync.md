@@ -4,7 +4,7 @@ import StoreKit
 struct ContentView: View {
     @Environment(AppState.self) private var state
     @Environment(\.requestReview) private var requestReview
-    @State private var showContent = false
+    @State private var showContent = true
 
     var body: some View {
         Group {
@@ -26,6 +26,7 @@ struct ContentView: View {
             withAnimation(.easeOut(duration: 0.5)) {
                 showContent = true
             }
+            state.scheduleInitialChangeDetectionIfNeeded()
         }
         .onChange(of: state.shouldRequestReview) { _, shouldRequest in
             if shouldRequest {

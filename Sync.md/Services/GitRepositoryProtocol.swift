@@ -6,6 +6,8 @@ protocol GitRepositoryProtocol: Sendable {
     func clone(remoteURL: String, pat: String) async throws -> LocalCloneResult
     func pullPlan(pat: String) async throws -> PullPlan
     func pull(pat: String) async throws -> LocalPullResult
+    /// Apply a fast-forward after `pullPlan` has already fetched origin.
+    func pullFastForward(branch: String, pat: String) async throws -> LocalPullResult
     func unifiedDiff(path: String?) async throws -> UnifiedDiffResult
     func listBranches() async throws -> BranchInventory
     func createBranch(name: String) async throws

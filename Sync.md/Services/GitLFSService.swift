@@ -92,6 +92,115 @@ struct GitLFSPointer: Equatable, Hashable, Sendable {
     }
 }
 
+// MARK: - Hydrated LFS Clean-Status Cache
+
+private enum GitLFSCleanStatusCacheStore {
+    struct FileRecord {
+        let path: String
+        let pointer: GitLFSPointer
+        let fileURL: URL
+    }
+
+    private struct Entry: Codable {
+        let pointerOID: String
+        let pointerSize: Int64
+        let fileSize: Int64
+        let modificationTime: TimeInterval
+    }
+
+    private struct Cache: Codable {
+        var entries: [String: Entry] = [:]
+    }
+
+    private static let lock = NSLock()
+    private static var memory: [String: Cache] = [:]
+
+    static func isKnownClean(repositoryURL: URL, path: String, pointer: GitLFSPointer, fileURL: URL) -> Bool {
+        guard let metadata = metadata(for: fileURL), metadata.fileSize == pointer.size else { return false }
+        let cacheURL = cacheURL(repositoryURL: repositoryURL)
+        let key = normalizedPath(path)
+
+        lock.lock()
+        defer { lock.unlock() }
+
+        let cache = loadLocked(cacheURL: cacheURL)
+        guard let entry = cache.entries[key] else { return false }
+        return entry.pointerOID == pointer.oid
+            && entry.pointerSize == pointer.size
+            && entry.fileSize == metadata.fileSize
+            && abs(entry.modificationTime - metadata.modificationTime) < 0.000_001
+    }
+
+    static func markClean(repositoryURL: URL, records: [FileRecord]) {
+        guard !records.isEmpty else { return }
+        let cacheURL = cacheURL(repositoryURL: repositoryURL)
+
+        lock.lock()
+        defer { lock.unlock() }
+
+        var cache = loadLocked(cacheURL: cacheURL)
+        var didChange = false
+
+        for record in records {
+            let key = normalizedPath(record.path)
+            guard let metadata = metadata(for: record.fileURL), metadata.fileSize == record.pointer.size else {
+                if cache.entries.removeValue(forKey: key) != nil { didChange = true }
+                continue
+            }
+
+            cache.entries[key] = Entry(
+                pointerOID: record.pointer.oid,
+                pointerSize: record.pointer.size,
+                fileSize: metadata.fileSize,
+                modificationTime: metadata.modificationTime
+            )
+            didChange = true
+        }
+
+        guard didChange else { return }
+        memory[cacheURL.path] = cache
+        saveLocked(cache, cacheURL: cacheURL)
+    }
+
+    private static func cacheURL(repositoryURL: URL) -> URL {
+        repositoryURL
+            .appendingPathComponent(".git/syncmd", isDirectory: true)
+            .appendingPathComponent("lfs-clean-cache.json")
+    }
+
+    private static func normalizedPath(_ path: String) -> String {
+        path.replacingOccurrences(of: "\\", with: "/").precomposedStringWithCanonicalMapping
+    }
+
+    private static func metadata(for fileURL: URL) -> (fileSize: Int64, modificationTime: TimeInterval)? {
+        guard let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey]),
+              let fileSize = values.fileSize else { return nil }
+        return (Int64(fileSize), values.contentModificationDate?.timeIntervalSince1970 ?? 0)
+    }
+
+    private static func loadLocked(cacheURL: URL) -> Cache {
+        if let cached = memory[cacheURL.path] { return cached }
+        guard let data = try? Data(contentsOf: cacheURL),
+              let cache = try? JSONDecoder().decode(Cache.self, from: data) else {
+            let empty = Cache()
+            memory[cacheURL.path] = empty
+            return empty
+        }
+        memory[cacheURL.path] = cache
+        return cache
+    }
+
+    private static func saveLocked(_ cache: Cache, cacheURL: URL) {
+        do {
+            try FileManager.default.createDirectory(at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let data = try JSONEncoder().encode(cache)
+            try data.write(to: cacheURL, options: .atomic)
+        } catch {
+            // Best-effort performance cache only; correctness falls back to hashing.
+        }
+    }
+}
+
 // MARK: - .gitattributes LFS Matching
 
 struct GitLFSAttributes: Sendable {
@@ -685,14 +794,19 @@ final class GitLFSService: @unchecked Sendable {
         }
 
         var checkedOut = 0
+        var cleanCacheRecords: [GitLFSCleanStatusCacheStore.FileRecord] = []
         for item in discovered {
             let objectURL = cachedObjectURL(for: item.pointer)
             guard fileManager.fileExists(atPath: objectURL.path) else {
                 throw LocalGitError.lfsFailed("Missing downloaded LFS object \(item.pointer.oid) for \(item.path).")
             }
             try fileManager.copyReplacingItem(at: objectURL, to: item.fileURL)
+            cleanCacheRecords.append(
+                GitLFSCleanStatusCacheStore.FileRecord(path: item.path, pointer: item.pointer, fileURL: item.fileURL)
+            )
             checkedOut += 1
         }
+        GitLFSCleanStatusCacheStore.markClean(repositoryURL: localURL, records: cleanCacheRecords)
 
         return GitLFSHydrateResult(
             pointerCount: discovered.count,
@@ -1349,6 +1463,7 @@ extension GitLFSService {
         var attributes = GitLFSAttributes(text: attributesText)
         let paths = try candidatePaths ?? enumerateWorktreeFiles(in: repositoryURL)
         var didModifyAttributes = false
+        var cleanCacheRecords: [GitLFSCleanStatusCacheStore.FileRecord] = []
 
         for rawPath in paths {
             let path = rawPath.replacingOccurrences(of: "\\", with: "/")
@@ -1391,7 +1506,12 @@ extension GitLFSService {
             }
 
             try addPointer(pointer, path: path, to: index)
+            cleanCacheRecords.append(
+                GitLFSCleanStatusCacheStore.FileRecord(path: path, pointer: pointer, fileURL: fileURL)
+            )
         }
+
+        GitLFSCleanStatusCacheStore.markClean(repositoryURL: repositoryURL, records: cleanCacheRecords)
 
         if didModifyAttributes {
             try stageGitattributes(in: index)
@@ -1463,6 +1583,27 @@ extension GitLFSService {
     }
 
     static func isCleanHydratedLFSFile(repo: OpaquePointer?, path: String, statusFlags: UInt32) -> Bool {
+        guard let repo, let workdirPointer = git_repository_workdir(repo) else { return false }
+        var index: OpaquePointer?
+        defer { if let index { git_index_free(index) } }
+        guard git_repository_index(&index, repo) == 0, let index else { return false }
+
+        return isCleanHydratedLFSFile(
+            repo: repo,
+            index: index,
+            repositoryURL: URL(fileURLWithPath: String(cString: workdirPointer), isDirectory: true),
+            path: path,
+            statusFlags: statusFlags
+        )
+    }
+
+    static func isCleanHydratedLFSFile(
+        repo: OpaquePointer?,
+        index: OpaquePointer?,
+        repositoryURL: URL?,
+        path: String,
+        statusFlags: UInt32
+    ) -> Bool {
         let indexMask = GIT_STATUS_INDEX_NEW.rawValue
             | GIT_STATUS_INDEX_MODIFIED.rawValue
             | GIT_STATUS_INDEX_DELETED.rawValue
@@ -1473,19 +1614,38 @@ extension GitLFSService {
               statusFlags & allowedWorktreeMask != 0,
               statusFlags & ~allowedWorktreeMask == 0,
               let repo,
-              let workdirPointer = git_repository_workdir(repo) else {
+              let index,
+              let repositoryURL else {
             return false
         }
 
-        var index: OpaquePointer?
-        defer { if let index { git_index_free(index) } }
-        guard git_repository_index(&index, repo) == 0, let index else { return false }
-
         guard let pointer = indexPointer(repo: repo, index: index, path: path) else { return false }
-        let fileURL = URL(fileURLWithPath: String(cString: workdirPointer), isDirectory: true)
-            .appendingPathComponent(path)
+        let fileURL = repositoryURL.appendingPathComponent(path)
+
+        // Hydrated LFS files are intentionally different from the pointer blob
+        // stored in the Git index, so libgit2 reports them as WT_MODIFIED. Hashing
+        // every hydrated object on each status refresh can make app launch and
+        // pull/push screens stall for seconds on media-heavy vaults. Cache the
+        // verified-clean result by pointer OID + file size + mtime; unchanged
+        // hydrated files then skip the expensive full-file SHA-256 pass.
+        if GitLFSCleanStatusCacheStore.isKnownClean(
+            repositoryURL: repositoryURL,
+            path: path,
+            pointer: pointer,
+            fileURL: fileURL
+        ) {
+            return true
+        }
+
         guard let info = try? GitLFSPointer.sha256HexAndSize(forFileAt: fileURL) else { return false }
-        return info.oid == pointer.oid && info.size == pointer.size
+        let isClean = info.oid == pointer.oid && info.size == pointer.size
+        if isClean {
+            GitLFSCleanStatusCacheStore.markClean(
+                repositoryURL: repositoryURL,
+                records: [GitLFSCleanStatusCacheStore.FileRecord(path: path, pointer: pointer, fileURL: fileURL)]
+            )
+        }
+        return isClean
     }
 
     private static func appendLFSAttributeRules(

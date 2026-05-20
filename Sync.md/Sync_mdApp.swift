@@ -40,10 +40,10 @@ struct Sync_mdApp: App {
                 // the user may have deleted files via the Files app.
                 appState.validateClonedRepos()
 
-                // Refresh change counts for repos that are still cloned
-                for repo in appState.repos where repo.isCloned {
-                    appState.detectChanges(repoID: repo.id)
-                }
+                // Refresh change counts for repos that are still cloned, but
+                // avoid immediately re-scanning large vaults every time the app
+                // bounces through inactive/active (Control Center, app switcher).
+                appState.refreshClonedRepos(deferredBy: 0.5, skipIfRecentlyStartedWithin: 15)
             }
         }
     }

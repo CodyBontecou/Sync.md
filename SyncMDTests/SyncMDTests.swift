@@ -3236,6 +3236,10 @@ private final class FakeGitRepository: GitRepositoryProtocol, @unchecked Sendabl
         }
     }
 
+    func pullFastForward(branch: String, pat: String) async throws -> LocalPullResult {
+        try await pull(pat: pat)
+    }
+
     func unifiedDiff(path: String?) async throws -> UnifiedDiffResult {
         diffResult
     }

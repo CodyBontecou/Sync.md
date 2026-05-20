@@ -148,7 +148,7 @@ struct VaultView: View {
             #if DEBUG
             guard !MarketingCapture.isActive else { return }
             #endif
-            state.detectChanges(repoID: repoID)
+            state.detectChanges(repoID: repoID, skipIfRecentlyStartedWithin: 5)
         }
         .onChange(of: state.repos) {
             if state.repo(id: repoID) == nil { dismiss() }

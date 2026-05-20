@@ -99,6 +99,13 @@ final class AppState {
     private var resolvedCustomURLs: [UUID: URL] = [:]
     private var accessingSecurityScope: Set<UUID> = []
 
+    // MARK: - Background Status Refresh
+
+    private var changeDetectionInFlight: Set<UUID> = []
+    private var pendingChangeDetection: Set<UUID> = []
+    private var lastChangeDetectionStartedAt: [UUID: Date] = [:]
+    private var didScheduleInitialChangeDetection = false
+
     // MARK: - PAT
 
     var pat: String {
@@ -241,10 +248,10 @@ final class AppState {
         // Validate that cloned repos still exist on disk
         validateClonedRepos()
 
-        // Detect changes for all cloned repos
-        for repo in repos where repo.isCloned {
-            detectChanges(repoID: repo.id)
-        }
+        // Do not scan Git status synchronously during app construction. Large
+        // vaults (especially hydrated Git LFS files) can make launch appear as
+        // a black screen or trigger iOS watchdog kills. The first refresh is
+        // scheduled after the initial UI frame in ContentView.onAppear.
     }
 
     private func migrateFromLegacy() {
@@ -570,7 +577,27 @@ final class AppState {
 
     // MARK: - Change Detection
 
-    func detectChanges(repoID: UUID) {
+    func scheduleInitialChangeDetectionIfNeeded() {
+        guard !didScheduleInitialChangeDetection else { return }
+        didScheduleInitialChangeDetection = true
+        refreshClonedRepos(deferredBy: 0.75, skipIfRecentlyStartedWithin: 10)
+    }
+
+    func refreshClonedRepos(deferredBy delay: TimeInterval = 0, skipIfRecentlyStartedWithin interval: TimeInterval? = nil) {
+        let repoIDs = repos.filter(\.isCloned).map(\.id)
+        guard !repoIDs.isEmpty else { return }
+
+        Task {
+            if delay > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            }
+            for repoID in repoIDs {
+                detectChanges(repoID: repoID, skipIfRecentlyStartedWithin: interval)
+            }
+        }
+    }
+
+    func detectChanges(repoID: UUID, skipIfRecentlyStartedWithin interval: TimeInterval? = nil) {
         guard let repo = repo(id: repoID), repo.isCloned else { return }
         if isDemoMode { return }
         let vaultDir = vaultURL(for: repoID)
@@ -595,13 +622,38 @@ final class AppState {
             return
         }
 
-        Task {
+        let now = Date()
+        if let interval,
+           let lastStartedAt = lastChangeDetectionStartedAt[repoID],
+           now.timeIntervalSince(lastStartedAt) < interval {
+            return
+        }
+
+        if changeDetectionInFlight.contains(repoID) {
+            pendingChangeDetection.insert(repoID)
+            return
+        }
+        changeDetectionInFlight.insert(repoID)
+        lastChangeDetectionStartedAt[repoID] = now
+
+        let startedAt = now
+        let repoName = repo.displayName
+        Task(priority: .utility) {
             do {
                 let info = try await gitService.repoInfo()
                 changeCounts[repoID] = info.changeCount
                 statusEntriesByRepo[repoID] = info.statusEntries
                 syncStateByRepo[repoID] = info.syncState
                 diffByRepo[repoID] = .empty
+
+                let elapsed = Date().timeIntervalSince(startedAt)
+                if elapsed > 2 {
+                    DebugLogger.shared.info(
+                        "status",
+                        "Status refresh was slow",
+                        detail: "\(repoName): \(String(format: "%.1f", elapsed))s, \(info.statusEntries.count) entries"
+                    )
+                }
             } catch {
                 changeCounts[repoID] = 0
                 statusEntriesByRepo[repoID] = []
@@ -613,6 +665,12 @@ final class AppState {
                 commitHistoryHasMoreByRepo[repoID] = false
                 commitDetailByRepo[repoID] = [:]
                 stashesByRepo[repoID] = []
+            }
+
+            let shouldRunAgain = pendingChangeDetection.remove(repoID) != nil
+            changeDetectionInFlight.remove(repoID)
+            if shouldRunAgain {
+                detectChanges(repoID: repoID)
             }
         }
     }
@@ -1833,7 +1891,7 @@ final class AppState {
 
             case .fastForward:
                 syncProgress = String(localized: "Applying remote updates...")
-                let result = try await gitService.pull(pat: authPayload(for: repo))
+                let result = try await gitService.pullFastForward(branch: plan.branch, pat: authPayload(for: repo))
 
                 if !result.updated {
                     syncProgress = String(localized: "Already up to date!")
